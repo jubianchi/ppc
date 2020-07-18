@@ -1,0 +1,18 @@
+{
+    "source": {
+        "directories": [
+            "src"
+        ]
+    },
+    "timeout": 10,
+    "tmpDir": "tmp",
+    "logs": {
+        "text": "tmp/mutation/infection.log",
+        "perMutator": "tmp/mutation/per-mutator.md"
+    },
+    "mutators": {
+        "@default": true
+    },
+    "minMsi": 50,
+    "minCoveredMsi": 70
+}

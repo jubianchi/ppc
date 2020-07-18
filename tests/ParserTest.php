@@ -1,0 +1,81 @@
+<?php
+/**
+ * This file is part of PPC.
+ *
+ * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace jubianchi\PPC\Tests;
+
+use Exception;
+use jubianchi\PPC\Parser;
+use jubianchi\PPC\Parser\Result;
+use jubianchi\PPC\Parser\Result\Success;
+use function jubianchi\PPC\Parsers\any;
+use jubianchi\PPC\Stream;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
+
+class ParserTest extends TestCase
+{
+    /**
+     * @test
+     * @small
+     */
+    public function parserThrows(): void
+    {
+        $stream = new Stream('abc');
+        $exception = new Exception('random exception');
+        $parser = new Parser('test parser', function () use ($exception): Parser\Result { throw $exception; });
+
+        try {
+            $parser($stream);
+
+            self::fail();
+        } catch (RuntimeException $thrown) {
+            self::assertSame($exception, $thrown->getPrevious());
+            self::assertEquals('test parser: '.$exception->getMessage(), $thrown->getMessage());
+        }
+    }
+
+    /**
+     * @test
+     * @small
+     */
+    public function map(): void
+    {
+        $stream = new Stream('abc');
+        $parser = (new Parser('test parser', function (Stream $stream): Parser\Result {
+            $result = new Success($stream->current());
+
+            $stream->next();
+
+            return $result;
+        }))->map(fn (Result $result): Result => new Success(strtoupper($result->result())));
+
+        $result = $parser($stream);
+
+        self::assertThat($result, self::isInstanceOf(Success::class));
+        self::assertEquals('A', $result->result());
+
+        self::assertEquals(1, $stream->key());
+        self::assertEquals('b', $stream->current());
+    }
+
+    /**
+     * @test
+     * @small
+     */
+    public function label(): void
+    {
+        $parser = any();
+        $labeled = $parser->label('test parser');
+
+        self::assertNotSame($parser, $labeled);
+    }
+}

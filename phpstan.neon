@@ -1,0 +1,14 @@
+parameters:
+    level: max
+    tmpDir: tmp
+    paths:
+        - benchmarks
+        - parsers
+        - src
+        - tests
+    ignoreErrors:
+        -
+            message: '/Undefined variable: \$this/'
+            paths:
+                - src/combinators.php
+                - src/parsers.php

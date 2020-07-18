@@ -1,0 +1,59 @@
+object(stdClass)#195 (6) {
+  ["name"]=>
+  string(13) "jubianchi/ppc"
+  ["license"]=>
+  string(3) "MIT"
+  ["require"]=>
+  object(stdClass)#301 (4) {
+    ["php"]=>
+    string(7) ">=7.4.0"
+    ["ext-json"]=>
+    string(1) "*"
+    ["ext-mbstring"]=>
+    string(1) "*"
+    ["psr/log"]=>
+    string(4) "^1.1"
+  }
+  ["require-dev"]=>
+  object(stdClass)#478 (3) {
+    ["vimeo/psalm"]=>
+    string(5) "^3.12"
+    ["mathiasverraes/parsica"]=>
+    string(6) "^0.4.0"
+    ["phpbench/phpbench"]=>
+    string(4) "@dev"
+  }
+  ["autoload"]=>
+  object(stdClass)#539 (2) {
+    ["psr-4"]=>
+    object(stdClass)#685 (2) {
+      ["jubianchi\PPC\"]=>
+      array(1) {
+        [0]=>
+        string(7) "src/lib"
+      }
+      ["jubianchi\PPC\Parsers\"]=>
+      array(1) {
+        [0]=>
+        string(7) "parsers"
+      }
+    }
+    ["files"]=>
+    array(3) {
+      [0]=>
+      string(15) "src/parsers.php"
+      [1]=>
+      string(19) "src/combinators.php"
+      [2]=>
+      string(13) "src/debug.php"
+    }
+  }
+  ["autoload-dev"]=>
+  object(stdClass)#843 (1) {
+    ["files"]=>
+    array(1) {
+      [0]=>
+      string(16) "parsers/json.php"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+    blackfire-7:
+        build: docker/7.4
+        environment:
+            BLACKFIRE_SERVER_ID: 8c2c04cc-b1cf-4bfe-a351-57fa97ce55fa
+            BLACKFIRE_SERVER_TOKEN: 1e9b9df03bea35a47e8c2deb67843067d756ef86c986b98b4062122a0c8d0882
+            BLACKFIRE_CLIENT_ID: 37f9e9ef-0524-49bc-8647-d5deb146f42f
+            BLACKFIRE_CLIENT_TOKEN: 49f38dd89043ea84283008c65989beaabb41f7b699d2583f842af544602c3b78
+        volumes:
+            - ./:/src
+    blackfire-8:
+        build: docker/8.0
+        environment:
+            BLACKFIRE_SERVER_ID: 8c2c04cc-b1cf-4bfe-a351-57fa97ce55fa
+            BLACKFIRE_SERVER_TOKEN: 1e9b9df03bea35a47e8c2deb67843067d756ef86c986b98b4062122a0c8d0882
+            BLACKFIRE_CLIENT_ID: 37f9e9ef-0524-49bc-8647-d5deb146f42f
+            BLACKFIRE_CLIENT_TOKEN: 49f38dd89043ea84283008c65989beaabb41f7b699d2583f842af544602c3b78
+        volumes:
+            - ./:/src
+

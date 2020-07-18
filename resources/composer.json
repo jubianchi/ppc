@@ -1,0 +1,35 @@
+{
+    "name": "jubianchi/ppc",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.4.0",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "psr/log": "^1.1"
+    },
+    "require-dev": {
+        "vimeo/psalm": "^3.12",
+        "mathiasverraes/parsica": "^0.4.0",
+        "phpbench/phpbench": "@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "jubianchi\\PPC\\": [
+                "src/lib"
+            ],
+            "jubianchi\\PPC\\Parsers\\": [
+                "parsers"
+            ]
+        },
+        "files": [
+            "src/parsers.php",
+            "src/combinators.php",
+            "src/debug.php"
+        ]
+    },
+    "autoload-dev": {
+        "files": [
+            "parsers/json.php"
+        ]
+    }
+}

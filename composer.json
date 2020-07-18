@@ -1,0 +1,50 @@
+{
+    "name": "jubianchi/ppc",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.4.0",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "psr/log": "^1.1"
+    },
+    "require-dev": {
+        "mathiasverraes/parsica": "^0.4.0",
+        "phpbench/phpbench": "@dev",
+        "phpunit/phpunit": "^9",
+        "phpunit/php-invoker": "^3.0",
+        "friendsofphp/php-cs-fixer": "@dev",
+        "phpstan/phpstan": "^0.12.32",
+        "phpstan/phpstan-strict-rules": "^0.12.3",
+        "phpstan/extension-installer": "^1.0",
+        "infection/infection": "^0.16.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "jubianchi\\PPC\\": ["src/lib"],
+            "jubianchi\\PPC\\Parsers\\": ["parsers"]
+        },
+        "files": [
+            "src/parsers.php",
+            "src/combinators.php",
+            "src/debug.php",
+            "src/mappers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "jubianchi\\PPC\\Tests\\": ["tests"],
+            "jubianchi\\PPC\\Tests\\Parsers\\": ["tests/parsers"],
+            "jubianchi\\PPC\\Tests\\Combinators\\": ["tests/combinators"]
+        },
+        "files": [
+            "parsers/json.php"
+        ]
+    },
+    "scripts": {
+        "bm": "phpbench run benchmarks --report=aggregate --ansi",
+        "cs": "php-cs-fixer fix --ansi",
+        "mt": "phpdbg -qrr vendor/bin/phpunit --testdox && vendor/bin/infection --coverage=tmp --ansi --skip-initial-tests --no-progress --threads=2",
+        "sa": "phpstan analyse --ansi --memory-limit=50M",
+        "ut": "phpdbg -qrr vendor/bin/phpunit --testdox"
+    }
+}

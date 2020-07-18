@@ -1,0 +1,13 @@
+benchmarks          export-ignore
+docker              export-ignore
+resources           export-ignore
+tests               export-ignore
+
+.php_cs             export-ignore
+composer.lock       merge=ours
+docker-compose.yml  export-ignore
+LAST_COMMIT         export-subst
+infection.json      export-ignore
+phpbench.json       export-ignore
+phpstan.neon        export-ignore
+phpunit.xml         export-ignore
