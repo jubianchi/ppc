@@ -51,6 +51,8 @@ class JSON
      */
     public function bench_json_parsica(): void
     {
+        ini_set('xdebug.max_nesting_level', '1024');
+
         Parsica\JSON\JSON::json()->tryString($this->data);
     }
 
