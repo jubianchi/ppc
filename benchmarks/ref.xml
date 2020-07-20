@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<phpbench xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="@git_tag@">
+  <suite tag="ref" context="ref" date="2020-07-20T11:26:12+00:00" config-path="/Users/julien.bianchi/repositories/jubianchi/ppc/phpbench.json" uuid="1343d101f85dc60a3b48359938c203ae1b179fc6">
+    <env>
+      <uname os="Darwin" host="C02ZX1GKLVDM.local" release="20.0.0" version="Darwin Kernel Version 20.0.0: Sat Jun 13 17:58:16 PDT 2020; root:xnu-7090.0.0.111.5~1/RELEASE_X86_64" machine="x86_64"/>
+      <php xdebug="" version="7.4.8" ini="/usr/local/etc/php/7.4/php.ini" extensions="Core, phpdbg_webhelper, date, libxml, openssl, pcre, sqlite3, zlib, bcmath, bz2, calendar, ctype, curl, dba, dom, hash, FFI, fileinfo, filter, ftp, gd, gettext, gmp, SPL, iconv, intl, json, ldap, mbstring, session, standard, odbc, pcntl, mysqlnd, PDO, pdo_dblib, pdo_mysql, PDO_ODBC, pdo_pgsql, pdo_sqlite, pgsql, Phar, posix, pspell, readline, Reflection, mysqli, shmop, SimpleXML, soap, sockets, sodium, exif, sysvmsg, sysvsem, sysvshm, tidy, tokenizer, xml, xmlreader, xmlrpc, xmlwriter, xsl, zip, Zend OPcache"/>
+      <opcache extension_loaded="1" enabled=""/>
+      <vcs system="git" branch="github-workflows" version="0792294d9e46445a945e8863c4b6eaae5ac3de81"/>
+      <baseline nothing="0.011205673217773" md5="0.17380714416504" file_rw="3.8769245147705"/>
+    </env>
+    <benchmark class="\jubianchi\PPC\Benchmarks\JSON">
+      <subject name="bench_json_ppc">
+        <executor name="microtime">
+          <parameter name="php_config" type="collection"/>
+          <parameter name="executor" value="microtime"/>
+        </executor>
+        <variant sleep="0" output-time-unit="microseconds" output-time-precision="" output-mode="time" revs="5" warmup="1" retry-threshold="">
+          <parameter-set name="0"/>
+          <iteration time-net="112708" mem-peak="12303624" mem-real="14680064" mem-final="12047976" comp-z-value="1.3596436384606" comp-deviation="9.0715543770685"/>
+          <iteration time-net="96324" mem-peak="12303624" mem-real="14680064" mem-final="12047976" comp-z-value="-1.0167593242595" comp-deviation="-6.7838272011148"/>
+          <iteration time-net="100970" mem-peak="12303624" mem-real="14680064" mem-final="12047976" comp-z-value="-0.34288431420106" comp-deviation="-2.2877271759537"/>
+          <stats max="22541.6" mean="20666.8" min="19264.8" mode="19995.82778865" rstdev="6.6720088414783" stdev="1378.8907232506" sum="62000.4" variance="1901339.6266667"/>
+        </variant>
+      </subject>
+      <subject name="bench_json_parsica">
+        <executor name="microtime">
+          <parameter name="php_config" type="collection"/>
+          <parameter name="executor" value="microtime"/>
+        </executor>
+        <variant sleep="0" output-time-unit="microseconds" output-time-precision="" output-mode="time" revs="5" warmup="1" retry-threshold="">
+          <parameter-set name="0"/>
+          <iteration time-net="1427294" mem-peak="6151936" mem-real="8388608" mem-final="4944832" comp-z-value="-0.92030610595425" comp-deviation="-6.9879356856636"/>
+          <iteration time-net="1479788" mem-peak="6151936" mem-real="8388608" mem-final="4944832" comp-z-value="-0.46978108636151" comp-deviation="-3.5670740382967"/>
+          <iteration time-net="1696495" mem-peak="6151936" mem-real="8388608" mem-final="4944832" comp-z-value="1.3900871923158" comp-deviation="10.55500972396"/>
+          <stats max="339299" mean="306905.13333333" min="285458.8" mode="294309.24383562" rstdev="7.5930558761401" stdev="23303.478260742" sum="920715.4" variance="543052099.04889"/>
+        </variant>
+      </subject>
+      <subject name="bench_json_php">
+        <executor name="microtime">
+          <parameter name="php_config" type="collection"/>
+          <parameter name="executor" value="microtime"/>
+        </executor>
+        <variant sleep="0" output-time-unit="microseconds" output-time-precision="" output-mode="time" revs="5" warmup="1" retry-threshold="">
+          <parameter-set name="0"/>
+          <iteration time-net="21" mem-peak="4466488" mem-real="6291456" mem-final="4383536" comp-z-value="0" comp-deviation="0"/>
+          <iteration time-net="21" mem-peak="4466488" mem-real="6291456" mem-final="4383536" comp-z-value="0" comp-deviation="0"/>
+          <iteration time-net="21" mem-peak="4466488" mem-real="6291456" mem-final="4383536" comp-z-value="0" comp-deviation="0"/>
+          <stats max="4.2" mean="4.2" min="4.2" mode="4.2" rstdev="0" stdev="0" sum="12.6" variance="0"/>
+        </variant>
+      </subject>
+    </benchmark>
+    <result key="time" class="PhpBench\Model\Result\TimeResult"/>
+    <result key="mem" class="PhpBench\Model\Result\MemoryResult"/>
+    <result key="comp" class="PhpBench\Model\Result\ComputedResult"/>
+  </suite>
+</phpbench>

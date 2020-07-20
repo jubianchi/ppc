@@ -3,6 +3,7 @@ docker              export-ignore
 resources           export-ignore
 tests               export-ignore
 
+benchmarks/ref.xml  merge=ours
 .php_cs             export-ignore
 composer.lock       merge=ours
 docker-compose.yml  export-ignore
