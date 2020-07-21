@@ -49,6 +49,7 @@
         loadSidebar: '_sidebar.md',
         subMaxLevel: 4,
         routerMode: 'history',
+        basePath: document.location.host.indexOf('localhost') > -1 ? '' : '/ppc',
     };
 </script>
 <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
