@@ -153,6 +153,37 @@ function many(Parser $parser): Parser
         ->stringify(fn (string $label): string => $label.'('.$parser.')');
 }
 
+function repeat(int $times, Parser $parser): Parser
+{
+    return (new Parser('repeat', function (Stream $stream) use ($parser, $times): Result {
+        $results = [];
+        $transaction = $stream->begin();
+
+        $this->logger->indent();
+
+        while ($times-- > 0) {
+            $result = $parser->logger($this->logger)($transaction);
+
+            if ($result->isFailure()) {
+                $stream->rollback();
+
+                return $result;
+            }
+
+            if (!($result instanceof Skip)) {
+                $results[] = $result->result();
+            }
+        }
+
+        $stream->commit();
+
+        $this->logger->dedent();
+
+        return new Success($results);
+    }))
+        ->stringify(fn (string $label): string => $label.'('.$times.', '.$parser.')');
+}
+
 function not(Parser $parser): Parser
 {
     return (new Parser('not', function (Stream $stream) use ($parser): Result {
