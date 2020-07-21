@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PPC</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="description" content="Description">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css">
+    <style>
+        :root {
+            --docsify-example-panels-left-panel-width: 50%;
+            --docsify-example-panels-right-panel-width: 50%;
+        }
+
+        .docsify-tabs__tab {
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+    var repo = 'jubianchi/ppc';
+
+    window.$docsify = {
+        name: 'PPC',
+        nameLink: '/',
+        repo: repo,
+        coverpage: '_cover.md',
+        loadNavbar: '_navbar.md',
+        auto2top: true,
+        mergeNavbar: true,
+        externalLinkRel: 'noopener noreferrer',
+        notFoundPage: '404.md',
+        tabs: {
+            theme: 'material',
+            persist: false,
+        },
+        executeScript: true,
+        markdown: {
+            renderer: {
+                code: function (code, language) {
+                    return this.origin.code.apply(this, [code, language === 'phps' ? 'php' : language]);
+                },
+            },
+        },
+        loadSidebar: '_sidebar.md',
+        subMaxLevel: 4,
+    };
+</script>
+<script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/external-script.min.js"></script>
+
+<script src="//cdn.jsdelivr.net/npm/docsify-copy-code"></script>
+<script src="//unpkg.com/docsify-plugin-flexible-alerts"></script>
+<script src="//cdn.jsdelivr.net/npm/docsify-tabs"></script>
+<script src="//cdn.jsdelivr.net/npm/class-change"></script>
+<script src="//cdn.jsdelivr.net/npm/docsify-example-panels"></script>
+
+<script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-php.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+</body>
+</html>

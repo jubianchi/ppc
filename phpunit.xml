@@ -7,7 +7,7 @@
          timeoutForSmallTests="1">
     <testsuites>
         <testsuite name="PPC">
-            <directory>tests</directory>
+            <directory>tests/unit</directory>
         </testsuite>
     </testsuites>
 

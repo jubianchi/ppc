@@ -9,7 +9,6 @@
         "psr/log": "^1.1"
     },
     "require-dev": {
-        "mathiasverraes/parsica": "^0.4.0",
         "phpbench/phpbench": "@dev",
         "phpunit/phpunit": "^9",
         "phpunit/php-invoker": "^3.0",
@@ -17,7 +16,9 @@
         "phpstan/phpstan": "^0.12.32",
         "phpstan/phpstan-strict-rules": "^0.12.3",
         "phpstan/extension-installer": "^1.0",
-        "infection/infection": "^0.16.4"
+        "infection/infection": "^0.16.4",
+        "mathiasverraes/parsica": "@stable",
+        "mathiasverraes/uptodocs": "dev-main"
     },
     "autoload": {
         "psr-4": {
@@ -33,9 +34,9 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "jubianchi\\PPC\\Tests\\": ["tests"],
-            "jubianchi\\PPC\\Tests\\Parsers\\": ["tests/parsers"],
-            "jubianchi\\PPC\\Tests\\Combinators\\": ["tests/combinators"]
+            "jubianchi\\PPC\\Tests\\": ["tests/unit"],
+            "jubianchi\\PPC\\Tests\\Parsers\\": ["tests//unitparsers"],
+            "jubianchi\\PPC\\Tests\\Combinators\\": ["tests//unitcombinators"]
         },
         "files": [
             "parsers/json.php"
@@ -45,6 +46,7 @@
         "bm": "phpbench run benchmarks --report=aggregate --dump-file=tmp/curr.xml --ansi --tag=current",
         "bmc": "phpbench report --report='extends: \"compare\", compare: \"tag\", cols: [\"subject\", \"set\", \"revs\", \"its\"], compare_fields: [\"mem_peak\", \"best\", \"mean\", \"worst\"]' --file=benchmarks/ref.xml --file=tmp/curr.xml --ansi",
         "cs": "php-cs-fixer fix --ansi",
+        "dt": "tests/docs/run.sh",
         "mt": "phpdbg -qrr vendor/bin/phpunit --testdox && vendor/bin/infection --coverage=tmp --ansi --skip-initial-tests --no-progress --threads=2",
         "sa": "phpstan analyse --ansi --memory-limit=50",
         "ut": "phpdbg -qrr vendor/bin/phpunit --testdox"
