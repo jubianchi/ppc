@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "255f2d31ae855615458430a16333fed8",
+    "content-hash": "f4179f7f8fd6d4faed8c067fc7f89b32",
     "packages": [
         {
             "name": "psr/log",
@@ -807,6 +807,75 @@
             "time": "2020-05-27T16:41:55+00:00"
         },
         {
+            "name": "league/commonmark",
+            "version": "1.5.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thephpleague/commonmark.git",
+                "reference": "2574454b97e4103dc4e36917bd783b25624aefcd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/2574454b97e4103dc4e36917bd783b25624aefcd",
+                "reference": "2574454b97e4103dc4e36917bd783b25624aefcd",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "php": "^7.1 || ^8.0"
+            },
+            "conflict": {
+                "scrutinizer/ocular": "1.7.*"
+            },
+            "require-dev": {
+                "cebe/markdown": "~1.0",
+                "commonmark/commonmark.js": "0.29.1",
+                "erusev/parsedown": "~1.0",
+                "ext-json": "*",
+                "github/gfm": "0.29.0",
+                "michelf/php-markdown": "~1.4",
+                "mikehaertl/php-shellcommand": "^1.4",
+                "phpstan/phpstan": "^0.12",
+                "phpunit/phpunit": "^7.5 || ^8.5 || ^9.2",
+                "scrutinizer/ocular": "^1.5",
+                "symfony/finder": "^4.2"
+            },
+            "bin": [
+                "bin/commonmark"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "League\\CommonMark\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Colin O'Dell",
+                    "email": "colinodell@gmail.com",
+                    "homepage": "https://www.colinodell.com",
+                    "role": "Lead Developer"
+                }
+            ],
+            "description": "Highly-extensible PHP Markdown parser which fully supports the CommonMark spec and Github-Flavored Markdown (GFM)",
+            "homepage": "https://commonmark.thephpleague.com",
+            "keywords": [
+                "commonmark",
+                "flavored",
+                "gfm",
+                "github",
+                "github-flavored",
+                "markdown",
+                "md",
+                "parser"
+            ],
+            "time": "2020-07-19T22:47:30+00:00"
+        },
+        {
             "name": "lstrojny/functional-php",
             "version": "1.12.0",
             "source": {
@@ -1012,6 +1081,56 @@
                 "parsing"
             ],
             "time": "2020-07-12T17:54:51+00:00"
+        },
+        {
+            "name": "mathiasverraes/uptodocs",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mathiasverraes/uptodocs.git",
+                "reference": "6b5ed66ce14a02379d37376b8203e10969c39ba3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mathiasverraes/uptodocs/zipball/6b5ed66ce14a02379d37376b8203e10969c39ba3",
+                "reference": "6b5ed66ce14a02379d37376b8203e10969c39ba3",
+                "shasum": ""
+            },
+            "require": {
+                "league/commonmark": "^1.4",
+                "php": "^7.4",
+                "symfony/console": "^5.0",
+                "symfony/process": "^5.0"
+            },
+            "bin": [
+                "uptodocs"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Verraes\\UpToDocs\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mathias Verraes",
+                    "email": "mathias@verraes.net",
+                    "homepage": "https://verraes.net",
+                    "role": "Developer"
+                }
+            ],
+            "description": "UpToDocs scans a Markdown file for PHP code blocks, and executes each one in a separate process. Include this in your CI workflows, to make sure your documentation is always up to date with your code.",
+            "homepage": "https://github.com/mathiasverraes/uptodocs",
+            "keywords": [
+                "ci",
+                "documentation",
+                "testing"
+            ],
+            "time": "2020-07-07T19:16:02+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -4696,7 +4815,9 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "phpbench/phpbench": 20,
-        "friendsofphp/php-cs-fixer": 20
+        "friendsofphp/php-cs-fixer": 20,
+        "mathiasverraes/parsica": 0,
+        "mathiasverraes/uptodocs": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
