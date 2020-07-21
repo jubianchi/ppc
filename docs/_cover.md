@@ -11,4 +11,4 @@
 * Simple functional DSL
 
 [:octocat: GitHub](https://github.com/jubianchi/ppc)
-[:checkered_flag: Get Started](/#ppc)
+[:checkered_flag: Get Started](#ppc)
