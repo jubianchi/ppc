@@ -35,8 +35,8 @@
     "autoload-dev": {
         "psr-4": {
             "jubianchi\\PPC\\Tests\\": ["tests/unit"],
-            "jubianchi\\PPC\\Tests\\Parsers\\": ["tests//unitparsers"],
-            "jubianchi\\PPC\\Tests\\Combinators\\": ["tests//unitcombinators"]
+            "jubianchi\\PPC\\Tests\\Parsers\\": ["tests/unit/unitparsers"],
+            "jubianchi\\PPC\\Tests\\Combinators\\": ["tests/unit/unitcombinators"]
         },
         "files": [
             "parsers/json.php"
