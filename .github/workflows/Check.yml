@@ -29,7 +29,7 @@ jobs:
                 run: composer install --prefer-dist --no-progress --no-suggest
 
             -   name: Coding style
-                run: composer ut
+                run: mkdir -p tmp && composer run cs
 
             -   name: Static analysis
                 run: composer run sa
