@@ -13,4 +13,5 @@ declare(strict_types=1);
 require_once __DIR__.'/../../vendor/autoload.php';
 
 assert_options(ASSERT_ACTIVE, 1);
-assert_options(ASSERT_QUIET_EVAL, 1);
+//assert_options(ASSERT_QUIET_EVAL, 1);
+assert_options(ASSERT_EXCEPTION, 1);

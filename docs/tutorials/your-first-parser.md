@@ -1,4 +1,4 @@
-## Your first parser
+# Your first parser
 
 In this tutorial, you will learn how to build a simple parser yet allowing us to cover many core concepts.
 
@@ -16,7 +16,7 @@ Building a parser is usually done through some standard steps:
 
 We'll cover each of these steps in this tutorial. Let's go!
 
-### ISO8601
+## ISO8601
 
 The very first step of the process of building a parser is about documenting yourself on what you are trying to parse. 
 If you are building a parser for a format you are creating, things will be difficult because you will have to think 
@@ -46,9 +46,9 @@ The date and time are combined together using a `T` character.
 The first step is done, you now know exactly how a ISO8601 compliant date is structured and written. We can now start writing
 the required parser.
 
-### The parser
+## The parser
 
-#### Defining tokens
+### Defining tokens
 
 As you may have noticed in the previous paragraph, there are many parts that should be declared: the year, month, day, hour, 
 minute and second. The separators (`-`, `+`, `:`, `T` and `Z`) may also be declared. Let's call those parts _tokens_.
@@ -112,7 +112,7 @@ assert($year(new Stream('20')) instanceof Result\Failure);
 Testing your parsers as you write them will help you ensure they are correct before you start combining them. It's 
 easier to reason about small units (think about unit tests). 
 
-#### Combining the parsers
+### Combining the parsers
 
 Now you have defined the _tokens_, let's try to combine them to produce an effective parser. The goal is to build a 
 parser able to match a series of these _tokens_. To do that you can use the [`seq`](/reference.md#seq) combinator: 
@@ -186,7 +186,7 @@ Success<array> {
 This result is hardly readable and moreover hard to use. We'll need to transform parsers' results into something better, 
 this is what mappers are made for.
 
-#### Shaping the result
+### Shaping the result
 
 Let's take for example the year parser: its results contains an array of four `Slice`s. What if you were able to reduce
 this number to only one? Better, what if you could directly get a string out of the `Slice`s?
@@ -314,7 +314,7 @@ array<string, string> {
 
 <!-- panels:end -->
 
-### Wrapping everything together
+## Wrapping everything together
 
 Now that you went through the process of writing a parser, let's wrap everything together and look at the code:
 

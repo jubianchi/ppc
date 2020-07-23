@@ -17,6 +17,14 @@
         .docsify-tabs__tab {
             outline: none;
         }
+
+        .app-sub-sidebar li:before {
+            display: none;
+        }
+
+        .content {
+            padding-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -47,17 +55,30 @@
         },
         loadSidebar: '_sidebar.md',
         subMaxLevel: 4,
+        pagination: {
+            crossChapter: true,
+        },
+        search: {
+            maxAge: 86400000, // Expiration time, the default one day
+            paths: 'auto',
+            placeholder: 'Type to search',
+            noData: 'No Results!',
+            depth: 6,
+            hideOtherSidebarContent: true,
+        },
     };
 </script>
 <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/external-script.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
 
 <script src="//cdn.jsdelivr.net/npm/docsify-copy-code"></script>
 <script src="//unpkg.com/docsify-plugin-flexible-alerts"></script>
 <script src="//cdn.jsdelivr.net/npm/docsify-tabs"></script>
 <script src="//cdn.jsdelivr.net/npm/class-change"></script>
 <script src="//cdn.jsdelivr.net/npm/docsify-example-panels"></script>
+<script src="//unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script>
 
 <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-php.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>

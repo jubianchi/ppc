@@ -1,10 +1,10 @@
+# Reference
+
 > [!WARNING]
 > This is the documentation for the `master` branch.
 > Things may change or not be complete.
 >
 > Head over to the [latest stable version](/1.0.0/reference.md) for an up-to-date documentation.
-
-# Reference
 
 ## Parsers
 
@@ -15,7 +15,7 @@
 ### any
 
 ```phps
-function any(): Parser
+function any(): Parser<Slice>
 ```
 
 <!-- div:left-panel -->
@@ -54,7 +54,7 @@ assert($parser($stream) instanceof Result\Failure);
 ### char
 
 ```phps
-function char(string $char): Parser
+function char(string $char): Parser<Slice>
 ```
 
 <!-- div:left-panel -->
@@ -79,7 +79,7 @@ use function jubianchi\PPC\Parsers\char;
 
 $stream = new Stream('abc');
 $success = char('a');
-$failure = char('b');
+$failure = char('c');
 $result = $success($stream);
 
 assert($result instanceof Result\Success);
@@ -94,14 +94,14 @@ assert($failure($stream) instanceof Result\Failure);
 ### eos
 
 ```phps
-function eos(): Parser
+function eos(): Parser<null>
 ```
 <!-- div:left-panel -->
 
 The `eos` parser matches the end of the stream.
 
-It will always return a `Failure`  unless it reaches the end of the
-stream, in which case it will return a `Success` result.
+It will always return a `Failure`  unless it reaches the end of the stream, in which case it will return a `Success` 
+result.
 
 > [!TIP]
 > Read the [Consuming until the end of the stream](/tutorials/consuming-until-the-end-of-the-stream.md) tutorial for an 
@@ -133,7 +133,7 @@ assert($eos($stream) instanceof Result\Success);
 ### regex
 
 ```phps
-function regex(string $pattern): Parser
+function regex(string $pattern): Parser<Slice>
 ```
 
 <!-- div:left-panel -->
@@ -200,7 +200,7 @@ use jubianchi\PPC\Stream;
 use function jubianchi\PPC\Parsers\regex;
 
 $stream = new Stream('abc');
-$parser = regex('/[a-z]+/');
+$parser = regex('/[a-z]+c/');
 $result = $parser($stream);
 
 assert($result instanceof Result\Failure);
@@ -211,7 +211,7 @@ assert($result instanceof Result\Failure);
 ### word
 
 ```phps
-function word(string $word): Parser
+function word(string $word): Parser<Slice>
 ```
 
 <!-- div:left-panel -->
@@ -299,7 +299,7 @@ assert($failure($stream) instanceof Result\Failure);
 ### enclosed
 
 ```phps
-function enclosed(Parser $before, Parser $parser, ?Parser $after = null): Parser
+function enclosed(Parser $before, Parser<T> $parser, ?Parser $after = null): Parser<T>
 ```
 
 <!-- div:left-panel -->
@@ -381,7 +381,7 @@ assert((string) $result->result() === 'a');
 ### many
 
 ```phps
-function many(Parser $parser): Parser
+function many(Parser<T> $parser): Parser<array<T>>
 ```
 
 <!-- div:left-panel -->
@@ -424,7 +424,7 @@ assert($failure($stream) instanceof Result\Failure);
 ### not
 
 ```phps
-function not(Parser $parser): Parser
+function not(Parser $parser): Parser<Slice>
 ```
 
 <!-- div:left-panel -->
@@ -468,24 +468,52 @@ assert($failure($stream) instanceof Result\Failure);
 ### opt
 
 ```phps
-function opt(Parser $parser): Parser
+function opt(Parser<T> $parser): Parser<?T>
 ```
 
 <!-- div:left-panel -->
 
-!> **TODO** write this documentation
+The `opt` combinator will be always be successful.
+
+When the given parser succeeds, the `opt` combinator will return its `Success` result.
+
+If the given parser fails, the `opt` combinator will return a `Success` result holding a null value.
 
 <!-- div:right-panel -->
 
-!> **TODO** write this snippet
+```php
+<?php
+
+use jubianchi\PPC\Parser\Result;
+use jubianchi\PPC\Slice;
+use jubianchi\PPC\Stream;
+use function jubianchi\PPC\Combinators\opt;
+use function jubianchi\PPC\Parsers\char;
+
+$stream = new Stream('abc');
+$success = opt(char('a'));
+$failure = opt(char('c'));
+$result = $success($stream);
+
+assert($result instanceof Result\Success);
+assert($result->result() instanceof Slice);
+assert((string) $result->result() === 'a');
+
+$result = $success($stream);
+assert($result instanceof Result\Success);
+assert($result->result() === null);
+```
 
 <!-- div:title-panel -->
 
 ### separated
 
 ```phps
-function separated(Parser $separator, Parser $parser): Parser
+function separated(Parser $separator, Parser $parser<T>): Parser<array<T>>
 ```
+
+> [!TIP]
+> Read the [Matching lists](/tutorials/matching-lists.md) tutorial for an example use case.
 
 <!-- div:left-panel -->
 
@@ -500,7 +528,7 @@ function separated(Parser $separator, Parser $parser): Parser
 ### seq
 
 ```phps
-function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
+function seq(Parser $first, Parser $second, Parser ...$parsers): Parser<array>
 ```
 
 <!-- div:left-panel -->
@@ -522,7 +550,7 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
 #### recurse
 
 ```phps
-function recurse(?Parser &$parser): Parser
+function recurse(?Parser<T> &$parser): Parser<T>
 ```
 
 <!-- div:left-panel -->
@@ -538,7 +566,7 @@ function recurse(?Parser &$parser): Parser
 #### debug
 
 ```phps
-function debug(Parser &$parser): Parser
+function debug(Parser<T> &$parser): Parser<T>
 ```
 
 <!-- div:left-panel -->

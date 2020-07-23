@@ -1,4 +1,4 @@
-## Consuming until the end of the stream
+# Consuming until the end of the stream
 
 In this tutorial, you will learn how to ensure your parser is able to consume an input until its end.
 
@@ -10,7 +10,7 @@ What you want here is to be sure that the parser consumed the whole input or pro
 
 Let's go!
 
-### The parser
+## The parser
 
 ```php
 <?php
@@ -93,7 +93,7 @@ stream.
 In the current example, this let's you know your parser, despite it's working, is not correct: it does not know how to 
 handle some part of the date and time string thus it can't reach the end of the stream.
 
-### Wrapping everything together
+## Wrapping everything together
 
 Here is the full code of the parser which is now able to handle the `Z` character and reach the end of the stream.
 
