@@ -424,16 +424,16 @@ assert($failure($stream) instanceof Result\Failure);
 ### not
 
 ```phps
-function not(Parser $parser): Parser<Slice>
+function not(Parser $parser, Parser ...$parsers): Parser<Slice>
 ```
 
 <!-- div:left-panel -->
 
-The `not` combinator will be successful when the given parser fails.
+The `not` combinator will be successful when the given parsers fails.
 
 In such case, it will return a `Success` result containing eqaul to the result of a [`any`](#any) parser.
 
-If the given parser succeeds, the `not` combinator will return a `Failure` result.
+If the one of the given parsers succeeds, the `not` combinator will return a `Failure` result.
 
 > [!TIP]
 > The `not` parser may be used to do negative lookaheads.
@@ -452,7 +452,7 @@ use function jubianchi\PPC\Combinators\not;
 use function jubianchi\PPC\Parsers\char;
 
 $stream = new Stream('abc');
-$success = not(char('b'));
+$success = not(char('b'), char('c'));
 $failure = not(char('b'));
 $result = $success($stream);
 

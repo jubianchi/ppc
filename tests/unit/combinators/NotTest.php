@@ -65,4 +65,29 @@ final class NotTest extends TestCase
         self::assertEquals(0, $stream->key());
         self::assertEquals('a', $stream->current());
     }
+
+    /**
+     * @test
+     * @small
+     */
+    public function matchMultiple(): void
+    {
+        $stream = new Stream('bc');
+        $parser = not(char('a'), char('b'));
+
+        $result = $parser($stream);
+
+        self::assertThat($result, self::isInstanceOf(Failure::class));
+
+        try {
+            $result->result();
+
+            self::fail();
+        } catch (Failure $failure) {
+            self::assertEquals('not: Expected "char(b)" not to match, got "b" at line 1 offset 0', $failure->getMessage());
+        }
+
+        self::assertEquals(0, $stream->key());
+        self::assertEquals('b', $stream->current());
+    }
 }
