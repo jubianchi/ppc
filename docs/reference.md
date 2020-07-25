@@ -394,7 +394,7 @@ each result.
 If the given parsers never matches, the combinator will return the first `Failure` result it encountered.
 
 > [!TIP]
-> Read the [Matching lists]() tutorial for an example use case.
+> Read the [Matching lists](/tutorials/matching-lists.md) tutorial for an example use case.
 
 <!-- div:right-panel -->
 
@@ -533,11 +533,35 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser<array>
 
 <!-- div:left-panel -->
 
-!> **TODO** write this documentation
+The `seq` combinator executes each parser in turn and stops once they are all sucessful.
+
+If all the given parsers matches, the combinator will return a `Success` result holding each result.
+
+If any of the given parsers fails, the combinator will return the first `Failure` result it got.
 
 <!-- div:right-panel -->
 
-!> **TODO** write this snippet
+```php
+<?php
+
+use jubianchi\PPC\Parser\Result;
+use jubianchi\PPC\Stream;
+use function jubianchi\PPC\Combinators\seq;
+use function jubianchi\PPC\Parsers\char;
+
+$stream = new Stream('abc');
+$success = seq(char('a'), char('b'));
+$failure = seq(char('c'), char('d'));
+$result = $success($stream);
+
+assert($result instanceof Result\Success);
+assert(is_array($result->result()));
+assert((string) $result->result()[0] === 'a');
+assert((string) $result->result()[1] === 'b');
+
+$result = $success($stream);
+assert($result instanceof Result\Failure);
+```
 
 <!-- panels:end -->
 
