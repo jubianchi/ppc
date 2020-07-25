@@ -184,37 +184,41 @@ function repeat(int $times, Parser $parser): Parser
         ->stringify(fn (string $label): string => $label.'('.$times.', '.$parser.')');
 }
 
-function not(Parser $parser): Parser
+function not(Parser $parser, Parser ...$parsers): Parser
 {
-    return (new Parser('not', function (Stream $stream) use ($parser): Result {
+    array_unshift($parsers, $parser);
+
+    return (new Parser('not', function (Stream $stream) use ($parsers): Result {
         $this->logger->indent();
 
-        $transaction = $stream->begin();
-        $result = $parser->logger($this->logger)($transaction);
-        $stream->rollback();
+        foreach ($parsers as $parser) {
+            $transaction = $stream->begin();
+            $result = $parser->logger($this->logger)($transaction);
+            $stream->rollback();
 
-        if ($result->isFailure()) {
-            $result = any()($stream);
+            if ($result->isSuccess()) {
+                $this->logger->dedent();
 
-            $this->logger->dedent();
-
-            return $result;
+                return new Failure(
+                    $this->label,
+                    sprintf(
+                        'Expected "%s" not to match, got "%s" at line %s offset %d',
+                        $parser,
+                        $stream->current(),
+                        $stream->position()['line'],
+                        $stream->key()
+                    )
+                );
+            }
         }
+
+        $result = any()($stream);
 
         $this->logger->dedent();
 
-        return new Failure(
-            $this->label,
-            sprintf(
-                'Expected "%s" not to match, got "%s" at line %s offset %d',
-                $parser,
-                $stream->current(),
-                $stream->position()['line'],
-                $stream->key()
-            )
-        );
+        return $result;
     }))
-        ->stringify(fn (string $label): string => $label.'('.$parser.')');
+        ->stringify(fn (string $label): string => $label.'('.implode(', ', $parsers).')');
 }
 
 function recurse(?Parser &$parser): Parser
