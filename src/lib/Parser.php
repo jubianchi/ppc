@@ -14,7 +14,6 @@ namespace jubianchi\PPC;
 
 use Closure;
 use Exception;
-use jubianchi\PPC\Logger\Nil;
 use jubianchi\PPC\Parser\Result;
 use RuntimeException;
 
@@ -37,7 +36,7 @@ class Parser
 
     private string $label;
     private string $originalLabel;
-    private Logger $logger;
+    private ?Logger $logger = null;
 
     /**
      * @param callable(Stream): Result $parser
@@ -50,7 +49,6 @@ class Parser
 
         $this->originalLabel = $this->label = $label;
         $this->parser = Closure::fromCallable($parser)->bindTo($this, self::class);
-        $this->logger = Nil::get();
         $this->mapper = fn (Result $result): Result => $result;
         $this->stringify = fn (string $label): string => $label;
     }
@@ -71,19 +69,19 @@ class Parser
      */
     public function __invoke(Stream $stream): Result
     {
-        $this->logger->info('> '.$this, $stream->position());
+        $this->logger and $this->logger->info('> '.$this, $stream->position());
 
         try {
             $result = ($this->parser)($stream);
 
             if ($result->isFailure()) {
-                $this->logger->error('< '.$this, $stream->position());
+                $this->logger and $this->logger->error('< '.$this, $stream->position());
 
                 return $result;
             }
 
             $context = $result->result() instanceof Slice ? ['consumed' => (string) $result->result()] : [];
-            $this->logger->info('< '.$this, $stream->position() + $context);
+            $this->logger and $this->logger->info('< '.$this, $stream->position() + $context);
 
             return ($this->mapper)($result);
         } catch (Exception $exception) {
@@ -102,7 +100,7 @@ class Parser
     /**
      * @return $this
      */
-    public function logger(Logger $logger): self
+    public function logger(?Logger $logger = null): self
     {
         $this->logger = $logger;
 

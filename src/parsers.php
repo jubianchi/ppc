@@ -26,14 +26,11 @@ function char(string $char): Parser
 
     return (new Parser('char', function (Stream $stream) use ($char, $format): Result {
         if (!$stream->valid()) {
-            $this->logger->error('< '.$this, $stream->position());
-
             return Failure::create(
                 $this->label,
                 $char,
                 Stream::EOS,
-                $stream->position()['line'],
-                $stream->position()['column'],
+                $stream,
             );
         }
 
@@ -44,8 +41,7 @@ function char(string $char): Parser
                 $this->label,
                 $format($char),
                 $current,
-                $stream->position()['line'],
-                $stream->position()['column'],
+                $stream,
             );
         }
 
@@ -66,8 +62,7 @@ function regex(string $pattern): Parser
                 $this->label,
                 $pattern,
                 Stream::EOS,
-                $stream->position()['line'],
-                $stream->position()['column'],
+                $stream,
             );
         }
 
@@ -78,8 +73,7 @@ function regex(string $pattern): Parser
                 $this->label,
                 $pattern,
                 $current,
-                $stream->position()['line'],
-                $stream->position()['column'],
+                $stream,
             );
         }
 
@@ -102,8 +96,7 @@ function word(string $word): Parser
                 $this->label,
                 $format($word),
                 Stream::EOS,
-                $stream->position()['line'],
-                $stream->position()['column'],
+                $stream,
             );
         }
 
@@ -116,8 +109,7 @@ function word(string $word): Parser
                 $this->label,
                 $word,
                 $stream->cut($stream->key()).' . '.Stream::EOS,
-                $stream->position()['line'],
-                $stream->position()['column'],
+                $stream,
             );
         }
 
@@ -126,8 +118,7 @@ function word(string $word): Parser
                 $this->label,
                 $format($word),
                 $actual,
-                $stream->position()['line'],
-                $stream->position()['column'],
+                $stream,
             );
         }
 
@@ -152,8 +143,7 @@ function any(): Parser
                 $this->label,
                 'any',
                 Stream::EOS,
-                $stream->position()['line'],
-                $stream->position()['column'],
+                $stream,
             );
         }
 
@@ -173,8 +163,7 @@ function eos(): Parser
                 $this->label,
                 Stream::EOS,
                 $stream->current(),
-                $stream->position()['line'],
-                $stream->position()['column'],
+                $stream,
             );
         }
 

@@ -14,6 +14,7 @@ namespace jubianchi\PPC\Parser\Result;
 
 use Exception;
 use jubianchi\PPC\Parser\Result;
+use jubianchi\PPC\Stream;
 
 class Failure extends Exception implements Result
 {
@@ -40,8 +41,10 @@ class Failure extends Exception implements Result
         throw $this;
     }
 
-    public static function create(string $label, string $expected, string $actual, int $line, int $column): self
+    public static function create(string $label, string $expected, string $actual, Stream $stream): self
     {
+        ['line' => $line, 'column' => $column] = $stream->position();
+
         return new self($label, sprintf(
             'Expected "%s", got "%s" at line %d offset %d',
             $expected,

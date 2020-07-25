@@ -102,7 +102,7 @@ class Stream implements Iterator
     {
         $length = $length ?? $this->length - $this->position;
 
-        if (0 > $offset || $offset >= $this->length || $offset + $length > $this->length) {
+        if (0 > $offset || $offset + $length > $this->length) {
             throw new OutOfBoundsException();
         }
 

@@ -43,9 +43,9 @@ function json(): Parser
         opt(
             many(
                 alt(
-                    char('\\'),
                     word('\"'),
-                    not(char('"'))
+                    word('\\\\'),
+                    not(char('"')),
                 ),
             )->map(concat()->then(php('stripcslashes'))),
         )->map(otherwise('')),
