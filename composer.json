@@ -51,6 +51,7 @@
         "mt": "phpdbg -qrr vendor/bin/phpunit --testdox && vendor/bin/infection --coverage=tmp --ansi --skip-initial-tests --no-progress --threads=2",
         "sa": "phpstan analyse --ansi --memory-limit=50",
         "pm": "phpdbg -qrr vendor/bin/phpunit --testdox && vendor/bin/phpmetrics --config=phpmetrics.json",
-        "ut": "phpdbg -qrr vendor/bin/phpunit --testdox"
+        "ut": "phpdbg -qrr vendor/bin/phpunit --testdox",
+        "dev:docs": "cd docs && ../node_modules/.bin/docsify serve"
     }
 }
