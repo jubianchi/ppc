@@ -28,7 +28,7 @@ function alt(Parser $first, Parser $second, Parser ...$parsers): Parser
     return (new Parser('alt', function (Stream $stream) use ($parsers): Result {
         $failure = null;
 
-        $this->logger->indent();
+        $this->logger and $this->logger->indent();
 
         foreach ($parsers as $parser) {
             $transaction = $stream->begin();
@@ -37,7 +37,7 @@ function alt(Parser $first, Parser $second, Parser ...$parsers): Parser
             if ($result->isSuccess()) {
                 $stream->commit();
 
-                $this->logger->dedent();
+                $this->logger and $this->logger->dedent();
 
                 return $result;
             }
@@ -49,7 +49,7 @@ function alt(Parser $first, Parser $second, Parser ...$parsers): Parser
             }
         }
 
-        $this->logger->dedent();
+        $this->logger and $this->logger->dedent();
 
         return $failure;
     }))
@@ -63,7 +63,7 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
     return (new Parser('seq', function (Stream $stream) use ($parsers): Result {
         $results = [];
 
-        $this->logger->indent();
+        $this->logger and $this->logger->indent();
 
         $transaction = $stream->begin();
 
@@ -73,7 +73,7 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
             if ($result->isFailure()) {
                 $stream->rollback();
 
-                $this->logger->dedent();
+                $this->logger and $this->logger->dedent();
 
                 return $result;
             }
@@ -85,7 +85,7 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
 
         $stream->commit();
 
-        $this->logger->dedent();
+        $this->logger and $this->logger->dedent();
 
         return new Success($results);
     }))->stringify(fn (string $label): string => $label.'('.implode(', ', $parsers).')');
@@ -94,7 +94,7 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
 function opt(Parser $parser): Parser
 {
     return (new Parser('opt', function (Stream $stream) use ($parser): Result {
-        $this->logger->indent();
+        $this->logger and $this->logger->indent();
 
         $transaction = $stream->begin();
         $result = $parser->logger($this->logger)($transaction);
@@ -102,14 +102,14 @@ function opt(Parser $parser): Parser
         if ($result->isSuccess()) {
             $stream->commit();
 
-            $this->logger->dedent();
+            $this->logger and $this->logger->dedent();
 
             return $result;
         }
 
         $stream->rollback();
 
-        $this->logger->dedent();
+        $this->logger and $this->logger->dedent();
 
         return new Success(null);
     }))
@@ -121,7 +121,7 @@ function many(Parser $parser): Parser
     return (new Parser('many', function (Stream $stream) use ($parser): Result {
         $results = [];
 
-        $this->logger->indent();
+        $this->logger and $this->logger->indent();
 
         while (true) {
             $transaction = $stream->begin();
@@ -131,7 +131,7 @@ function many(Parser $parser): Parser
                 $stream->rollback();
 
                 if (0 === count($results)) {
-                    $this->logger->dedent();
+                    $this->logger and $this->logger->dedent();
 
                     return $result;
                 }
@@ -146,7 +146,7 @@ function many(Parser $parser): Parser
             $stream->commit();
         }
 
-        $this->logger->dedent();
+        $this->logger and $this->logger->dedent();
 
         return new Success($results);
     }))
@@ -159,7 +159,7 @@ function repeat(int $times, Parser $parser): Parser
         $results = [];
         $transaction = $stream->begin();
 
-        $this->logger->indent();
+        $this->logger and $this->logger->indent();
 
         while ($times-- > 0) {
             $result = $parser->logger($this->logger)($transaction);
@@ -177,7 +177,7 @@ function repeat(int $times, Parser $parser): Parser
 
         $stream->commit();
 
-        $this->logger->dedent();
+        $this->logger and $this->logger->dedent();
 
         return new Success($results);
     }))
@@ -189,7 +189,7 @@ function not(Parser $parser, Parser ...$parsers): Parser
     array_unshift($parsers, $parser);
 
     return (new Parser('not', function (Stream $stream) use ($parsers): Result {
-        $this->logger->indent();
+        $this->logger and $this->logger->indent();
 
         foreach ($parsers as $parser) {
             $transaction = $stream->begin();
@@ -197,7 +197,7 @@ function not(Parser $parser, Parser ...$parsers): Parser
             $stream->rollback();
 
             if ($result->isSuccess()) {
-                $this->logger->dedent();
+                $this->logger and $this->logger->dedent();
 
                 return new Failure(
                     $this->label,
@@ -214,7 +214,7 @@ function not(Parser $parser, Parser ...$parsers): Parser
 
         $result = any()($stream);
 
-        $this->logger->dedent();
+        $this->logger and $this->logger->dedent();
 
         return $result;
     }))
@@ -244,7 +244,7 @@ function enclosed(Parser $before, Parser $parser, ?Parser $after = null): Parser
     $after = $after ?? $before;
 
     return (new Parser('enclosed', function (Stream $stream) use ($before, $parser, $after): Result {
-        $this->logger->indent();
+        $this->logger and $this->logger->indent();
 
         $transaction = $stream->begin();
         $beforeResult = $before->logger($this->logger)($transaction);
@@ -252,7 +252,7 @@ function enclosed(Parser $before, Parser $parser, ?Parser $after = null): Parser
         if ($beforeResult->isFailure()) {
             $stream->rollback();
 
-            $this->logger->dedent();
+            $this->logger and $this->logger->dedent();
 
             return $beforeResult;
         }
@@ -262,7 +262,7 @@ function enclosed(Parser $before, Parser $parser, ?Parser $after = null): Parser
         if ($result->isFailure()) {
             $stream->rollback();
 
-            $this->logger->dedent();
+            $this->logger and $this->logger->dedent();
 
             return $result;
         }
@@ -272,14 +272,14 @@ function enclosed(Parser $before, Parser $parser, ?Parser $after = null): Parser
         if ($afterResult->isFailure()) {
             $stream->rollback();
 
-            $this->logger->dedent();
+            $this->logger and $this->logger->dedent();
 
             return $afterResult;
         }
 
         $stream->commit();
 
-        $this->logger->dedent();
+        $this->logger and $this->logger->dedent();
 
         return $result;
     }))
@@ -289,7 +289,7 @@ function enclosed(Parser $before, Parser $parser, ?Parser $after = null): Parser
 function separated(Parser $separator, Parser $parser): Parser
 {
     return (new Parser('separated', function (Stream $stream) use ($separator, $parser): Result {
-        $this->logger->indent();
+        $this->logger and $this->logger->indent();
 
         $results = [];
         $transaction = $stream->begin();
@@ -313,7 +313,7 @@ function separated(Parser $separator, Parser $parser): Parser
                 $transaction->rollback();
 
                 if (0 === count($results)) {
-                    $this->logger->dedent();
+                    $this->logger and $this->logger->dedent();
 
                     return $result;
                 }
@@ -327,7 +327,7 @@ function separated(Parser $separator, Parser $parser): Parser
 
         $stream->commit();
 
-        $this->logger->dedent();
+        $this->logger and $this->logger->dedent();
 
         return new Success($results);
     }))

@@ -17,6 +17,7 @@ use jubianchi\PPC\Mapper;
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Parser\Result\Skip;
 use jubianchi\PPC\Parser\Result\Success;
+use jubianchi\PPC\Slice;
 
 /**
  * @param mixed $default
@@ -28,12 +29,14 @@ function otherwise($default): Mapper
 
 function concat(): Mapper
 {
+    $reduce = fn (Slice ...$slices): string => array_reduce(
+        $slices,
+        fn ($prev, $current): string => $prev.$current,
+        ''
+    );
+
     return new Mapper(fn (Result $result): Result => new Success(
-        array_reduce(
-            $result->result() ?? [],
-            fn ($prev, $current): string => $prev.$current,
-            ''
-        )
+        $reduce(...($result->result() ?? []))
     ));
 }
 
