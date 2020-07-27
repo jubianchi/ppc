@@ -16,28 +16,10 @@ use jubianchi\PPC\Logger;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 
-class CLI extends AbstractLogger implements Logger
+class CLI extends AbstractLogger
 {
-    private int $padding = 0;
-
-    public function indent(): self
-    {
-        ++$this->padding;
-
-        return $this;
-    }
-
-    public function dedent(): self
-    {
-        --$this->padding;
-
-        return $this;
-    }
-
     public function log($level, $message, array $context = []): void
     {
-        $date = date(DATE_ISO8601);
-        $padding = $this->padding > 0 ? str_repeat('  ', $this->padding) : '';
         $context = json_encode($context);
         $label = str_pad('['.$level.']', 9, ' ');
 
@@ -57,6 +39,6 @@ class CLI extends AbstractLogger implements Logger
             }
         };
 
-        echo $format($level, $label."\t".$date."\t".$padding.$message.' '.$context).PHP_EOL;
+        echo $format($level, $label."\t".$message.' '.$context).PHP_EOL;
     }
 }

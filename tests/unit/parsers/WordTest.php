@@ -83,7 +83,7 @@ final class WordTest extends TestCase
 
             self::fail();
         } catch (Failure $failure) {
-            self::assertEquals('word•test parser: Expected "bc", got "ab" at line 1 offset 0', $failure->getMessage());
+            self::assertEquals('test parser•word: Expected "bc", got "ab" at line 1 offset 0', $failure->getMessage());
         }
 
         self::assertEquals(0, $stream->key());

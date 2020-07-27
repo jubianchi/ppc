@@ -14,6 +14,7 @@ namespace jubianchi\PPC\Combinators;
 
 use Exception;
 use jubianchi\PPC\Parser;
+use jubianchi\PPC\Parser\Debugger;
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Parser\Result\Failure;
 use jubianchi\PPC\Parser\Result\Skip;
@@ -25,19 +26,15 @@ function alt(Parser $first, Parser $second, Parser ...$parsers): Parser
 {
     array_unshift($parsers, $first, $second);
 
-    return (new Parser('alt', function (Stream $stream) use ($parsers): Result {
+    return (new Parser('alt', function (Stream $stream, ?Debugger $debugger = null) use ($parsers): Result {
         $failure = null;
-
-        $this->logger and $this->logger->indent();
 
         foreach ($parsers as $parser) {
             $transaction = $stream->begin();
-            $result = $parser->logger($this->logger)($transaction);
+            $result = $parser($transaction, $debugger);
 
             if ($result->isSuccess()) {
                 $stream->commit();
-
-                $this->logger and $this->logger->dedent();
 
                 return $result;
             }
@@ -49,8 +46,6 @@ function alt(Parser $first, Parser $second, Parser ...$parsers): Parser
             }
         }
 
-        $this->logger and $this->logger->dedent();
-
         return $failure;
     }))
         ->stringify(fn (string $label): string => $label.'('.implode(', ', $parsers).')');
@@ -60,20 +55,16 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
 {
     array_unshift($parsers, $first, $second);
 
-    return (new Parser('seq', function (Stream $stream) use ($parsers): Result {
+    return (new Parser('seq', function (Stream $stream, ?Debugger $debugger = null) use ($parsers): Result {
         $results = [];
-
-        $this->logger and $this->logger->indent();
 
         $transaction = $stream->begin();
 
         foreach ($parsers as $parser) {
-            $result = $parser->logger($this->logger)($transaction);
+            $result = $parser($transaction, $debugger);
 
             if ($result->isFailure()) {
                 $stream->rollback();
-
-                $this->logger and $this->logger->dedent();
 
                 return $result;
             }
@@ -85,31 +76,23 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
 
         $stream->commit();
 
-        $this->logger and $this->logger->dedent();
-
         return new Success($results);
     }))->stringify(fn (string $label): string => $label.'('.implode(', ', $parsers).')');
 }
 
 function opt(Parser $parser): Parser
 {
-    return (new Parser('opt', function (Stream $stream) use ($parser): Result {
-        $this->logger and $this->logger->indent();
-
+    return (new Parser('opt', function (Stream $stream, ?Debugger $debugger = null) use ($parser): Result {
         $transaction = $stream->begin();
-        $result = $parser->logger($this->logger)($transaction);
+        $result = $parser($transaction, $debugger);
 
         if ($result->isSuccess()) {
             $stream->commit();
-
-            $this->logger and $this->logger->dedent();
 
             return $result;
         }
 
         $stream->rollback();
-
-        $this->logger and $this->logger->dedent();
 
         return new Success(null);
     }))
@@ -118,21 +101,17 @@ function opt(Parser $parser): Parser
 
 function many(Parser $parser): Parser
 {
-    return (new Parser('many', function (Stream $stream) use ($parser): Result {
+    return (new Parser('many', function (Stream $stream, ?Debugger $debugger = null) use ($parser): Result {
         $results = [];
-
-        $this->logger and $this->logger->indent();
 
         while (true) {
             $transaction = $stream->begin();
-            $result = $parser->logger($this->logger)($transaction);
+            $result = $parser($transaction, $debugger);
 
             if ($result->isFailure()) {
                 $stream->rollback();
 
                 if (0 === count($results)) {
-                    $this->logger and $this->logger->dedent();
-
                     return $result;
                 }
 
@@ -146,8 +125,6 @@ function many(Parser $parser): Parser
             $stream->commit();
         }
 
-        $this->logger and $this->logger->dedent();
-
         return new Success($results);
     }))
         ->stringify(fn (string $label): string => $label.'('.$parser.')');
@@ -155,14 +132,12 @@ function many(Parser $parser): Parser
 
 function repeat(int $times, Parser $parser): Parser
 {
-    return (new Parser('repeat', function (Stream $stream) use ($parser, $times): Result {
+    return (new Parser('repeat', function (Stream $stream, ?Debugger $debugger = null) use ($parser, $times): Result {
         $results = [];
         $transaction = $stream->begin();
 
-        $this->logger and $this->logger->indent();
-
         while ($times-- > 0) {
-            $result = $parser->logger($this->logger)($transaction);
+            $result = $parser($transaction, $debugger);
 
             if ($result->isFailure()) {
                 $stream->rollback();
@@ -177,8 +152,6 @@ function repeat(int $times, Parser $parser): Parser
 
         $stream->commit();
 
-        $this->logger and $this->logger->dedent();
-
         return new Success($results);
     }))
         ->stringify(fn (string $label): string => $label.'('.$times.', '.$parser.')');
@@ -188,17 +161,13 @@ function not(Parser $parser, Parser ...$parsers): Parser
 {
     array_unshift($parsers, $parser);
 
-    return (new Parser('not', function (Stream $stream) use ($parsers): Result {
-        $this->logger and $this->logger->indent();
-
+    return (new Parser('not', function (Stream $stream, ?Debugger $debugger = null) use ($parsers): Result {
         foreach ($parsers as $parser) {
             $transaction = $stream->begin();
-            $result = $parser->logger($this->logger)($transaction);
+            $result = $parser($transaction, $debugger);
             $stream->rollback();
 
             if ($result->isSuccess()) {
-                $this->logger and $this->logger->dedent();
-
                 return new Failure(
                     $this->label,
                     sprintf(
@@ -212,9 +181,7 @@ function not(Parser $parser, Parser ...$parsers): Parser
             }
         }
 
-        $result = any()($stream);
-
-        $this->logger and $this->logger->dedent();
+        $result = any()($stream, $debugger);
 
         return $result;
     }))
@@ -223,12 +190,12 @@ function not(Parser $parser, Parser ...$parsers): Parser
 
 function recurse(?Parser &$parser): Parser
 {
-    return (new Parser('recurse', function (Stream $stream) use (&$parser): Result {
+    return (new Parser('recurse', function (Stream $stream, ?Debugger $debugger = null) use (&$parser): Result {
         if (null === $parser) {
             throw new Exception('Could not call parser');
         }
 
-        return $parser->logger($this->logger)($stream);
+        return $parser($stream, $debugger);
     }))
         ->stringify(function (string $label) use (&$parser): string {
             if (null === $parser) {
@@ -243,43 +210,33 @@ function enclosed(Parser $before, Parser $parser, ?Parser $after = null): Parser
 {
     $after = $after ?? $before;
 
-    return (new Parser('enclosed', function (Stream $stream) use ($before, $parser, $after): Result {
-        $this->logger and $this->logger->indent();
-
+    return (new Parser('enclosed', function (Stream $stream, ?Debugger $debugger = null) use ($before, $parser, $after): Result {
         $transaction = $stream->begin();
-        $beforeResult = $before->logger($this->logger)($transaction);
+        $beforeResult = $before($transaction, $debugger);
 
         if ($beforeResult->isFailure()) {
             $stream->rollback();
 
-            $this->logger and $this->logger->dedent();
-
             return $beforeResult;
         }
 
-        $result = $parser->logger($this->logger)($transaction);
+        $result = $parser($transaction, $debugger);
 
         if ($result->isFailure()) {
             $stream->rollback();
 
-            $this->logger and $this->logger->dedent();
-
             return $result;
         }
 
-        $afterResult = $after->logger($this->logger)($transaction);
+        $afterResult = $after($transaction, $debugger);
 
         if ($afterResult->isFailure()) {
             $stream->rollback();
-
-            $this->logger and $this->logger->dedent();
 
             return $afterResult;
         }
 
         $stream->commit();
-
-        $this->logger and $this->logger->dedent();
 
         return $result;
     }))
@@ -288,9 +245,7 @@ function enclosed(Parser $before, Parser $parser, ?Parser $after = null): Parser
 
 function separated(Parser $separator, Parser $parser): Parser
 {
-    return (new Parser('separated', function (Stream $stream) use ($separator, $parser): Result {
-        $this->logger and $this->logger->indent();
-
+    return (new Parser('separated', function (Stream $stream, ?Debugger $debugger = null) use ($separator, $parser): Result {
         $results = [];
         $transaction = $stream->begin();
 
@@ -298,7 +253,7 @@ function separated(Parser $separator, Parser $parser): Parser
             $childTransaction = $transaction->begin();
 
             if (count($results) > 0) {
-                $result = $separator->logger($this->logger)($childTransaction);
+                $result = $separator($childTransaction, $debugger);
 
                 if ($result->isFailure()) {
                     $transaction->rollback();
@@ -307,14 +262,12 @@ function separated(Parser $separator, Parser $parser): Parser
                 }
             }
 
-            $result = $parser->logger($this->logger)($childTransaction);
+            $result = $parser($childTransaction, $debugger);
 
             if ($result->isFailure()) {
                 $transaction->rollback();
 
                 if (0 === count($results)) {
-                    $this->logger and $this->logger->dedent();
-
                     return $result;
                 }
 
@@ -326,8 +279,6 @@ function separated(Parser $separator, Parser $parser): Parser
         }
 
         $stream->commit();
-
-        $this->logger and $this->logger->dedent();
 
         return new Success($results);
     }))

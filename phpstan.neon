@@ -12,3 +12,11 @@ parameters:
             paths:
                 - src/combinators.php
                 - src/parsers.php
+        -
+            message: '/Dynamic call to static method PHPUnit\\Framework\\TestCase::/'
+            paths:
+                - tests/unit/Parser/DebuggerTest.php
+        -
+            message: '/Dynamic call to static method PHPUnit\\Framework\\Assert::/'
+            paths:
+                - tests/unit/Parser/DebuggerTest.php

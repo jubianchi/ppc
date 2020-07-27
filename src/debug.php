@@ -14,14 +14,16 @@ namespace jubianchi\PPC\Combinators;
 
 use jubianchi\PPC\Logger\CLI;
 use jubianchi\PPC\Parser;
+use jubianchi\PPC\Parser\Debugger;
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Stream;
 
 function debug(Parser $parser): Parser
 {
-    return new Parser('debug', function (Stream $stream) use ($parser): Result {
-        $parser = $parser->logger(new CLI());
+    $logger = new CLI();
 
-        return $parser($stream);
-    });
+    return new Parser('debug', fn (Stream $stream, ?Debugger $debugger = null): Result => $parser(
+        $stream,
+        $debugger ?? new Parser\Debugger($logger)
+    ));
 }
