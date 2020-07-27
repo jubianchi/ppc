@@ -10,8 +10,16 @@ REPORT=
 
 function run() {
     echo -ne "> \033[34mRUN\033[0m $1"
-    OUTPUT=$($UPTODOCS run --before $DIR/before.php $1)
-    STATUS=$?
+
+    if [ ! -x $UPTODOCS ]
+    then
+        OUTPUT="Could not execute $UPTODOCS"
+        STATUS=1
+    else
+        OUTPUT=$($UPTODOCS run --before $DIR/before.php $1)
+        STATUS=$?
+    fi
+
 
     if [ "$STATUS" -eq 1 ]
     then
