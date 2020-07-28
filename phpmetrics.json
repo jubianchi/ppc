@@ -1,0 +1,14 @@
+{
+    "includes": ["src"],
+    "report": {
+        "html": "tmp/phpmetrics/"
+    },
+    "plugins": {
+        "git": {
+            "binary": "git"
+        },
+        "junit": {
+            "file": "tmp/junit.xml"
+        }
+    }
+}
