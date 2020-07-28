@@ -18,7 +18,8 @@
         "phpstan/extension-installer": "^1.0",
         "infection/infection": "^0.16.4",
         "mathiasverraes/parsica": "@stable",
-        "mathiasverraes/uptodocs": "dev-main"
+        "mathiasverraes/uptodocs": "dev-main",
+        "phpmetrics/phpmetrics": "^2.7"
     },
     "autoload": {
         "psr-4": {
@@ -49,6 +50,7 @@
         "dt": "tests/docs/run.sh",
         "mt": "phpdbg -qrr vendor/bin/phpunit --testdox && vendor/bin/infection --coverage=tmp --ansi --skip-initial-tests --no-progress --threads=2",
         "sa": "phpstan analyse --ansi --memory-limit=50",
+        "pm": "phpdbg -qrr vendor/bin/phpunit --testdox && vendor/bin/phpmetrics --config=phpmetrics.json",
         "ut": "phpdbg -qrr vendor/bin/phpunit --testdox"
     }
 }
