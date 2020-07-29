@@ -36,8 +36,8 @@
     "autoload-dev": {
         "psr-4": {
             "jubianchi\\PPC\\Tests\\": ["tests/unit"],
-            "jubianchi\\PPC\\Tests\\Parsers\\": ["tests/unit/unitparsers"],
-            "jubianchi\\PPC\\Tests\\Combinators\\": ["tests/unit/unitcombinators"]
+            "jubianchi\\PPC\\Tests\\Parsers\\": ["tests/unit/unit/parsers"],
+            "jubianchi\\PPC\\Tests\\Combinators\\": ["tests/unit/unit/combinators"]
         },
         "files": [
             "parsers/json.php"
@@ -51,6 +51,7 @@
         "mt": "phpdbg -qrr vendor/bin/phpunit --testdox && vendor/bin/infection --coverage=tmp --ansi --skip-initial-tests --no-progress --threads=2",
         "sa": "phpstan analyse --ansi --memory-limit=50",
         "pm": "phpdbg -qrr vendor/bin/phpunit --testdox && vendor/bin/phpmetrics --config=phpmetrics.json",
-        "ut": "phpdbg -qrr vendor/bin/phpunit --testdox"
+        "ut": "phpdbg -qrr vendor/bin/phpunit --testdox",
+        "dev:docs": "cd docs && ../node_modules/.bin/docsify serve"
     }
 }

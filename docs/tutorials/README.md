@@ -35,9 +35,10 @@ allow variant on the list.
 
 <!-- div:left-panel -->
 
-## Debugging {docsify-ignore}
+## [Debugging](/tutorials/debugging.md) {docsify-ignore}
 
-!> **TODO** write this tutorial
+In this tutorial, you will learn how to use the [`debug`](/reference.md#debug) combinator to get a clear view of what's 
+happening in your parsers.
 
 <!-- div:right-panel -->
 

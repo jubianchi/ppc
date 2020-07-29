@@ -14,13 +14,14 @@ namespace jubianchi\PPC;
 
 use Closure;
 use Exception;
+use jubianchi\PPC\Parser\Debugger;
 use jubianchi\PPC\Parser\Result;
 use RuntimeException;
 
 class Parser
 {
     /**
-     * @var callable(Stream): Result
+     * @var callable(Stream, ?Debugger): Result
      */
     private $parser;
 
@@ -36,10 +37,9 @@ class Parser
 
     private string $label;
     private string $originalLabel;
-    private ?Logger $logger = null;
 
     /**
-     * @param callable(Stream): Result $parser
+     * @param callable(Stream, ?Debugger): Result $parser
      */
     public function __construct(string $label, callable $parser)
     {
@@ -56,7 +56,6 @@ class Parser
     public function __clone()
     {
         $this->parser = Closure::fromCallable($this->parser)->bindTo($this, self::class);
-        $this->stringify = Closure::fromCallable($this->stringify)->bindTo($this, self::class);
     }
 
     public function __toString(): string
@@ -67,21 +66,18 @@ class Parser
     /**
      * @throws Exception
      */
-    public function __invoke(Stream $stream): Result
+    public function __invoke(Stream $stream, ?Debugger $debugger = null): Result
     {
-        $this->logger and $this->logger->info('> '.$this, $stream->position());
+        $debugger and $debugger->enter($this, $stream);
 
         try {
-            $result = ($this->parser)($stream);
+            $result = ($this->parser)($stream, $debugger);
+
+            $debugger and $debugger->exit($this, $stream, $result);
 
             if ($result->isFailure()) {
-                $this->logger and $this->logger->error('< '.$this, $stream->position());
-
                 return $result;
             }
-
-            $context = $result->result() instanceof Slice ? ['consumed' => (string) $result->result()] : [];
-            $this->logger and $this->logger->info('< '.$this, $stream->position() + $context);
 
             return ($this->mapper)($result);
         } catch (Exception $exception) {
@@ -92,19 +88,9 @@ class Parser
     public function label(string $label): self
     {
         $parser = clone $this;
-        $parser->label = $this->originalLabel.'•'.$label;
+        $parser->label = $label.'•'.$this->originalLabel;
 
         return $parser;
-    }
-
-    /**
-     * @return $this
-     */
-    public function logger(?Logger $logger = null): self
-    {
-        $this->logger = $logger;
-
-        return $this;
     }
 
     /**
@@ -127,7 +113,7 @@ class Parser
     public function stringify(callable $stringify): self
     {
         $parser = clone $this;
-        $parser->stringify = Closure::fromCallable($stringify)->bindTo($parser, self::class);
+        $parser->stringify = $stringify;
 
         return $parser;
     }

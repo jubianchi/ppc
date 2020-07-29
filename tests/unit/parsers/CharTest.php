@@ -83,7 +83,7 @@ final class CharTest extends TestCase
 
             self::fail();
         } catch (Failure $failure) {
-            self::assertEquals('char•test parser: Expected "b", got "a" at line 1 offset 0', $failure->getMessage());
+            self::assertEquals('test parser•char: Expected "b", got "a" at line 1 offset 0', $failure->getMessage());
         }
 
         self::assertEquals(0, $stream->key());

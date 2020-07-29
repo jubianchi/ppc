@@ -394,7 +394,7 @@ each result.
 If the given parsers never matches, the combinator will return the first `Failure` result it encountered.
 
 > [!TIP]
-> Read the [Matching lists]() tutorial for an example use case.
+> Read the [Matching lists](/tutorials/matching-lists.md) tutorial for an example use case.
 
 <!-- div:right-panel -->
 
@@ -533,17 +533,97 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser<array>
 
 <!-- div:left-panel -->
 
-!> **TODO** write this documentation
+The `seq` combinator executes each parser in turn and stops once they are all sucessful.
+
+If all the given parsers matches, the combinator will return a `Success` result holding each result.
+
+If any of the given parsers fails, the combinator will return the first `Failure` result it got.
 
 <!-- div:right-panel -->
 
-!> **TODO** write this snippet
+```php
+<?php
+
+use jubianchi\PPC\Parser\Result;
+use jubianchi\PPC\Stream;
+use function jubianchi\PPC\Combinators\seq;
+use function jubianchi\PPC\Parsers\char;
+
+$stream = new Stream('abc');
+$success = seq(char('a'), char('b'));
+$failure = seq(char('c'), char('d'));
+$result = $success($stream);
+
+assert($result instanceof Result\Success);
+assert(is_array($result->result()));
+assert((string) $result->result()[0] === 'a');
+assert((string) $result->result()[1] === 'b');
+
+$result = $success($stream);
+assert($result instanceof Result\Failure);
+```
 
 <!-- panels:end -->
 
 ### Special combinators
 
 <!-- panels:start -->
+
+#### debug
+
+```phps
+function debug(Parser<T> $parser): Parser<T>
+```
+
+<!-- div:left-panel -->
+
+The `debug` combinator is an helper to help you enable the debug-mode and get execution trace.
+
+Given a parser, it will return the exact same parser but with debugging facilities enabled.
+
+> [!TIP]
+> Read the [Debugging](/tutorials/debugging.md) tutorial for an example use case.
+
+<!-- div:right-panel -->
+
+<!-- tabs:start -->
+
+### ** Parser **
+
+```php
+<?php
+
+use jubianchi\PPC\Parser\Result;
+use jubianchi\PPC\Stream;
+use function jubianchi\PPC\Combinators\{alt, debug, repeat};
+use function jubianchi\PPC\Parsers\char;
+
+$stream = new Stream('abc');
+$success = debug(repeat(2, alt(char('a'), char('b'))));
+$result = $success($stream);
+
+assert($result instanceof Result\Success);
+```
+
+### ** Output **
+
+```
+[info]  > repeat(2, alt(char(a), char(b))) {"line":1,"column":0,"ops":0}
+[info]    > alt(char(a), char(b)) {"line":1,"column":0,"ops":0}
+[info]      > char(a) {"line":1,"column":0,"ops":0}
+[info]      < char(a) {"line":1,"column":1,"consumed":"a","ops":1,"duration":0.000198}
+[info]    < alt(char(a), char(b)) {"line":1,"column":1,"consumed":"a","ops":2,"duration":0.000243}
+[info]    > alt(char(a), char(b)) {"line":1,"column":1,"ops":2}
+[info]      > char(a) {"line":1,"column":1,"ops":2}
+[error]     < char(a) {"line":1,"column":1,"ops":3,"duration":0.000104}
+[info]      > char(b) {"line":1,"column":1,"ops":3}
+[info]      < char(b) {"line":1,"column":2,"consumed":"b","ops":4,"duration":5.0e-6}
+[info]    < alt(char(a), char(b)) {"line":1,"column":2,"consumed":"b","ops":5,"duration":0.000149}
+[info]  < repeat(2, alt(char(a), char(b))) {"line":1,"column":2,"ops":6,"duration":0.000446}
+```
+
+
+<!-- tabs:end -->
 
 <!-- div:title-panel -->
 
@@ -562,20 +642,6 @@ function recurse(?Parser<T> &$parser): Parser<T>
 !> **TODO** write this snippet
 
 <!-- div:title-panel -->
-
-#### debug
-
-```phps
-function debug(Parser<T> &$parser): Parser<T>
-```
-
-<!-- div:left-panel -->
-
-!> **TODO** write this documentation
-
-<!-- div:right-panel -->
-
-!> **TODO** write this snippet
 
 <!-- panels:end -->
 
