@@ -4,11 +4,9 @@
 
 > A parser combinator library for PHP
 
-
-* Simple & lightweight
-* Extensively tested
-* Composable
-* Simple functional DSL
+* Simple to use & extend
+* Fast & lightweight
+* Reliable
 
 [:octocat: GitHub](https://github.com/jubianchi/ppc)
 [:checkered_flag: Get Started](#ppc)
