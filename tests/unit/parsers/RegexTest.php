@@ -19,6 +19,11 @@ use jubianchi\PPC\Slice;
 use jubianchi\PPC\Stream;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @small
+ *
+ * @internal
+ */
 final class RegexTest extends TestCase
 {
     /**

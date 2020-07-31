@@ -26,7 +26,7 @@ function alt(Parser $first, Parser $second, Parser ...$parsers): Parser
 {
     array_unshift($parsers, $first, $second);
 
-    return (new Parser('alt', function (Stream $stream, ?Debugger $debugger = null) use ($parsers): Result {
+    return (new Parser('alt', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parsers): Result {
         $failure = null;
 
         foreach ($parsers as $parser) {
@@ -55,7 +55,7 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
 {
     array_unshift($parsers, $first, $second);
 
-    return (new Parser('seq', function (Stream $stream, ?Debugger $debugger = null) use ($parsers): Result {
+    return (new Parser('seq', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parsers): Result {
         $results = [];
 
         $transaction = $stream->begin();
@@ -82,7 +82,7 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
 
 function opt(Parser $parser): Parser
 {
-    return (new Parser('opt', function (Stream $stream, ?Debugger $debugger = null) use ($parser): Result {
+    return (new Parser('opt', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parser): Result {
         $transaction = $stream->begin();
         $result = $parser($transaction, $debugger);
 
@@ -101,7 +101,7 @@ function opt(Parser $parser): Parser
 
 function many(Parser $parser): Parser
 {
-    return (new Parser('many', function (Stream $stream, ?Debugger $debugger = null) use ($parser): Result {
+    return (new Parser('many', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parser): Result {
         $results = [];
 
         while (true) {
@@ -132,7 +132,7 @@ function many(Parser $parser): Parser
 
 function repeat(int $times, Parser $parser): Parser
 {
-    return (new Parser('repeat', function (Stream $stream, ?Debugger $debugger = null) use ($parser, $times): Result {
+    return (new Parser('repeat', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parser, $times): Result {
         $results = [];
         $transaction = $stream->begin();
 
@@ -161,7 +161,7 @@ function not(Parser $parser, Parser ...$parsers): Parser
 {
     array_unshift($parsers, $parser);
 
-    return (new Parser('not', function (Stream $stream, ?Debugger $debugger = null) use ($parsers): Result {
+    return (new Parser('not', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parsers): Result {
         foreach ($parsers as $parser) {
             $transaction = $stream->begin();
             $result = $parser($transaction, $debugger);
@@ -169,7 +169,7 @@ function not(Parser $parser, Parser ...$parsers): Parser
 
             if ($result->isSuccess()) {
                 return new Failure(
-                    $this->label,
+                    $label,
                     sprintf(
                         'Expected "%s" not to match, got "%s" at line %s offset %d',
                         $parser,
@@ -190,7 +190,7 @@ function not(Parser $parser, Parser ...$parsers): Parser
 
 function recurse(?Parser &$parser): Parser
 {
-    return (new Parser('recurse', function (Stream $stream, ?Debugger $debugger = null) use (&$parser): Result {
+    return (new Parser('recurse', function (Stream $stream, string $label, ?Debugger $debugger = null) use (&$parser): Result {
         if (null === $parser) {
             throw new Exception('Could not call parser');
         }
@@ -210,7 +210,7 @@ function enclosed(Parser $before, Parser $parser, ?Parser $after = null): Parser
 {
     $after = $after ?? $before;
 
-    return (new Parser('enclosed', function (Stream $stream, ?Debugger $debugger = null) use ($before, $parser, $after): Result {
+    return (new Parser('enclosed', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($before, $parser, $after): Result {
         $transaction = $stream->begin();
         $beforeResult = $before($transaction, $debugger);
 
@@ -245,7 +245,7 @@ function enclosed(Parser $before, Parser $parser, ?Parser $after = null): Parser
 
 function separated(Parser $separator, Parser $parser): Parser
 {
-    return (new Parser('separated', function (Stream $stream, ?Debugger $debugger = null) use ($separator, $parser): Result {
+    return (new Parser('separated', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($separator, $parser): Result {
         $results = [];
         $transaction = $stream->begin();
 

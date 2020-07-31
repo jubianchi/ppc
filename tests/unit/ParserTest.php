@@ -21,7 +21,12 @@ use jubianchi\PPC\Stream;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-class ParserTest extends TestCase
+/**
+ * @small
+ *
+ * @internal
+ */
+final class ParserTest extends TestCase
 {
     /**
      * @test
@@ -77,5 +82,19 @@ class ParserTest extends TestCase
         $labeled = $parser->label('test parser');
 
         self::assertNotSame($parser, $labeled);
+        self::assertEquals('test parser•any', (string) $labeled);
+    }
+
+    /**
+     * @test
+     * @small
+     */
+    public function stringify(): void
+    {
+        $parser = any();
+        $stringified = $parser->stringify(fn ($label) => 'foobar');
+
+        self::assertNotSame($parser, $stringified);
+        self::assertEquals('foobar', (string) $stringified);
     }
 }

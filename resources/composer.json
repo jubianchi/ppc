@@ -1,5 +1,6 @@
 {
     "name": "jubianchi/ppc",
+    "description": "A parser combinator library for PHP",
     "license": "MIT",
     "require": {
         "php": ">=7.4.0",
@@ -8,28 +9,49 @@
         "psr/log": "^1.1"
     },
     "require-dev": {
-        "vimeo/psalm": "^3.12",
-        "mathiasverraes/parsica": "^0.4.0",
-        "phpbench/phpbench": "@dev"
+        "phpbench/phpbench": "@dev",
+        "phpunit/phpunit": "^9",
+        "phpunit/php-invoker": "^3.0",
+        "friendsofphp/php-cs-fixer": "@dev",
+        "phpstan/phpstan": "^0.12.32",
+        "phpstan/phpstan-strict-rules": "^0.12.3",
+        "phpstan/extension-installer": "^1.0",
+        "infection/infection": "^0.16.4",
+        "mathiasverraes/parsica": "@stable",
+        "mathiasverraes/uptodocs": "dev-main",
+        "phpmetrics/phpmetrics": "^2.7"
     },
     "autoload": {
         "psr-4": {
-            "jubianchi\\PPC\\": [
-                "src/lib"
-            ],
-            "jubianchi\\PPC\\Parsers\\": [
-                "parsers"
-            ]
+            "jubianchi\\PPC\\": ["src/lib"],
+            "jubianchi\\PPC\\Parsers\\": ["parsers"]
         },
         "files": [
             "src/parsers.php",
             "src/combinators.php",
-            "src/debug.php"
+            "src/debug.php",
+            "src/mappers.php"
         ]
     },
     "autoload-dev": {
+        "psr-4": {
+            "jubianchi\\PPC\\Tests\\": ["tests/unit"],
+            "jubianchi\\PPC\\Tests\\Parsers\\": ["tests/unit/unit/parsers"],
+            "jubianchi\\PPC\\Tests\\Combinators\\": ["tests/unit/unit/combinators"]
+        },
         "files": [
             "parsers/json.php"
         ]
+    },
+    "scripts": {
+        "bm": "phpbench run benchmarks --report=aggregate --dump-file=tmp/curr.xml --ansi --tag=current",
+        "bmc": "phpbench report --report='extends: \"compare\", compare: \"tag\", cols: [\"subject\", \"set\", \"revs\", \"its\"], compare_fields: [\"mem_peak\", \"best\", \"mean\", \"worst\"]' --file=benchmarks/ref.xml --file=tmp/curr.xml --ansi",
+        "cs": "php-cs-fixer fix --ansi",
+        "dt": "tests/docs/run.sh",
+        "mt": "phpdbg -qrr vendor/bin/phpunit --testdox && vendor/bin/infection --coverage=tmp --ansi --skip-initial-tests --no-progress --threads=2",
+        "sa": "phpstan analyse --ansi --memory-limit=50",
+        "pm": "phpdbg -qrr vendor/bin/phpunit --testdox && vendor/bin/phpmetrics --config=phpmetrics.json",
+        "ut": "phpdbg -qrr vendor/bin/phpunit --testdox",
+        "dev:docs": "cd docs && ../node_modules/.bin/docsify serve"
     }
 }

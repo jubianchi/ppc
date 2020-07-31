@@ -19,6 +19,11 @@ use function jubianchi\PPC\Parsers\char;
 use jubianchi\PPC\Stream;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @small
+ *
+ * @internal
+ */
 final class SeparatedTest extends TestCase
 {
     /**
