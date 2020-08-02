@@ -19,6 +19,11 @@ use function jubianchi\PPC\Parsers\regex;
 use jubianchi\PPC\Stream;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @small
+ *
+ * @internal
+ */
 final class RepeatTest extends TestCase
 {
     /**

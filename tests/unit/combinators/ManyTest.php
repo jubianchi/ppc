@@ -21,6 +21,11 @@ use function jubianchi\PPC\Parsers\word;
 use jubianchi\PPC\Stream;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @small
+ *
+ * @internal
+ */
 final class ManyTest extends TestCase
 {
     /**

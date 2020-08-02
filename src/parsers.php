@@ -24,10 +24,10 @@ function char(string $char): Parser
 {
     $format = fn (string $char): string => str_replace(["\r", "\n", "\t"], ['\r', '\n', '\t'], $char);
 
-    return (new Parser('char', function (Stream $stream) use ($char, $format): Result {
+    return (new Parser('char', function (Stream $stream, string $label) use ($char, $format): Result {
         if (!$stream->valid()) {
             return Failure::create(
-                $this->label,
+                $label,
                 $char,
                 Stream::EOS,
                 $stream,
@@ -38,7 +38,7 @@ function char(string $char): Parser
 
         if ($current !== $char) {
             return Failure::create(
-                $this->label,
+                $label,
                 $format($char),
                 $current,
                 $stream,
@@ -56,10 +56,10 @@ function char(string $char): Parser
 
 function regex(string $pattern): Parser
 {
-    return (new Parser('regex', function (Stream $stream) use ($pattern): Result {
+    return (new Parser('regex', function (Stream $stream, string $label) use ($pattern): Result {
         if (!$stream->valid()) {
             return Failure::create(
-                $this->label,
+                $label,
                 $pattern,
                 Stream::EOS,
                 $stream,
@@ -70,7 +70,7 @@ function regex(string $pattern): Parser
 
         if (0 === preg_match($pattern, $current)) {
             return Failure::create(
-                $this->label,
+                $label,
                 $pattern,
                 $current,
                 $stream,
@@ -90,10 +90,10 @@ function word(string $word): Parser
 {
     $format = fn (string $char): string => str_replace(["\r", "\n", "\t"], ['\r', '\n', '\t'], $char);
 
-    return (new Parser('word', function (Stream $stream) use ($word, $format): Result {
+    return (new Parser('word', function (Stream $stream, string $label) use ($word, $format): Result {
         if (!$stream->valid()) {
             return Failure::create(
-                $this->label,
+                $label,
                 $format($word),
                 Stream::EOS,
                 $stream,
@@ -106,7 +106,7 @@ function word(string $word): Parser
             $actual = $stream->cut($stream->key(), $length);
         } catch (OutOfBoundsException $exception) {
             return Failure::create(
-                $this->label,
+                $label,
                 $word,
                 $stream->cut($stream->key()).' . '.Stream::EOS,
                 $stream,
@@ -115,7 +115,7 @@ function word(string $word): Parser
 
         if ($actual !== $word) {
             return Failure::create(
-                $this->label,
+                $label,
                 $format($word),
                 $actual,
                 $stream,
@@ -137,10 +137,10 @@ function word(string $word): Parser
 
 function any(): Parser
 {
-    return new Parser('any', function (Stream $stream): Result {
+    return new Parser('any', function (Stream $stream, string $label): Result {
         if (!$stream->valid()) {
             return Failure::create(
-                $this->label,
+                $label,
                 'any',
                 Stream::EOS,
                 $stream,
@@ -157,10 +157,10 @@ function any(): Parser
 
 function eos(): Parser
 {
-    return new Parser('eos', function (Stream $stream): Result {
+    return new Parser('eos', function (Stream $stream, string $label): Result {
         if ($stream->valid()) {
             return Failure::create(
-                $this->label,
+                $label,
                 Stream::EOS,
                 $stream->current(),
                 $stream,

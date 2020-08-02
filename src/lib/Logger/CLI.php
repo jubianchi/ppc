@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC\Logger;
 
-use jubianchi\PPC\Logger;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 

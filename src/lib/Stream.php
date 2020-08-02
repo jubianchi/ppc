@@ -23,10 +23,13 @@ class Stream implements Iterator
 {
     const EOS = __CLASS__.'::EOS';
 
+    private const FIRST_LINE = 1;
+    private const FIRST_COLUMN = 0;
+
     private string $contents;
     private int $length;
 
-    private int $position = 0;
+    private int $offset = 0;
     private string $current;
 
     /**
@@ -34,23 +37,23 @@ class Stream implements Iterator
      */
     private array $transactions = [];
 
-    private int $line = 1;
-    private int $column = 0;
+    private int $line = self::FIRST_LINE;
+    private int $column = self::FIRST_COLUMN;
 
     public function __construct(string $contents)
     {
         $this->contents = $contents;
         $this->length = mb_strlen($this->contents);
 
-        if ($this->position >= $this->length) {
+        if ($this->offset >= $this->length) {
             $this->current = self::EOS;
         } else {
-            $this->current = mb_substr($this->contents, $this->position, 1);
+            $this->current = mb_substr($this->contents, $this->offset, 1);
         }
 
         if ("\n" === $this->current) {
             ++$this->line;
-            $this->column = 0;
+            $this->column = self::FIRST_COLUMN;
         }
     }
 
@@ -61,46 +64,46 @@ class Stream implements Iterator
 
     public function next(): void
     {
-        ++$this->position;
+        ++$this->offset;
         ++$this->column;
 
-        if ($this->position >= $this->length) {
+        if ($this->offset >= $this->length) {
             $this->current = self::EOS;
         } else {
-            $this->current = mb_substr($this->contents, $this->position, 1);
+            $this->current = mb_substr($this->contents, $this->offset, 1);
         }
 
         if ("\n" === $this->current) {
             ++$this->line;
-            $this->column = 0;
+            $this->column = self::FIRST_COLUMN;
         }
     }
 
     public function key(): int
     {
-        return $this->position;
+        return $this->offset;
     }
 
     public function valid(): bool
     {
-        return $this->position < $this->length;
+        return $this->offset < $this->length;
     }
 
     public function rewind(): void
     {
-        $this->position = 0;
+        $this->offset = 0;
 
-        $this->current = mb_substr($this->contents, $this->position, 1);
+        $this->current = mb_substr($this->contents, $this->offset, 1);
 
         if ("\n" === $this->current) {
             ++$this->line;
-            $this->column = 0;
+            $this->column = self::FIRST_COLUMN;
         }
     }
 
     public function cut(int $offset, ?int $length = null): string
     {
-        $length = $length ?? $this->length - $this->position;
+        $length = $length ?? $this->length - $this->offset;
 
         if (0 > $offset || $offset + $length > $this->length) {
             throw new OutOfBoundsException();
@@ -125,7 +128,7 @@ class Stream implements Iterator
             throw new Exception('There is no active transaction');
         }
 
-        $this->position = $transaction->position;
+        $this->offset = $transaction->offset;
         $this->line = $transaction->line;
         $this->column = $transaction->column;
         $this->current = $transaction->current;

@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC;
 
-use Closure;
 use Exception;
 use jubianchi\PPC\Parser\Debugger;
 use jubianchi\PPC\Parser\Result;
@@ -21,7 +20,7 @@ use RuntimeException;
 class Parser
 {
     /**
-     * @var callable(Stream, ?Debugger): Result
+     * @var callable(Stream, string, ?Debugger): Result
      */
     private $parser;
 
@@ -39,23 +38,14 @@ class Parser
     private string $originalLabel;
 
     /**
-     * @param callable(Stream, ?Debugger): Result $parser
+     * @param callable(Stream, string, ?Debugger): Result $parser
      */
     public function __construct(string $label, callable $parser)
     {
-        if ($parser instanceof self) {
-            $parser = $parser->parser;
-        }
-
         $this->originalLabel = $this->label = $label;
-        $this->parser = Closure::fromCallable($parser)->bindTo($this, self::class);
+        $this->parser = $parser;
         $this->mapper = fn (Result $result): Result => $result;
         $this->stringify = fn (string $label): string => $label;
-    }
-
-    public function __clone()
-    {
-        $this->parser = Closure::fromCallable($this->parser)->bindTo($this, self::class);
     }
 
     public function __toString(): string
@@ -71,7 +61,7 @@ class Parser
         $debugger and $debugger->enter($this, $stream);
 
         try {
-            $result = ($this->parser)($stream, $debugger);
+            $result = ($this->parser)($stream, $this->label, $debugger);
 
             $debugger and $debugger->exit($this, $stream, $result);
 

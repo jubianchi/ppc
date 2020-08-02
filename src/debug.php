@@ -22,7 +22,7 @@ function debug(Parser $parser): Parser
 {
     $logger = new CLI();
 
-    return new Parser('debug', fn (Stream $stream, ?Debugger $debugger = null): Result => $parser(
+    return new Parser('debug', fn (Stream $stream, string $label, ?Debugger $debugger = null): Result => $parser(
         $stream,
         $debugger ?? new Parser\Debugger($logger)
     ));

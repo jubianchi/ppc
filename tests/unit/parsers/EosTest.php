@@ -18,6 +18,11 @@ use function jubianchi\PPC\Parsers\eos;
 use jubianchi\PPC\Stream;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @small
+ *
+ * @internal
+ */
 final class EosTest extends TestCase
 {
     /**

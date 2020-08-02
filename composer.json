@@ -46,7 +46,7 @@
     "scripts": {
         "bm": "phpbench run benchmarks --report=aggregate --dump-file=tmp/curr.xml --ansi --tag=current",
         "bmc": "phpbench report --report='extends: \"compare\", compare: \"tag\", cols: [\"subject\", \"set\", \"revs\", \"its\"], compare_fields: [\"mem_peak\", \"best\", \"mean\", \"worst\"]' --file=benchmarks/ref.xml --file=tmp/curr.xml --ansi",
-        "cs": "php-cs-fixer fix --ansi",
+        "cs": "php-cs-fixer fix --ansi --allow-risky=yes",
         "dt": "tests/docs/run.sh",
         "mt": "phpdbg -qrr vendor/bin/phpunit --testdox && vendor/bin/infection --coverage=tmp --ansi --skip-initial-tests --no-progress --threads=2",
         "sa": "phpstan analyse --ansi --memory-limit=50",

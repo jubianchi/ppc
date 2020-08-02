@@ -34,7 +34,11 @@ return (new PhpCsFixer\Config())
             'header' => $header,
             'location' => 'after_open',
             'separate' => 'bottom',
-        ]
+        ],
+        'php_unit_size_class' => ['group' => 'small'],
+        'php_unit_internal_class' => ['types' => ['normal', 'final']],
+        'php_unit_method_casing' => ['case' => 'camel_case'],
+        'php_unit_test_case_static_method_calls' => ['call_type' => 'self'],
     ])
     ->setFinder($finder)
 ;
