@@ -8,16 +8,16 @@ Simple to use & extend • Fast & lightweight • Reliable
 
 PPC stands for **P**HP **P**arser **C**ombinator. What an obvious name for such a library!
 
-As its name tells us, PPC is just another parser combinator library with a clear goal: make writing efficient parsers a 
-breeze. Writing parser with PPC does not require you to know how parser combinators works internally nor it requires you 
+As its name tells us, PPC is just another parser combinator library with a clear goal: make writing efficient parsers a
+breeze. Writing parser with PPC does not require you to know how parser combinators works internally nor it requires you
 to learn a complex object-oriented API.
 
-PPC is a set of functions which you will love to compose to build complex parsers!   
+PPC is a set of functions which you will love to compose to build complex parsers!
 
 ## Installation
 
-PPC requires you to have at least PHP `7.4.0` and the [Multibyte String](https://www.php.net/manual/en/book.mbstring.php) 
-(`mbstring`) extension enabled. You may want to check if your setup is correct using the following script: 
+PPC requires you to have at least PHP `7.4.0` and the [Multibyte String](https://www.php.net/manual/en/book.mbstring.php)
+(`mbstring`) extension enabled. You may want to check if your setup is correct using the following script:
 
 ```bash
 #!/usr/bin/env bash
@@ -65,15 +65,15 @@ use function jubianchi\PPC\Parsers\{char, eos, regex};
 
 $separator = seq(char(','), opt(char(' ')));
 $list = seq(
-    char('['), 
+    char('['),
     seq(
         separated(
-            $separator, 
+            $separator,
             opt(regex('/[0-9]/'))
-        ), 
+        ),
         opt($separator)
-    ), 
-    char(']'), 
+    ),
+    char(']'),
     eos()
 );
 
@@ -83,4 +83,4 @@ $result = $list($stream);
 assert($result instanceof Result\Success);
 ```
 
-Easy, right? Be sure to read the [documentation](https://jubianchi.github.io/ppc) to undrstand how it works.
+Easy, right? Be sure to read the [documentation](https://jubianchi.github.io/ppc) to understand how it works.
