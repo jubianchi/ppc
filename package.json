@@ -1,0 +1,24 @@
+{
+  "name": "ppc",
+  "description": "A parser combinator library for PHP",
+  "directories": {
+    "doc": "docs"
+  },
+  "dependencies": {
+    "docsify-cli": "^4.4.1",
+    "dot-prop": ">=5.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jubianchi/ppc.git"
+  },
+  "author": {
+    "name": "Julien Bianchi",
+    "email": "contact@jubianchi.fr"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jubianchi/ppc/issues"
+  },
+  "homepage": "https://jubianchi.github.io/ppc/"
+}
