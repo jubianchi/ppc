@@ -86,7 +86,7 @@ To illustrate the power of the `debug` combinator, let's compare the two snippet
 ```php
 <?php
 
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Combinators\{debug, repeat};
 use function jubianchi\PPC\Parsers\regex;
 
@@ -94,7 +94,7 @@ $twoDigits = repeat(2, regex('/[0-9]/'));
 $fourDigits = repeat(4, regex('/[0-9]/'));
 
 $parser = debug($fourDigits);
-$parser(new Stream('2020'));
+$parser(new Char('2020'));
 ```
 
 ### ** Output **
@@ -125,7 +125,7 @@ $parser(new Stream('2020'));
 ```php
 <?php
 
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Combinators\{debug, repeat};
 use function jubianchi\PPC\Parsers\regex;
 
@@ -133,7 +133,7 @@ $twoDigits = repeat(2, regex('/[0-9]/'));
 $fourDigits = repeat(2, $twoDigits);
 
 $parser = debug($fourDigits);
-$parser(new Stream('2020'));
+$parser(new Char('2020'));
 ```
 
 ### ** Output **

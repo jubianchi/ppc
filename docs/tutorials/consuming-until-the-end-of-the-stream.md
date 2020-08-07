@@ -100,7 +100,7 @@ Here is the full code of the parser which is now able to handle the `Z` characte
 ```php
 <?php
 
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Combinators\{repeat, seq};
 use function jubianchi\PPC\Mappers\{concat, skip, structure};
 use function jubianchi\PPC\Parsers\{regex, char, eos};
@@ -123,7 +123,7 @@ $eos = eos()->map(skip());
 $dateTime = seq($year, $dash, $month, $dash, $day, $t, $hour, $colon, $minute, $colon, $second, $z, $eos)
     ->map(structure(['year', 'month', 'day', 'hour', 'minute', 'second']));
 
-$result = $dateTime(new Stream('2020-07-21T17:35:00Z'));
+$result = $dateTime(new Char('2020-07-21T17:35:00Z'));
 var_dump($result->result());
 ```
 

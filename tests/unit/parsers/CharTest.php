@@ -16,7 +16,7 @@ use jubianchi\PPC\Parser\Result\Failure;
 use jubianchi\PPC\Parser\Result\Success;
 use function jubianchi\PPC\Parsers\char;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -32,7 +32,7 @@ final class CharTest extends TestCase
      */
     public function match(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = char('a');
 
         $result = $parser($stream);
@@ -41,7 +41,7 @@ final class CharTest extends TestCase
         self::assertThat($result->result(), self::isInstanceOf(Slice::class));
         self::assertEquals('a', $result->result());
 
-        self::assertEquals(1, $stream->key());
+        self::assertEquals(1, $stream->offset());
         self::assertEquals('b', $stream->current());
     }
 
@@ -51,7 +51,7 @@ final class CharTest extends TestCase
      */
     public function noMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = char('b');
 
         $result = $parser($stream);
@@ -66,7 +66,7 @@ final class CharTest extends TestCase
             self::assertEquals('char: Expected "b", got "a" at line 1 offset 0', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->offset());
         self::assertEquals('a', $stream->current());
     }
 
@@ -76,7 +76,7 @@ final class CharTest extends TestCase
      */
     public function noMatchWithLabel(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = char('b')->label('test parser');
 
         $result = $parser($stream);
@@ -91,7 +91,7 @@ final class CharTest extends TestCase
             self::assertEquals('test parser•char: Expected "b", got "a" at line 1 offset 0', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->offset());
         self::assertEquals('a', $stream->current());
     }
 
@@ -101,7 +101,7 @@ final class CharTest extends TestCase
      */
     public function eos(): void
     {
-        $stream = new Stream('');
+        $stream = new Char('');
         $parser = char('a');
 
         $result = $parser($stream);
@@ -116,7 +116,7 @@ final class CharTest extends TestCase
             self::assertEquals('char: Expected "a", got "jubianchi\PPC\Stream::EOS" at line 1 offset 0', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
-        self::assertEquals(Stream::EOS, $stream->current());
+        self::assertEquals(0, $stream->offset());
+        self::assertEquals(Char::EOS, $stream->current());
     }
 }

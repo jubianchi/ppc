@@ -16,7 +16,7 @@ use function jubianchi\PPC\Combinators\separated;
 use jubianchi\PPC\Parser\Result\Failure;
 use jubianchi\PPC\Parser\Result\Success;
 use function jubianchi\PPC\Parsers\char;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -32,7 +32,7 @@ final class SeparatedTest extends TestCase
      */
     public function singleCharMatch(): void
     {
-        $stream = new Stream('a');
+        $stream = new Char('a');
         $parser = separated(char('b'), char('a'));
 
         $result = $parser($stream);
@@ -41,8 +41,8 @@ final class SeparatedTest extends TestCase
         self::assertIsArray($result->result());
         self::assertEquals(['a'], $result->result());
 
-        self::assertEquals(1, $stream->key());
-        self::assertEquals(Stream::EOS, $stream->current());
+        self::assertEquals(1, $stream->offset());
+        self::assertEquals(Char::EOS, $stream->current());
     }
 
     /**
@@ -51,7 +51,7 @@ final class SeparatedTest extends TestCase
      */
     public function singleMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = separated(char('b'), char('a'));
 
         $result = $parser($stream);
@@ -60,7 +60,7 @@ final class SeparatedTest extends TestCase
         self::assertIsArray($result->result());
         self::assertEquals(['a'], $result->result());
 
-        self::assertEquals(1, $stream->key());
+        self::assertEquals(1, $stream->offset());
         self::assertEquals('b', $stream->current());
     }
 
@@ -70,7 +70,7 @@ final class SeparatedTest extends TestCase
      */
     public function manyMatch(): void
     {
-        $stream = new Stream('ababab');
+        $stream = new Char('ababab');
         $parser = separated(char('b'), char('a'));
 
         $result = $parser($stream);
@@ -79,7 +79,7 @@ final class SeparatedTest extends TestCase
         self::assertIsArray($result->result());
         self::assertEquals(['a', 'a', 'a'], $result->result());
 
-        self::assertEquals(5, $stream->key());
+        self::assertEquals(5, $stream->offset());
         self::assertEquals('b', $stream->current());
     }
 
@@ -89,7 +89,7 @@ final class SeparatedTest extends TestCase
      */
     public function manyNotSeparatedMatch(): void
     {
-        $stream = new Stream('aab');
+        $stream = new Char('aab');
         $parser = separated(char('b'), char('a'));
 
         $result = $parser($stream);
@@ -98,7 +98,7 @@ final class SeparatedTest extends TestCase
         self::assertIsArray($result->result());
         self::assertEquals(['a'], $result->result());
 
-        self::assertEquals(1, $stream->key());
+        self::assertEquals(1, $stream->offset());
         self::assertEquals('a', $stream->current());
     }
 
@@ -108,7 +108,7 @@ final class SeparatedTest extends TestCase
      */
     public function noMatch(): void
     {
-        $stream = new Stream('baba');
+        $stream = new Char('baba');
         $parser = separated(char('b'), char('a'));
 
         $result = $parser($stream);
@@ -123,7 +123,7 @@ final class SeparatedTest extends TestCase
             self::assertEquals('char: Expected "a", got "b" at line 1 offset 0', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->offset());
         self::assertEquals('b', $stream->current());
     }
 }

@@ -16,7 +16,7 @@ use function jubianchi\PPC\Combinators\opt;
 use jubianchi\PPC\Parser\Result\Success;
 use function jubianchi\PPC\Parsers\char;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -32,7 +32,7 @@ final class OptTest extends TestCase
      */
     public function match(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $first = char('a');
         $parser = opt($first);
 
@@ -42,7 +42,7 @@ final class OptTest extends TestCase
         self::assertThat($result->result(), self::isInstanceOf(Slice::class));
         self::assertEquals('a', $result->result());
 
-        self::assertEquals(1, $stream->key());
+        self::assertEquals(1, $stream->offset());
         self::assertEquals('b', $stream->current());
     }
 
@@ -52,7 +52,7 @@ final class OptTest extends TestCase
      */
     public function noMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $first = char('b');
         $parser = opt($first);
 
@@ -61,7 +61,7 @@ final class OptTest extends TestCase
         self::assertThat($result, self::isInstanceOf(Success::class));
         self::assertNull($result->result());
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->offset());
         self::assertEquals('a', $stream->current());
     }
 }

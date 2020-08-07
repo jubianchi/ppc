@@ -35,10 +35,10 @@ when the wrapped value is accessed.
 
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Parsers\any;
 
-$stream = new Stream('a');
+$stream = new Char('a');
 $parser = any();
 $result = $parser($stream);
 
@@ -74,10 +74,10 @@ when the wrapped value is accessed.
 
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Parsers\char;
 
-$stream = new Stream('abc');
+$stream = new Char('abc');
 $success = char('a');
 $failure = char('c');
 $result = $success($stream);
@@ -113,10 +113,10 @@ result.
 <?php
 
 use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Parsers\{char, eos};
 
-$stream = new Stream('a');
+$stream = new Char('a');
 $char = char('a');
 $eos = eos();
 
@@ -153,10 +153,10 @@ exception when the wrapped value is accessed.
 
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Parsers\regex;
 
-$stream = new Stream('abc');
+$stream = new Char('abc');
 $parser = regex('/[a-z]/');
 $result = $parser($stream);
 
@@ -180,10 +180,10 @@ assert((string) $result->result() === 'a');
 
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Parsers\regex;
 
-$stream = new Stream('123');
+$stream = new Char('123');
 $parser = regex('/[a-z]*/');
 $result = $parser($stream);
 
@@ -196,10 +196,10 @@ assert((string) $result->result() === '1');
 <?php
 
 use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Parsers\regex;
 
-$stream = new Stream('abc');
+$stream = new Char('abc');
 $parser = regex('/[a-z]+c/');
 $result = $parser($stream);
 
@@ -234,10 +234,10 @@ when the wrapped value is accessed.
 
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Parsers\word;
 
-$stream = new Stream('ab3d_');
+$stream = new Char('ab3d_');
 $success = word('ab3');
 $failure = word('b_');
 $result = $success($stream);
@@ -278,11 +278,11 @@ If none of the given parsers succeeds, the combinator will return the first `Fai
 
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Combinators\alt;
 use function jubianchi\PPC\Parsers\char;
 
-$stream = new Stream('abc');
+$stream = new Char('abc');
 $success = alt(char('a'), char('b'));
 $failure = alt(char('d'), char('1'));
 $result = $success($stream);
@@ -328,11 +328,11 @@ the differences of using — With — (or not using — Without) the `enclosed` 
 
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Combinators\enclosed;
 use function jubianchi\PPC\Parsers\char;
 
-$stream = new Stream('-a-');
+$stream = new Char('-a-');
 $success = enclosed(char('-'), char('a'));
 $failure = enclosed(char('"'), char('a'));
 $result = $success($stream);
@@ -351,12 +351,12 @@ assert($failure($stream) instanceof Result\Failure);
 
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Combinators\seq;
 use function jubianchi\PPC\Mappers\{first, skip};
 use function jubianchi\PPC\Parsers\char;
 
-$stream = new Stream('-a-');
+$stream = new Char('-a-');
 $success = seq(
     char('-')->map(skip()), 
     char('a'), 
@@ -402,11 +402,11 @@ If the given parsers never matches, the combinator will return the first `Failur
 <?php
 
 use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Combinators\many;
 use function jubianchi\PPC\Parsers\regex;
 
-$stream = new Stream('abc');
+$stream = new Char('abc');
 $success = many(regex('/a|b/'));
 $failure = many(regex('/[d-z]/'));
 $result = $success($stream);
@@ -447,11 +447,11 @@ If the one of the given parsers succeeds, the `not` combinator will return a `Fa
 
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Combinators\not;
 use function jubianchi\PPC\Parsers\char;
 
-$stream = new Stream('abc');
+$stream = new Char('abc');
 $success = not(char('b'), char('c'));
 $failure = not(char('b'));
 $result = $success($stream);
@@ -486,11 +486,11 @@ If the given parser fails, the `opt` combinator will return a `Success` result h
 
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Combinators\opt;
 use function jubianchi\PPC\Parsers\char;
 
-$stream = new Stream('abc');
+$stream = new Char('abc');
 $success = opt(char('a'));
 $failure = opt(char('c'));
 $result = $success($stream);
@@ -545,11 +545,11 @@ If any of the given parsers fails, the combinator will return the first `Failure
 <?php
 
 use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Combinators\seq;
 use function jubianchi\PPC\Parsers\char;
 
-$stream = new Stream('abc');
+$stream = new Char('abc');
 $success = seq(char('a'), char('b'));
 $failure = seq(char('c'), char('d'));
 $result = $success($stream);
@@ -594,11 +594,11 @@ Given a parser, it will return the exact same parser but with debugging faciliti
 <?php
 
 use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Combinators\{alt, debug, repeat};
 use function jubianchi\PPC\Parsers\char;
 
-$stream = new Stream('abc');
+$stream = new Char('abc');
 $success = debug(repeat(2, alt(char('a'), char('b'))));
 $result = $success($stream);
 

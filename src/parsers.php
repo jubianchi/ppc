@@ -25,7 +25,7 @@ function char(string $char): Parser
     $format = fn (string $char): string => str_replace(["\r", "\n", "\t"], ['\r', '\n', '\t'], $char);
 
     return (new Parser('char', function (Stream $stream, string $label) use ($char, $format): Result {
-        if (!$stream->valid()) {
+        if ($stream->eos()) {
             return Failure::create(
                 $label,
                 $char,
@@ -45,11 +45,7 @@ function char(string $char): Parser
             );
         }
 
-        $slice = new Slice($stream, $stream->key(), 1);
-
-        $stream->next();
-
-        return new Success($slice);
+        return new Success($stream->consume());
     }))
         ->stringify(fn (string $label): string => sprintf('%s(%s)', $label, $format($char)));
 }
@@ -57,7 +53,7 @@ function char(string $char): Parser
 function regex(string $pattern): Parser
 {
     return (new Parser('regex', function (Stream $stream, string $label) use ($pattern): Result {
-        if (!$stream->valid()) {
+        if ($stream->eos()) {
             return Failure::create(
                 $label,
                 $pattern,
@@ -77,11 +73,7 @@ function regex(string $pattern): Parser
             );
         }
 
-        $slice = new Slice($stream, $stream->key(), 1);
-
-        $stream->next();
-
-        return new Success($slice);
+        return new Success($stream->consume());
     }))
         ->stringify(fn (string $label): string => sprintf('%s(%s)', $label, $pattern));
 }
@@ -91,7 +83,7 @@ function word(string $word): Parser
     $format = fn (string $char): string => str_replace(["\r", "\n", "\t"], ['\r', '\n', '\t'], $char);
 
     return (new Parser('word', function (Stream $stream, string $label) use ($word, $format): Result {
-        if (!$stream->valid()) {
+        if ($stream->eos()) {
             return Failure::create(
                 $label,
                 $format($word),
@@ -103,12 +95,12 @@ function word(string $word): Parser
         $length = mb_strlen($word);
 
         try {
-            $actual = $stream->cut($stream->key(), $length);
+            $actual = $stream->cut($stream->offset(), $length);
         } catch (OutOfBoundsException $exception) {
             return Failure::create(
                 $label,
                 $word,
-                $stream->cut($stream->key()).' . '.Stream::EOS,
+                $stream->cut($stream->offset()).' . '.Stream::EOS,
                 $stream,
             );
         }
@@ -122,13 +114,9 @@ function word(string $word): Parser
             );
         }
 
-        $slice = new Slice($stream, $stream->key(), $length);
+        $slice = new Slice($stream, $stream->offset(), $length);
 
-        while ($length > 0 && $stream->valid()) {
-            --$length;
-
-            $stream->next();
-        }
+        $stream->seek($stream->offset() + $length);
 
         return new Success($slice);
     }))
@@ -138,7 +126,7 @@ function word(string $word): Parser
 function any(): Parser
 {
     return new Parser('any', function (Stream $stream, string $label): Result {
-        if (!$stream->valid()) {
+        if ($stream->eos()) {
             return Failure::create(
                 $label,
                 'any',
@@ -147,18 +135,14 @@ function any(): Parser
             );
         }
 
-        $slice = new Slice($stream, $stream->key(), 1);
-
-        $stream->next();
-
-        return new Success($slice);
+        return new Success($stream->consume());
     });
 }
 
 function eos(): Parser
 {
     return new Parser('eos', function (Stream $stream, string $label): Result {
-        if ($stream->valid()) {
+        if (!$stream->eos()) {
             return Failure::create(
                 $label,
                 Stream::EOS,

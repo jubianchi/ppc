@@ -18,7 +18,7 @@ use jubianchi\PPC\Parser\Result\Success;
 use function jubianchi\PPC\Parsers\any;
 use function jubianchi\PPC\Parsers\char;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -34,7 +34,7 @@ final class EnclosedTest extends TestCase
      */
     public function sameDelimiterMatch(): void
     {
-        $stream = new Stream('aba');
+        $stream = new Char('aba');
         $parser = enclosed(char('a'), any());
 
         $result = $parser($stream);
@@ -43,8 +43,8 @@ final class EnclosedTest extends TestCase
         self::assertThat($result->result(), self::isInstanceOf(Slice::class));
         self::assertEquals('b', (string) $result->result());
 
-        self::assertEquals(3, $stream->key());
-        self::assertEquals(Stream::EOS, $stream->current());
+        self::assertEquals(3, $stream->offset());
+        self::assertEquals(Char::EOS, $stream->current());
     }
 
     /**
@@ -53,7 +53,7 @@ final class EnclosedTest extends TestCase
      */
     public function differentDelimitersMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = enclosed(char('a'), any(), char('c'));
 
         $result = $parser($stream);
@@ -62,8 +62,8 @@ final class EnclosedTest extends TestCase
         self::assertThat($result->result(), self::isInstanceOf(Slice::class));
         self::assertEquals('b', (string) $result->result());
 
-        self::assertEquals(3, $stream->key());
-        self::assertEquals(Stream::EOS, $stream->current());
+        self::assertEquals(3, $stream->offset());
+        self::assertEquals(Char::EOS, $stream->current());
     }
 
     /**
@@ -72,7 +72,7 @@ final class EnclosedTest extends TestCase
      */
     public function sameDelimiterNoMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = enclosed(char('a'), any());
 
         $result = $parser($stream);
@@ -87,7 +87,7 @@ final class EnclosedTest extends TestCase
             self::assertEquals('char: Expected "a", got "c" at line 1 offset 2', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->offset());
         self::assertEquals('a', $stream->current());
     }
 
@@ -97,7 +97,7 @@ final class EnclosedTest extends TestCase
      */
     public function differentDelimitersNoMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = enclosed(char('a'), any(), char('b'));
 
         $result = $parser($stream);
@@ -112,7 +112,7 @@ final class EnclosedTest extends TestCase
             self::assertEquals('char: Expected "b", got "c" at line 1 offset 2', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->offset());
         self::assertEquals('a', $stream->current());
     }
 
@@ -122,7 +122,7 @@ final class EnclosedTest extends TestCase
      */
     public function startDelimiterNoMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = enclosed(char('c'), any());
 
         $result = $parser($stream);
@@ -137,7 +137,7 @@ final class EnclosedTest extends TestCase
             self::assertEquals('char: Expected "c", got "a" at line 1 offset 0', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->offset());
         self::assertEquals('a', $stream->current());
     }
 
@@ -147,7 +147,7 @@ final class EnclosedTest extends TestCase
      */
     public function enclosedNoMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = enclosed(char('a'), char('c'));
 
         $result = $parser($stream);
@@ -162,7 +162,7 @@ final class EnclosedTest extends TestCase
             self::assertEquals('char: Expected "c", got "b" at line 1 offset 1', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->offset());
         self::assertEquals('a', $stream->current());
     }
 }

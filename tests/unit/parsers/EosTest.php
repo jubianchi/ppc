@@ -15,7 +15,7 @@ namespace jubianchi\PPC\Tests\Parsers;
 use jubianchi\PPC\Parser\Result\Failure;
 use jubianchi\PPC\Parser\Result\Success;
 use function jubianchi\PPC\Parsers\eos;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -31,7 +31,7 @@ final class EosTest extends TestCase
      */
     public function match(): void
     {
-        $stream = new Stream('');
+        $stream = new Char('');
         $parser = eos();
 
         $result = $parser($stream);
@@ -39,8 +39,8 @@ final class EosTest extends TestCase
         self::assertThat($result, self::isInstanceOf(Success::class));
         self::assertNull($result->result());
 
-        self::assertEquals(0, $stream->key());
-        self::assertEquals(Stream::EOS, $stream->current());
+        self::assertEquals(0, $stream->offset());
+        self::assertEquals(Char::EOS, $stream->current());
     }
 
     /**
@@ -49,7 +49,7 @@ final class EosTest extends TestCase
      */
     public function noMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = eos();
 
         $result = $parser($stream);
@@ -64,7 +64,7 @@ final class EosTest extends TestCase
             self::assertEquals('eos: Expected "jubianchi\PPC\Stream::EOS", got "a" at line 1 offset 0', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->offset());
         self::assertEquals('a', $stream->current());
     }
 }
