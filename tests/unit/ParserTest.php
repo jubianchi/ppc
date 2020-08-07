@@ -18,6 +18,7 @@ use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Parser\Result\Success;
 use function jubianchi\PPC\Parsers\any;
 use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -34,7 +35,7 @@ final class ParserTest extends TestCase
      */
     public function parserThrows(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $exception = new Exception('random exception');
         $parser = new Parser('test parser', function () use ($exception): Parser\Result { throw $exception; });
 
@@ -54,11 +55,11 @@ final class ParserTest extends TestCase
      */
     public function map(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = (new Parser('test parser', function (Stream $stream): Parser\Result {
             $result = new Success($stream->current());
 
-            $stream->next();
+            $stream->consume();
 
             return $result;
         }))->map(fn (Result $result): Result => new Success(strtoupper($result->result())));
@@ -68,7 +69,7 @@ final class ParserTest extends TestCase
         self::assertThat($result, self::isInstanceOf(Success::class));
         self::assertEquals('A', $result->result());
 
-        self::assertEquals(1, $stream->key());
+        self::assertEquals(1, $stream->tell());
         self::assertEquals('b', $stream->current());
     }
 

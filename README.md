@@ -59,7 +59,7 @@ Here is a quick example demonstrating how easy it is to write a parser:
 <?php
 
 use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\CharStream;
 use function jubianchi\PPC\Combinators\{opt, separated, seq};
 use function jubianchi\PPC\Parsers\{char, eos, regex};
 
@@ -77,7 +77,7 @@ $list = seq(
     eos()
 );
 
-$stream = new Stream('[0, 1, 2, , 4, 5,, 7, 8, 9,]');
+$stream = new CharStream('[0, 1, 2, , 4, 5,, 7, 8, 9,]');
 $result = $list($stream);
 
 assert($result instanceof Result\Success);
