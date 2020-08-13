@@ -17,7 +17,7 @@ use jubianchi\PPC\Parser\Result\Failure;
 use jubianchi\PPC\Parser\Result\Success;
 use function jubianchi\PPC\Parsers\char;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -33,7 +33,7 @@ final class NotTest extends TestCase
      */
     public function noMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = not(char('b'));
 
         $result = $parser($stream);
@@ -42,7 +42,7 @@ final class NotTest extends TestCase
         self::assertThat($result->result(), self::isInstanceOf(Slice::class));
         self::assertEquals('a', $result->result());
 
-        self::assertEquals(1, $stream->key());
+        self::assertEquals(1, $stream->tell());
         self::assertEquals('b', $stream->current());
     }
 
@@ -52,7 +52,7 @@ final class NotTest extends TestCase
      */
     public function match(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = not(char('a'));
 
         $result = $parser($stream);
@@ -67,7 +67,7 @@ final class NotTest extends TestCase
             self::assertEquals('not: Expected "char(a)" not to match, got "a" at line 1 offset 0', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->tell());
         self::assertEquals('a', $stream->current());
     }
 
@@ -77,7 +77,7 @@ final class NotTest extends TestCase
      */
     public function matchMultiple(): void
     {
-        $stream = new Stream('bc');
+        $stream = new Char('bc');
         $parser = not(char('a'), char('b'));
 
         $result = $parser($stream);
@@ -92,7 +92,7 @@ final class NotTest extends TestCase
             self::assertEquals('not: Expected "char(b)" not to match, got "b" at line 1 offset 0', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->tell());
         self::assertEquals('b', $stream->current());
     }
 }

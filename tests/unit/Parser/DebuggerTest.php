@@ -15,7 +15,7 @@ namespace jubianchi\PPC\Tests\Parser;
 use jubianchi\PPC\Parser;
 use jubianchi\PPC\Parser\Debugger;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -70,21 +70,21 @@ final class DebuggerTest extends TestCase
      */
     public function enter(): void
     {
+        $parser = $this->createMock(Parser::class);
+        $parser->method('__toString')->willReturn('parser');
+        $parser->expects(self::atLeastOnce())->method('__toString');
+
+        $stream = $this->createMock(Char::class);
+        $stream->method('position')->willReturn(['line' => 1, 'column' => 0]);
+        $stream->expects(self::atLeastOnce())->method('position');
+
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())
             ->method('info')
             ->with(
                 self::equalTo('> parser'),
-                self::identicalTo(['line' => 1, 'column' => 0, 'ops' => 0])
+                self::identicalTo(['line' => 1, 'column' => 0, 'stream' => get_class($stream).'#'.spl_object_id($stream), 'ops' => 0])
             );
-
-        $parser = $this->createMock(Parser::class);
-        $parser->method('__toString')->willReturn('parser');
-        $parser->expects(self::atLeastOnce())->method('__toString');
-
-        $stream = $this->createMock(Stream::class);
-        $stream->method('position')->willReturn(['line' => 1, 'column' => 0]);
-        $stream->expects(self::atLeastOnce())->method('position');
 
         $debugger = new Debugger($logger);
 
@@ -97,24 +97,6 @@ final class DebuggerTest extends TestCase
      */
     public function enterIncreasesPadding(): void
     {
-        $logger = $this->createMock(LoggerInterface::class);
-        $logger->expects(self::exactly(3))
-            ->method('info')
-            ->withConsecutive(
-                [
-                    self::equalTo('> parser'),
-                    self::identicalTo(['line' => 1, 'column' => 0, 'ops' => 0]),
-                ],
-                [
-                    self::equalTo('  > child parser'),
-                    self::identicalTo(['line' => 1, 'column' => 0, 'ops' => 0]),
-                ],
-                [
-                    self::equalTo('    > grand child parser'),
-                    self::identicalTo(['line' => 1, 'column' => 0, 'ops' => 0]),
-                ],
-            );
-
         $parser = $this->createMock(Parser::class);
         $parser->method('__toString')->willReturn('parser');
         $parser->expects(self::atLeastOnce())->method('__toString');
@@ -127,9 +109,27 @@ final class DebuggerTest extends TestCase
         $grandChildParser->method('__toString')->willReturn('grand child parser');
         $grandChildParser->expects(self::atLeastOnce())->method('__toString');
 
-        $stream = $this->createMock(Stream::class);
+        $stream = $this->createMock(Char::class);
         $stream->method('position')->willReturn(['line' => 1, 'column' => 0]);
         $stream->expects(self::atLeastOnce())->method('position');
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::exactly(3))
+            ->method('info')
+            ->withConsecutive(
+                [
+                    self::equalTo('> parser'),
+                    self::identicalTo(['line' => 1, 'column' => 0, 'stream' => get_class($stream).'#'.spl_object_id($stream), 'ops' => 0]),
+                ],
+                [
+                    self::equalTo('  > child parser'),
+                    self::identicalTo(['line' => 1, 'column' => 0, 'stream' => get_class($stream).'#'.spl_object_id($stream), 'ops' => 0]),
+                ],
+                [
+                    self::equalTo('    > grand child parser'),
+                    self::identicalTo(['line' => 1, 'column' => 0, 'stream' => get_class($stream).'#'.spl_object_id($stream), 'ops' => 0]),
+                ],
+            );
 
         $debugger = new Debugger($logger);
         $debugger->enter($parser, $stream);
@@ -144,21 +144,21 @@ final class DebuggerTest extends TestCase
      */
     public function exit(): void
     {
+        $parser = $this->createMock(Parser::class);
+        $parser->method('__toString')->willReturn('parser');
+        $parser->expects(self::atLeastOnce())->method('__toString');
+
+        $stream = $this->createMock(Char::class);
+        $stream->method('position')->willReturn(['line' => 1, 'column' => 0]);
+        $stream->expects(self::atLeastOnce())->method('position');
+
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())
             ->method('info')
             ->with(
                 self::equalTo('< parser'),
-                self::identicalTo(['line' => 1, 'column' => 0, 'ops' => 1])
+                self::identicalTo(['line' => 1, 'column' => 0, 'stream' => get_class($stream).'#'.spl_object_id($stream), 'ops' => 1])
             );
-
-        $parser = $this->createMock(Parser::class);
-        $parser->method('__toString')->willReturn('parser');
-        $parser->expects(self::atLeastOnce())->method('__toString');
-
-        $stream = $this->createMock(Stream::class);
-        $stream->method('position')->willReturn(['line' => 1, 'column' => 0]);
-        $stream->expects(self::atLeastOnce())->method('position');
 
         $result = $this->createMock(Parser\Result\Success::class);
 
@@ -173,13 +173,21 @@ final class DebuggerTest extends TestCase
      */
     public function exitDuration(): void
     {
+        $parser = $this->createMock(Parser::class);
+        $parser->method('__toString')->willReturn('parser');
+        $parser->expects(self::atLeastOnce())->method('__toString');
+
+        $stream = $this->createMock(Char::class);
+        $stream->method('position')->willReturn(['line' => 1, 'column' => 0]);
+        $stream->expects(self::atLeastOnce())->method('position');
+
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::exactly(2))
             ->method('info')
             ->withConsecutive(
                 [
                     self::equalTo('> parser'),
-                    self::identicalTo(['line' => 1, 'column' => 0, 'ops' => 0]),
+                    self::identicalTo(['line' => 1, 'column' => 0, 'stream' => get_class($stream).'#'.spl_object_id($stream), 'ops' => 0]),
                 ],
                 [
                     self::equalTo('< parser'),
@@ -193,14 +201,6 @@ final class DebuggerTest extends TestCase
                     }),
                 ],
             );
-
-        $parser = $this->createMock(Parser::class);
-        $parser->method('__toString')->willReturn('parser');
-        $parser->expects(self::atLeastOnce())->method('__toString');
-
-        $stream = $this->createMock(Stream::class);
-        $stream->method('position')->willReturn(['line' => 1, 'column' => 0]);
-        $stream->expects(self::atLeastOnce())->method('position');
 
         $result = $this->createMock(Parser\Result\Success::class);
 
@@ -219,25 +219,25 @@ final class DebuggerTest extends TestCase
      */
     public function exitConsumed(): void
     {
-        $logger = $this->createMock(LoggerInterface::class);
-        $logger->expects(self::once())
-            ->method('info')
-            ->with(
-                self::equalTo('< parser'),
-                self::identicalTo(['line' => 1, 'column' => 0, 'consumed' => 'a', 'ops' => 1])
-            );
-
         $parser = $this->createMock(Parser::class);
         $parser->method('__toString')->willReturn('parser');
         $parser->expects(self::once())->method('__toString');
 
-        $stream = $this->createMock(Stream::class);
+        $stream = $this->createMock(Char::class);
         $stream->method('position')->willReturn(['line' => 1, 'column' => 0]);
         $stream->expects(self::once())->method('position');
 
         $slice = $this->createMock(Slice::class);
         $slice->method('__toString')->willReturn('a');
         $slice->expects(self::once())->method('__toString');
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())
+            ->method('info')
+            ->with(
+                self::equalTo('< parser'),
+                self::identicalTo(['line' => 1, 'column' => 0, 'stream' => get_class($stream).'#'.spl_object_id($stream), 'consumed' => 'a', 'ops' => 1])
+            );
 
         $result = $this->createMock(Parser\Result\Success::class);
         $result->method('result')->willReturn($slice);
@@ -253,21 +253,21 @@ final class DebuggerTest extends TestCase
      */
     public function exitFailure(): void
     {
+        $parser = $this->createMock(Parser::class);
+        $parser->method('__toString')->willReturn('parser');
+        $parser->expects(self::once())->method('__toString');
+
+        $stream = $this->createMock(Char::class);
+        $stream->method('position')->willReturn(['line' => 1, 'column' => 0]);
+        $stream->expects(self::once())->method('position');
+
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())
             ->method('error')
             ->with(
                 self::equalTo('< parser'),
-                self::identicalTo(['line' => 1, 'column' => 0, 'ops' => 1])
+                self::identicalTo(['line' => 1, 'column' => 0, 'stream' => get_class($stream).'#'.spl_object_id($stream), 'ops' => 1])
             );
-
-        $parser = $this->createMock(Parser::class);
-        $parser->method('__toString')->willReturn('parser');
-        $parser->expects(self::once())->method('__toString');
-
-        $stream = $this->createMock(Stream::class);
-        $stream->method('position')->willReturn(['line' => 1, 'column' => 0]);
-        $stream->expects(self::once())->method('position');
 
         $result = $this->createMock(Parser\Result\Failure::class);
 

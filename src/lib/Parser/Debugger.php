@@ -33,7 +33,10 @@ class Debugger
 
     public function enter(Parser $parser, Stream $stream): self
     {
-        $this->info('> '.$parser, $stream->position());
+        $context = $stream->position();
+        $context = $context + ['stream' => get_class($stream).'#'.spl_object_id($stream)];
+
+        $this->info('> '.$parser, $context);
 
         ++$this->padding;
 
@@ -45,6 +48,7 @@ class Debugger
     public function exit(Parser $parser, Stream $stream, Result $result): self
     {
         $context = $stream->position();
+        $context = $context + ['stream' => get_class($stream).'#'.spl_object_id($stream)];
 
         if ($this->starts->contains($parser)) {
             $context = $context + ['duration' => round(microtime(true) - $this->starts[$parser], 6)];

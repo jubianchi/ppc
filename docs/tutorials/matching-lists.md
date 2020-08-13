@@ -18,7 +18,7 @@ For the first example, let's try to parse the list as is:
 <?php
 
 use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Combinators\{opt, separated, seq};
 use function jubianchi\PPC\Parsers\{char, eos, regex};
 
@@ -31,7 +31,7 @@ $digit = regex('/[0-9]/');
 $separator = seq($comma, opt($space));
 $list = seq($open, separated($separator, $digit), $close, eos());
 
-$stream = new Stream('[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]');
+$stream = new Char('[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]');
 $result = $list($stream);
 
 assert($result instanceof Result\Success);
@@ -64,7 +64,7 @@ Done! Easy, right?
 <?php
 
 use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use function jubianchi\PPC\Combinators\{opt, separated, seq};
 use function jubianchi\PPC\Parsers\{char, eos, regex};
 
@@ -77,7 +77,7 @@ $digit = regex('/[0-9]/');
 $separator = seq($comma, opt($space));
 $list = seq($open, seq(separated($separator, opt($digit)), opt($separator)), $close, eos());
 
-$stream = new Stream('[0, 1, 2, , 4, 5,, 7, 8, 9,]');
+$stream = new Char('[0, 1, 2, , 4, 5,, 7, 8, 9,]');
 $result = $list($stream);
 
 assert($result instanceof Result\Success);

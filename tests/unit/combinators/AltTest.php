@@ -17,7 +17,7 @@ use jubianchi\PPC\Parser\Result\Failure;
 use jubianchi\PPC\Parser\Result\Success;
 use function jubianchi\PPC\Parsers\char;
 use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -33,7 +33,7 @@ final class AltTest extends TestCase
      */
     public function firstMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $first = char('a');
         $second = char('b');
         $parser = alt($first, $second);
@@ -44,7 +44,7 @@ final class AltTest extends TestCase
         self::assertThat($result->result(), self::isInstanceOf(Slice::class));
         self::assertEquals('a', (string) $result->result());
 
-        self::assertEquals(1, $stream->key());
+        self::assertEquals(1, $stream->tell());
         self::assertEquals('b', $stream->current());
     }
 
@@ -54,7 +54,7 @@ final class AltTest extends TestCase
      */
     public function secondMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $first = char('b');
         $second = char('a');
         $parser = alt($first, $second);
@@ -65,7 +65,7 @@ final class AltTest extends TestCase
         self::assertThat($result->result(), self::isInstanceOf(Slice::class));
         self::assertEquals('a', (string) $result->result());
 
-        self::assertEquals(1, $stream->key());
+        self::assertEquals(1, $stream->tell());
         self::assertEquals('b', $stream->current());
     }
 
@@ -75,7 +75,7 @@ final class AltTest extends TestCase
      */
     public function noneMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $first = char('b');
         $second = char('c');
         $parser = alt($first, $second);
@@ -92,7 +92,7 @@ final class AltTest extends TestCase
             self::assertEquals('char: Expected "b", got "a" at line 1 offset 0', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->tell());
         self::assertEquals('a', $stream->current());
     }
 }

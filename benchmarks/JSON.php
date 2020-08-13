@@ -42,7 +42,7 @@ class JSON
      */
     public function bench_json_ppc(): void
     {
-        PPC\Parsers\json()(new PPC\Stream($this->data));
+        PPC\Parsers\json()(new PPC\Stream\Char($this->data));
     }
 
     /**

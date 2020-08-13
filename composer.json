@@ -36,8 +36,8 @@
     "autoload-dev": {
         "psr-4": {
             "jubianchi\\PPC\\Tests\\": ["tests/unit"],
-            "jubianchi\\PPC\\Tests\\Parsers\\": ["tests/unit/unit/parsers"],
-            "jubianchi\\PPC\\Tests\\Combinators\\": ["tests/unit/unit/combinators"]
+            "jubianchi\\PPC\\Tests\\Parsers\\": ["tests/unit/parsers"],
+            "jubianchi\\PPC\\Tests\\Combinators\\": ["tests/unit/combinators"]
         },
         "files": [
             "parsers/json.php"
@@ -52,6 +52,9 @@
         "sa": "phpstan analyse --ansi --memory-limit=50",
         "pm": "phpdbg -qrr vendor/bin/phpunit --testdox && vendor/bin/phpmetrics --config=phpmetrics.json",
         "ut": "phpdbg -qrr vendor/bin/phpunit --testdox",
-        "dev:docs": "cd docs && ../node_modules/.bin/docsify serve"
+        "dev:docs": [
+            "Composer\\Config::disableProcessTimeout",
+            "cd docs && ../node_modules/.bin/docsify serve"
+        ]
     }
 }

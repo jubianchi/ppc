@@ -16,7 +16,7 @@ use function jubianchi\PPC\Combinators\repeat;
 use jubianchi\PPC\Parser\Result\Failure;
 use jubianchi\PPC\Parser\Result\Success;
 use function jubianchi\PPC\Parsers\regex;
-use jubianchi\PPC\Stream;
+use jubianchi\PPC\Stream\Char;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -32,7 +32,7 @@ final class RepeatTest extends TestCase
      */
     public function match(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = repeat(2, regex('/[a-c]/'));
 
         $result = $parser($stream);
@@ -41,7 +41,7 @@ final class RepeatTest extends TestCase
         self::assertIsArray($result->result());
         self::assertEquals(['a', 'b'], $result->result());
 
-        self::assertEquals(2, $stream->key());
+        self::assertEquals(2, $stream->tell());
         self::assertEquals('c', $stream->current());
     }
 
@@ -51,7 +51,7 @@ final class RepeatTest extends TestCase
      */
     public function noMatch(): void
     {
-        $stream = new Stream('def');
+        $stream = new Char('def');
         $parser = repeat(2, regex('/[a-c]/'));
 
         $result = $parser($stream);
@@ -66,7 +66,7 @@ final class RepeatTest extends TestCase
             self::assertEquals('regex: Expected "/[a-c]/", got "d" at line 1 offset 0', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->tell());
         self::assertEquals('d', $stream->current());
     }
 
@@ -76,7 +76,7 @@ final class RepeatTest extends TestCase
      */
     public function notEnoughMatch(): void
     {
-        $stream = new Stream('abc');
+        $stream = new Char('abc');
         $parser = repeat(4, regex('/[a-c]/'));
 
         $result = $parser($stream);
@@ -91,7 +91,7 @@ final class RepeatTest extends TestCase
             self::assertEquals('regex: Expected "/[a-c]/", got "jubianchi\\PPC\\Stream::EOS" at line 1 offset 3', $failure->getMessage());
         }
 
-        self::assertEquals(0, $stream->key());
+        self::assertEquals(0, $stream->tell());
         self::assertEquals('a', $stream->current());
     }
 }

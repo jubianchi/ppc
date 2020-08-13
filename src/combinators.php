@@ -34,12 +34,10 @@ function alt(Parser $first, Parser $second, Parser ...$parsers): Parser
             $result = $parser($transaction, $debugger);
 
             if ($result->isSuccess()) {
-                $stream->commit();
+                $transaction->commit();
 
                 return $result;
             }
-
-            $stream->rollback();
 
             if (null === $failure) {
                 $failure = $result;
@@ -57,15 +55,12 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
 
     return (new Parser('seq', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parsers): Result {
         $results = [];
-
         $transaction = $stream->begin();
 
         foreach ($parsers as $parser) {
             $result = $parser($transaction, $debugger);
 
             if ($result->isFailure()) {
-                $stream->rollback();
-
                 return $result;
             }
 
@@ -74,7 +69,7 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
             }
         }
 
-        $stream->commit();
+        $transaction->commit();
 
         return new Success($results);
     }))->stringify(fn (string $label): string => $label.'('.implode(', ', $parsers).')');
@@ -87,12 +82,10 @@ function opt(Parser $parser): Parser
         $result = $parser($transaction, $debugger);
 
         if ($result->isSuccess()) {
-            $stream->commit();
+            $transaction->commit();
 
             return $result;
         }
-
-        $stream->rollback();
 
         return new Success(null);
     }))
@@ -109,8 +102,6 @@ function many(Parser $parser): Parser
             $result = $parser($transaction, $debugger);
 
             if ($result->isFailure()) {
-                $stream->rollback();
-
                 if (0 === count($results)) {
                     return $result;
                 }
@@ -122,7 +113,7 @@ function many(Parser $parser): Parser
                 $results[] = $result->result();
             }
 
-            $stream->commit();
+            $transaction->commit();
         }
 
         return new Success($results);
@@ -140,8 +131,6 @@ function repeat(int $times, Parser $parser): Parser
             $result = $parser($transaction, $debugger);
 
             if ($result->isFailure()) {
-                $stream->rollback();
-
                 return $result;
             }
 
@@ -150,7 +139,7 @@ function repeat(int $times, Parser $parser): Parser
             }
         }
 
-        $stream->commit();
+        $transaction->commit();
 
         return new Success($results);
     }))
@@ -165,7 +154,6 @@ function not(Parser $parser, Parser ...$parsers): Parser
         foreach ($parsers as $parser) {
             $transaction = $stream->begin();
             $result = $parser($transaction, $debugger);
-            $stream->rollback();
 
             if ($result->isSuccess()) {
                 return new Failure(
@@ -175,7 +163,7 @@ function not(Parser $parser, Parser ...$parsers): Parser
                         $parser,
                         $stream->current(),
                         $stream->position()['line'],
-                        $stream->key()
+                        $stream->tell()
                     )
                 );
             }
@@ -215,28 +203,22 @@ function enclosed(Parser $before, Parser $parser, ?Parser $after = null): Parser
         $beforeResult = $before($transaction, $debugger);
 
         if ($beforeResult->isFailure()) {
-            $stream->rollback();
-
             return $beforeResult;
         }
 
         $result = $parser($transaction, $debugger);
 
         if ($result->isFailure()) {
-            $stream->rollback();
-
             return $result;
         }
 
         $afterResult = $after($transaction, $debugger);
 
         if ($afterResult->isFailure()) {
-            $stream->rollback();
-
             return $afterResult;
         }
 
-        $stream->commit();
+        $transaction->commit();
 
         return $result;
     }))
@@ -247,26 +229,21 @@ function separated(Parser $separator, Parser $parser): Parser
 {
     return (new Parser('separated', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($separator, $parser): Result {
         $results = [];
-        $transaction = $stream->begin();
 
         while (true) {
-            $childTransaction = $transaction->begin();
+            $transaction = $stream->begin();
 
             if (count($results) > 0) {
-                $result = $separator($childTransaction, $debugger);
+                $result = $separator($transaction, $debugger);
 
                 if ($result->isFailure()) {
-                    $transaction->rollback();
-
                     break;
                 }
             }
 
-            $result = $parser($childTransaction, $debugger);
+            $result = $parser($transaction, $debugger);
 
             if ($result->isFailure()) {
-                $transaction->rollback();
-
                 if (0 === count($results)) {
                     return $result;
                 }
@@ -277,8 +254,6 @@ function separated(Parser $separator, Parser $parser): Parser
             $transaction->commit();
             $results[] = $result->result();
         }
-
-        $stream->commit();
 
         return new Success($results);
     }))
