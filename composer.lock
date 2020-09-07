@@ -1115,16 +1115,16 @@
         },
         {
             "name": "mathiasverraes/parsica",
-            "version": "0.4.0",
+            "version": "0.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mathiasverraes/parsica.git",
-                "reference": "37824331098d49252dbfe4a17e3faa141f52af9e"
+                "reference": "6f962ae56a6c4c592eea8ef95c88e0a6e534d46d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mathiasverraes/parsica/zipball/37824331098d49252dbfe4a17e3faa141f52af9e",
-                "reference": "37824331098d49252dbfe4a17e3faa141f52af9e",
+                "url": "https://api.github.com/repos/mathiasverraes/parsica/zipball/6f962ae56a6c4c592eea8ef95c88e0a6e534d46d",
+                "reference": "6f962ae56a6c4c592eea8ef95c88e0a6e534d46d",
                 "shasum": ""
             },
             "require": {
@@ -1181,7 +1181,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-07-12T17:54:51+00:00"
+            "time": "2020-08-25T09:31:13+00:00"
         },
         {
             "name": "mathiasverraes/uptodocs",
@@ -5490,7 +5490,6 @@
     "stability-flags": {
         "phpbench/phpbench": 20,
         "friendsofphp/php-cs-fixer": 20,
-        "mathiasverraes/parsica": 0,
         "mathiasverraes/uptodocs": 20
     },
     "prefer-stable": false,
