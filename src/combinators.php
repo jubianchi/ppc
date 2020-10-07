@@ -95,6 +95,7 @@ function opt(Parser $parser): Parser
 function many(Parser $parser): Parser
 {
     return (new Parser('many', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parser): Result {
+        $count = 0;
         $results = [];
 
         while (true) {
@@ -102,12 +103,14 @@ function many(Parser $parser): Parser
             $result = $parser($transaction, $debugger);
 
             if ($result->isFailure()) {
-                if (0 === count($results)) {
+                if (0 === $count) {
                     return $result;
                 }
 
                 break;
             }
+
+            ++$count;
 
             if (!($result instanceof Skip)) {
                 $results[] = $result->result();

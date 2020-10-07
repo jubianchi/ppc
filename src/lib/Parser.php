@@ -38,6 +38,11 @@ class Parser
     private string $originalLabel;
 
     /**
+     * @var callable
+     */
+    private $action;
+
+    /**
      * @param callable(Stream, string, ?Debugger): Result $parser
      */
     public function __construct(string $label, callable $parser)
@@ -69,7 +74,13 @@ class Parser
                 return $result;
             }
 
-            return ($this->mapper)($result);
+            $mapped = ($this->mapper)($result);
+
+            if (null !== $this->action) {
+                ($this->action)($mapped);
+            }
+
+            return $mapped;
         } catch (Exception $exception) {
             throw new RuntimeException($this->label.': '.$exception->getMessage(), $exception->getCode(), $exception);
         }
@@ -90,9 +101,18 @@ class Parser
      */
     public function map(callable $mapper): self
     {
-        $this->mapper = $mapper;
+        $parser = clone $this;
+        $parser->mapper = $mapper;
 
-        return $this;
+        return $parser;
+    }
+
+    public function do(?callable $action): self
+    {
+        $parser = clone $this;
+        $parser->action = $action;
+
+        return $parser;
     }
 
     /**
