@@ -38,7 +38,7 @@ class Parser
     private string $originalLabel;
 
     /**
-     * @var callable
+     * @var callable(Result): mixed
      */
     private $action;
 
@@ -107,7 +107,12 @@ class Parser
         return $parser;
     }
 
-    public function do(?callable $action): self
+    /**
+     * @param callable(Result): mixed $action
+     *
+     * @return $this
+     */
+    public function do(callable $action): self
     {
         $parser = clone $this;
         $parser->action = $action;
