@@ -472,12 +472,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/FriendsOfPHP/PHP-CS-Fixer.git",
-                "reference": "9f8cc4dc7e0887df547d14acf1872009e5ff92bf"
+                "reference": "afaf95958de07a152aa51fa440bddef85e91cc8e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/9f8cc4dc7e0887df547d14acf1872009e5ff92bf",
-                "reference": "9f8cc4dc7e0887df547d14acf1872009e5ff92bf",
+                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/afaf95958de07a152aa51fa440bddef85e91cc8e",
+                "reference": "afaf95958de07a152aa51fa440bddef85e91cc8e",
                 "shasum": ""
             },
             "require": {
@@ -506,7 +506,7 @@
                 "php-coveralls/php-coveralls": "^2.1",
                 "php-cs-fixer/accessible-object": "^1.0",
                 "php-cs-fixer/phpunit-constraint-isidenticalstring": "^1.1",
-                "php-cs-fixer/phpunit-constraint-xmlmatchesxsd": "^1.1",
+                "php-cs-fixer/phpunit-constraint-xmlmatchesxsd": "^1.2",
                 "phpunit/phpunit": "^5.7.27 || ^6.5.14 || ^7.1",
                 "phpunitgoodpractices/traits": "^1.8",
                 "symfony/phpunit-bridge": "^5.1",
@@ -566,7 +566,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-10-04T14:37:19+00:00"
+            "time": "2020-10-14T09:30:39+00:00"
         },
         {
             "name": "infection/abstract-testframework-adapter",
@@ -2157,16 +2157,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "0.12.37",
+            "version": "0.12.50",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "5e16d83e6eb2dd784fbdaeaece5e2bca72e4f68a"
+                "reference": "b8248f9c81265af75d6d969ca3252aaf3e998f3a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/5e16d83e6eb2dd784fbdaeaece5e2bca72e4f68a",
-                "reference": "5e16d83e6eb2dd784fbdaeaece5e2bca72e4f68a",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/b8248f9c81265af75d6d969ca3252aaf3e998f3a",
+                "reference": "b8248f9c81265af75d6d969ca3252aaf3e998f3a",
                 "shasum": ""
             },
             "require": {
@@ -2209,7 +2209,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-08-09T14:32:41+00:00"
+            "time": "2020-10-16T12:22:23+00:00"
         },
         {
             "name": "phpstan/phpstan-strict-rules",
