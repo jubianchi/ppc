@@ -472,12 +472,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/FriendsOfPHP/PHP-CS-Fixer.git",
-                "reference": "9f8cc4dc7e0887df547d14acf1872009e5ff92bf"
+                "reference": "de042be445ebdaafd0d893cccd6399d8d9fe6467"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/9f8cc4dc7e0887df547d14acf1872009e5ff92bf",
-                "reference": "9f8cc4dc7e0887df547d14acf1872009e5ff92bf",
+                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/de042be445ebdaafd0d893cccd6399d8d9fe6467",
+                "reference": "de042be445ebdaafd0d893cccd6399d8d9fe6467",
                 "shasum": ""
             },
             "require": {
@@ -501,14 +501,14 @@
             "require-dev": {
                 "johnkary/phpunit-speedtrap": "^1.1 || ^2.0 || ^3.0",
                 "justinrainbow/json-schema": "^5.0",
-                "keradus/cli-executor": "^1.2",
+                "keradus/cli-executor": "^1.4",
                 "mikey179/vfsstream": "^1.6",
-                "php-coveralls/php-coveralls": "^2.1",
+                "php-coveralls/php-coveralls": "^2.4.1",
                 "php-cs-fixer/accessible-object": "^1.0",
-                "php-cs-fixer/phpunit-constraint-isidenticalstring": "^1.1",
-                "php-cs-fixer/phpunit-constraint-xmlmatchesxsd": "^1.1",
+                "php-cs-fixer/phpunit-constraint-isidenticalstring": "^1.2",
+                "php-cs-fixer/phpunit-constraint-xmlmatchesxsd": "^1.2.1",
                 "phpunit/phpunit": "^5.7.27 || ^6.5.14 || ^7.1",
-                "phpunitgoodpractices/traits": "^1.8",
+                "phpunitgoodpractices/traits": "^1.9.1",
                 "symfony/phpunit-bridge": "^5.1",
                 "symfony/yaml": "^3.0 || ^4.0 || ^5.0"
             },
@@ -566,7 +566,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-10-04T14:37:19+00:00"
+            "time": "2020-11-13T12:03:47+00:00"
         },
         {
             "name": "infection/abstract-testframework-adapter",
@@ -2157,16 +2157,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "0.12.37",
+            "version": "0.12.55",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "5e16d83e6eb2dd784fbdaeaece5e2bca72e4f68a"
+                "reference": "4382b2b2059ec7e5135d07685ec1e3e16ae32d16"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/5e16d83e6eb2dd784fbdaeaece5e2bca72e4f68a",
-                "reference": "5e16d83e6eb2dd784fbdaeaece5e2bca72e4f68a",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/4382b2b2059ec7e5135d07685ec1e3e16ae32d16",
+                "reference": "4382b2b2059ec7e5135d07685ec1e3e16ae32d16",
                 "shasum": ""
             },
             "require": {
@@ -2209,7 +2209,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-08-09T14:32:41+00:00"
+            "time": "2020-11-14T10:20:35+00:00"
         },
         {
             "name": "phpstan/phpstan-strict-rules",
