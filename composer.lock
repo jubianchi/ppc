@@ -1189,17 +1189,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/mathiasverraes/uptodocs.git",
-                "reference": "6b5ed66ce14a02379d37376b8203e10969c39ba3"
+                "reference": "158268d886222e0281f7e44b04fa07ef7be33e98"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mathiasverraes/uptodocs/zipball/6b5ed66ce14a02379d37376b8203e10969c39ba3",
-                "reference": "6b5ed66ce14a02379d37376b8203e10969c39ba3",
+                "url": "https://api.github.com/repos/mathiasverraes/uptodocs/zipball/158268d886222e0281f7e44b04fa07ef7be33e98",
+                "reference": "158268d886222e0281f7e44b04fa07ef7be33e98",
                 "shasum": ""
             },
             "require": {
                 "league/commonmark": "^1.4",
-                "php": "^7.4",
+                "php": "^7.4 || ^8.0",
                 "symfony/console": "^5.0",
                 "symfony/process": "^5.0"
             },
@@ -1237,7 +1237,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-07-07T19:16:02+00:00"
+            "time": "2020-12-19T10:59:56+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -2157,16 +2157,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "0.12.37",
+            "version": "0.12.70",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "5e16d83e6eb2dd784fbdaeaece5e2bca72e4f68a"
+                "reference": "07f0ef37f5f876e8cee44cc8ea0ec3fe80d499ee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/5e16d83e6eb2dd784fbdaeaece5e2bca72e4f68a",
-                "reference": "5e16d83e6eb2dd784fbdaeaece5e2bca72e4f68a",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/07f0ef37f5f876e8cee44cc8ea0ec3fe80d499ee",
+                "reference": "07f0ef37f5f876e8cee44cc8ea0ec3fe80d499ee",
                 "shasum": ""
             },
             "require": {
@@ -2209,7 +2209,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-08-09T14:32:41+00:00"
+            "time": "2021-01-27T17:06:47+00:00"
         },
         {
             "name": "phpstan/phpstan-strict-rules",
@@ -5447,12 +5447,12 @@
             "version": "1.9.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/webmozart/assert.git",
+                "url": "https://github.com/webmozarts/assert.git",
                 "reference": "bafc69caeb4d49c39fd0779086c03a3738cbb389"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webmozart/assert/zipball/bafc69caeb4d49c39fd0779086c03a3738cbb389",
+                "url": "https://api.github.com/repos/webmozarts/assert/zipball/bafc69caeb4d49c39fd0779086c03a3738cbb389",
                 "reference": "bafc69caeb4d49c39fd0779086c03a3738cbb389",
                 "shasum": ""
             },
