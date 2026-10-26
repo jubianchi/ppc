@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,22 +15,21 @@ namespace jubianchi\PPC\Tests\Parsers;
 
 use jubianchi\PPC\Parser\Result\Failure;
 use jubianchi\PPC\Parser\Result\Success;
-use function jubianchi\PPC\Parsers\regex;
 use jubianchi\PPC\Slice;
 use jubianchi\PPC\Stream\Char;
+use PHPUnit\Framework\Attributes\Small;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+use function jubianchi\PPC\Parsers\regex;
+
 /**
- * @small
- *
  * @internal
  */
+#[Small]
 final class RegexTest extends TestCase
 {
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function match(): void
     {
         $stream = new Char('abc');
@@ -45,10 +45,7 @@ final class RegexTest extends TestCase
         self::assertEquals('b', $stream->current());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function noMatch(): void
     {
         $stream = new Char('abc');
@@ -70,10 +67,7 @@ final class RegexTest extends TestCase
         self::assertEquals('a', $stream->current());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function noMatchWithLabel(): void
     {
         $stream = new Char('abc');
@@ -95,10 +89,7 @@ final class RegexTest extends TestCase
         self::assertEquals('a', $stream->current());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function eos(): void
     {
         $stream = new Char('');

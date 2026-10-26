@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,19 +17,18 @@ use jubianchi\PPC\Parser;
 use jubianchi\PPC\Slice;
 use jubianchi\PPC\Stream;
 use Psr\Log\LoggerInterface;
-use SplObjectStorage;
 
 class Debugger
 {
     private int $padding = 0;
     private int $ops = 0;
     private LoggerInterface $logger;
-    private SplObjectStorage $starts;
+    private \SplObjectStorage $starts;
 
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->starts = new SplObjectStorage();
+        $this->starts = new \SplObjectStorage();
     }
 
     public function enter(Parser $parser, Stream $stream): self

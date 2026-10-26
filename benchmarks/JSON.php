@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,14 +14,12 @@ declare(strict_types=1);
 namespace jubianchi\PPC\Benchmarks;
 
 use jubianchi\PPC;
-use PhpBench\Benchmark\Metadata\Annotations\Iterations;
-use PhpBench\Benchmark\Metadata\Annotations\Revs;
-use PhpBench\Benchmark\Metadata\Annotations\Warmup;
-use Verraes\Parsica;
+use Parsica\Parsica;
+use PhpBench\Attributes\Iterations;
+use PhpBench\Attributes\Revs;
+use PhpBench\Attributes\Warmup;
 
-/**
- * @Warmup(1)
- */
+#[Warmup(1)]
 class JSON
 {
     private string $data;
@@ -36,30 +35,22 @@ class JSON
         $this->data = $data;
     }
 
-    /**
-     * @Revs(5)
-     * @Iterations(3)
-     */
+    #[Revs(5)]
+    #[Iterations(3)]
     public function bench_json_ppc(): void
     {
         PPC\Parsers\json()(new PPC\Stream\Char($this->data));
     }
 
-    /**
-     * @Revs(5)
-     * @Iterations(3)
-     */
+    #[Revs(5)]
+    #[Iterations(3)]
     public function bench_json_parsica(): void
     {
-        ini_set('xdebug.max_nesting_level', '1024');
-
         Parsica\JSON\JSON::json()->tryString($this->data);
     }
 
-    /**
-     * @Revs(5)
-     * @Iterations(3)
-     */
+    #[Revs(5)]
+    #[Iterations(3)]
     public function bench_json_php(): void
     {
         json_decode($this->data);

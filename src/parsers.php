@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -18,13 +19,12 @@ use jubianchi\PPC\Parser\Result\Failure;
 use jubianchi\PPC\Parser\Result\Success;
 use jubianchi\PPC\Slice;
 use jubianchi\PPC\Stream;
-use OutOfBoundsException;
 
 function char(string $char): Parser
 {
     $format = fn (string $char): string => str_replace(["\r", "\n", "\t"], ['\r', '\n', '\t'], $char);
 
-    return (new Parser('char', function (Stream $stream, string $label) use ($char, $format): Result {
+    return new Parser('char', function (Stream $stream, string $label) use ($char, $format): Result {
         if ($stream->eos()) {
             return Failure::create(
                 $label,
@@ -46,13 +46,13 @@ function char(string $char): Parser
         }
 
         return new Success($stream->consume());
-    }))
+    })
         ->stringify(fn (string $label): string => sprintf('%s(%s)', $label, $format($char)));
 }
 
 function regex(string $pattern): Parser
 {
-    return (new Parser('regex', function (Stream $stream, string $label) use ($pattern): Result {
+    return new Parser('regex', function (Stream $stream, string $label) use ($pattern): Result {
         if ($stream->eos()) {
             return Failure::create(
                 $label,
@@ -74,7 +74,7 @@ function regex(string $pattern): Parser
         }
 
         return new Success($stream->consume());
-    }))
+    })
         ->stringify(fn (string $label): string => sprintf('%s(%s)', $label, $pattern));
 }
 
@@ -82,7 +82,7 @@ function word(string $word): Parser
 {
     $format = fn (string $char): string => str_replace(["\r", "\n", "\t"], ['\r', '\n', '\t'], $char);
 
-    return (new Parser('word', function (Stream $stream, string $label) use ($word, $format): Result {
+    return new Parser('word', function (Stream $stream, string $label) use ($word, $format): Result {
         if ($stream->eos()) {
             return Failure::create(
                 $label,
@@ -96,7 +96,7 @@ function word(string $word): Parser
 
         try {
             $actual = $stream->cut($stream->tell(), $length);
-        } catch (OutOfBoundsException $exception) {
+        } catch (\OutOfBoundsException $exception) {
             return Failure::create(
                 $label,
                 $word,
@@ -119,7 +119,7 @@ function word(string $word): Parser
         $stream->seek($stream->tell() + $length);
 
         return new Success($slice);
-    }))
+    })
         ->stringify(fn (string $label): string => sprintf('%s(%s)', $label, $format($word)));
 }
 

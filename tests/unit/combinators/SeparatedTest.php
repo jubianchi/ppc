@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,24 +13,23 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC\Tests\Combinators;
 
-use function jubianchi\PPC\Combinators\separated;
 use jubianchi\PPC\Parser\Result\Failure;
 use jubianchi\PPC\Parser\Result\Success;
-use function jubianchi\PPC\Parsers\char;
 use jubianchi\PPC\Stream\Char;
+use PHPUnit\Framework\Attributes\Small;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+use function jubianchi\PPC\Combinators\separated;
+use function jubianchi\PPC\Parsers\char;
+
 /**
- * @small
- *
  * @internal
  */
+#[Small]
 final class SeparatedTest extends TestCase
 {
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function singleCharMatch(): void
     {
         $stream = new Char('a');
@@ -45,10 +45,7 @@ final class SeparatedTest extends TestCase
         self::assertEquals(Char::EOS, $stream->current());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function singleMatch(): void
     {
         $stream = new Char('abc');
@@ -64,10 +61,7 @@ final class SeparatedTest extends TestCase
         self::assertEquals('b', $stream->current());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function manyMatch(): void
     {
         $stream = new Char('ababab');
@@ -83,10 +77,7 @@ final class SeparatedTest extends TestCase
         self::assertEquals('b', $stream->current());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function manyNotSeparatedMatch(): void
     {
         $stream = new Char('aab');
@@ -102,10 +93,7 @@ final class SeparatedTest extends TestCase
         self::assertEquals('a', $stream->current());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function noMatch(): void
     {
         $stream = new Char('baba');

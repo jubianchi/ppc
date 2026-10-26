@@ -22,8 +22,13 @@ $finder = PhpCsFixer\Finder::create()
 return (new PhpCsFixer\Config())
     ->setCacheFile(__DIR__.'/tmp/php_cs_cache.json')
     ->setRules([
-        '@PSR2' => true,
+        '@PER-CS3x0' => true,
         '@Symfony' => true,
+        '@PHP8x5Migration' => true,
+        '@PHPUnit11x0Migration:risky' => true,
+        'php_unit_attributes' => true,
+        'general_phpdoc_annotation_remove' => ['annotations' => ['small']],
+        'fully_qualified_strict_types' => ['import_symbols' => true],
         'array_syntax' => ['syntax' => 'short'],
         'no_useless_else' => true,
         'no_useless_return' => true,

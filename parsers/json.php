@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -11,6 +12,10 @@
 declare(strict_types=1);
 
 namespace jubianchi\PPC\Parsers;
+
+use jubianchi\PPC\Parser;
+use jubianchi\PPC\Parser\Result;
+use jubianchi\PPC\Parser\Result\Success;
 
 use function jubianchi\PPC\Combinators\alt;
 use function jubianchi\PPC\Combinators\enclosed;
@@ -27,9 +32,6 @@ use function jubianchi\PPC\Mappers\php;
 use function jubianchi\PPC\Mappers\skip;
 use function jubianchi\PPC\Mappers\structure;
 use function jubianchi\PPC\Mappers\value;
-use jubianchi\PPC\Parser;
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Parser\Result\Success;
 
 function json(): Parser
 {
@@ -96,7 +98,7 @@ function json(): Parser
     )
         ->label('object')
         ->map(function (Result $result): Result {
-            $object = new \StdClass();
+            $object = new \stdClass();
 
             foreach ($result->result() as $pair) {
                 ['key' => $key, 'value' => $value] = $pair;

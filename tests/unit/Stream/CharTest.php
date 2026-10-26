@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,23 +13,19 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC\Tests\Stream;
 
-use Exception;
 use jubianchi\PPC\Stream;
 use jubianchi\PPC\Stream\Char;
-use OutOfBoundsException;
+use PHPUnit\Framework\Attributes\Small;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @small
- *
  * @internal
  */
+#[Small]
 final class CharTest extends TestCase
 {
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function emptyStream(): void
     {
         $stream = new Char('');
@@ -38,10 +35,7 @@ final class CharTest extends TestCase
         self::assertEquals(['line' => 1, 'column' => 0], $stream->position());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function nonEmptyStream(): void
     {
         $stream = new Char('abc');
@@ -52,10 +46,7 @@ final class CharTest extends TestCase
         self::assertEquals(['line' => 1, 'column' => 0], $stream->position());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function consumeStream(): void
     {
         $stream = new Char('abc');
@@ -69,10 +60,7 @@ final class CharTest extends TestCase
         self::assertEquals(['line' => 1, 'column' => 1], $stream->position());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function consumeStreamWithNewLine(): void
     {
         $stream = new Char("a\nbc");
@@ -94,10 +82,7 @@ final class CharTest extends TestCase
         self::assertEquals(['line' => 2, 'column' => 0], $stream->position());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function consumeStreamAfterEnd(): void
     {
         $stream = new Char("a\n");
@@ -122,15 +107,12 @@ final class CharTest extends TestCase
             $stream->consume();
 
             self::fail();
-        } catch (Exception $exception) {
-            self::assertInstanceOf(OutOfBoundsException::class, $exception);
+        } catch (\Exception $exception) {
+            self::assertInstanceOf(\OutOfBoundsException::class, $exception);
         }
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function cutSliceFromStream(): void
     {
         $stream = new Char('abc');
@@ -144,23 +126,20 @@ final class CharTest extends TestCase
             $stream->cut(0, 10);
 
             self::fail();
-        } catch (Exception $exception) {
-            self::assertInstanceOf(OutOfBoundsException::class, $exception);
+        } catch (\Exception $exception) {
+            self::assertInstanceOf(\OutOfBoundsException::class, $exception);
         }
 
         try {
             $stream->cut(-1);
 
             self::fail();
-        } catch (Exception $exception) {
-            self::assertInstanceOf(OutOfBoundsException::class, $exception);
+        } catch (\Exception $exception) {
+            self::assertInstanceOf(\OutOfBoundsException::class, $exception);
         }
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function seekBeforeStart(): void
     {
         $stream = new Char('abc');
@@ -169,15 +148,12 @@ final class CharTest extends TestCase
             $stream->seek(-1);
 
             self::fail();
-        } catch (Exception $exception) {
-            self::assertInstanceOf(OutOfBoundsException::class, $exception);
+        } catch (\Exception $exception) {
+            self::assertInstanceOf(\OutOfBoundsException::class, $exception);
         }
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function seekAfterEnd(): void
     {
         $stream = new Char('abc');
@@ -186,15 +162,12 @@ final class CharTest extends TestCase
             $stream->seek(4);
 
             self::fail();
-        } catch (Exception $exception) {
-            self::assertInstanceOf(OutOfBoundsException::class, $exception);
+        } catch (\Exception $exception) {
+            self::assertInstanceOf(\OutOfBoundsException::class, $exception);
         }
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function seekEnd(): void
     {
         $stream = new Char('abc');
@@ -206,10 +179,7 @@ final class CharTest extends TestCase
         self::assertEquals(['line' => 1, 'column' => 3], $stream->position());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function seekInStream(): void
     {
         $stream = new Char('abc');
@@ -233,10 +203,7 @@ final class CharTest extends TestCase
         self::assertEquals(['line' => 1, 'column' => 1], $stream->position());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function seekInStreamWithNewLine(): void
     {
         $stream = new Char("a\nbc\ndefg");

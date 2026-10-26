@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,57 +13,51 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC\Tests;
 
-use Exception;
 use jubianchi\PPC\Parser;
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Parser\Result\Success;
-use function jubianchi\PPC\Parsers\any;
 use jubianchi\PPC\Stream;
 use jubianchi\PPC\Stream\Char;
+use PHPUnit\Framework\Attributes\Small;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
+
+use function jubianchi\PPC\Parsers\any;
 
 /**
- * @small
- *
  * @internal
  */
+#[Small]
 final class ParserTest extends TestCase
 {
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function parserThrows(): void
     {
         $stream = new Char('abc');
-        $exception = new Exception('random exception');
-        $parser = new Parser('test parser', function () use ($exception): Parser\Result { throw $exception; });
+        $exception = new \Exception('random exception');
+        $parser = new Parser('test parser', function () use ($exception): Result { throw $exception; });
 
         try {
             $parser($stream);
 
             self::fail();
-        } catch (RuntimeException $thrown) {
+        } catch (\RuntimeException $thrown) {
             self::assertSame($exception, $thrown->getPrevious());
             self::assertEquals('test parser: '.$exception->getMessage(), $thrown->getMessage());
         }
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function map(): void
     {
         $stream = new Char('abc');
-        $parser = (new Parser('test parser', function (Stream $stream): Parser\Result {
+        $parser = new Parser('test parser', function (Stream $stream): Result {
             $result = new Success($stream->current());
 
             $stream->consume();
 
             return $result;
-        }))->map(fn (Result $result): Result => new Success(strtoupper($result->result())));
+        })->map(fn (Result $result): Result => new Success(strtoupper($result->result())));
 
         $result = $parser($stream);
 
@@ -73,10 +68,7 @@ final class ParserTest extends TestCase
         self::assertEquals('b', $stream->current());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function label(): void
     {
         $parser = any();
@@ -86,10 +78,7 @@ final class ParserTest extends TestCase
         self::assertEquals('test parser•any', (string) $labeled);
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function stringify(): void
     {
         $parser = any();

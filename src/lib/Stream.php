@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,9 +17,9 @@ use jubianchi\PPC\Stream\Transaction;
 
 interface Stream
 {
-    const EOS = __CLASS__.'::EOS';
-    const FIRST_LINE = 1;
-    const FIRST_COLUMN = 0;
+    public const EOS = __CLASS__.'::EOS';
+    public const FIRST_LINE = 1;
+    public const FIRST_COLUMN = 0;
 
     public function begin(): Transaction;
 

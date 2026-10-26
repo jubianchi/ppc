@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,7 +15,6 @@ namespace jubianchi\PPC\Stream;
 
 use jubianchi\PPC\Slice;
 use jubianchi\PPC\Stream;
-use OutOfBoundsException;
 
 class MultiByteChar implements Stream
 {
@@ -41,11 +41,11 @@ class MultiByteChar implements Stream
     public function seek(int $offset): void
     {
         if (0 > $offset) {
-            throw new OutOfBoundsException();
+            throw new \OutOfBoundsException();
         }
 
         if ($offset > $this->length) {
-            throw new OutOfBoundsException();
+            throw new \OutOfBoundsException();
         }
 
         $part = mb_substr($this->contents, 0, $offset);
@@ -75,7 +75,7 @@ class MultiByteChar implements Stream
     public function consume(): Slice
     {
         if ($this->offset === $this->length) {
-            throw new OutOfBoundsException();
+            throw new \OutOfBoundsException();
         }
 
         ++$this->offset;
@@ -107,14 +107,14 @@ class MultiByteChar implements Stream
 
     public function cut(int $offset, ?int $length = null): string
     {
-        $length = $length ?? $this->length - $offset;
+        $length ??= $this->length - $offset;
 
         if (0 > $offset) {
-            throw new OutOfBoundsException();
+            throw new \OutOfBoundsException();
         }
 
         if ($offset + $length > $this->length) {
-            throw new OutOfBoundsException();
+            throw new \OutOfBoundsException();
         }
 
         return mb_substr($this->contents, $offset, $length);

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Verraes\Parsica\JSON\JSON;
+use Parsica\Parsica\JSON\JSON;
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 

@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,10 +13,8 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC;
 
-use Exception;
 use jubianchi\PPC\Parser\Debugger;
 use jubianchi\PPC\Parser\Result;
-use RuntimeException;
 
 class Parser
 {
@@ -59,7 +58,7 @@ class Parser
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function __invoke(Stream $stream, ?Debugger $debugger = null): Result
     {
@@ -81,8 +80,8 @@ class Parser
             }
 
             return $mapped;
-        } catch (Exception $exception) {
-            throw new RuntimeException($this->label.': '.$exception->getMessage(), $exception->getCode(), $exception);
+        } catch (\Exception $exception) {
+            throw new \RuntimeException($this->label.': '.$exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 

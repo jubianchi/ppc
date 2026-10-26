@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,21 +13,21 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC\Combinators;
 
-use Exception;
 use jubianchi\PPC\Parser;
 use jubianchi\PPC\Parser\Debugger;
 use jubianchi\PPC\Parser\Result;
 use jubianchi\PPC\Parser\Result\Failure;
 use jubianchi\PPC\Parser\Result\Skip;
 use jubianchi\PPC\Parser\Result\Success;
-use function jubianchi\PPC\Parsers\any;
 use jubianchi\PPC\Stream;
+
+use function jubianchi\PPC\Parsers\any;
 
 function alt(Parser $first, Parser $second, Parser ...$parsers): Parser
 {
     array_unshift($parsers, $first, $second);
 
-    return (new Parser('alt', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parsers): Result {
+    return new Parser('alt', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parsers): Result {
         $failure = null;
 
         foreach ($parsers as $parser) {
@@ -45,7 +46,7 @@ function alt(Parser $first, Parser $second, Parser ...$parsers): Parser
         }
 
         return $failure;
-    }))
+    })
         ->stringify(fn (string $label): string => $label.'('.implode(', ', $parsers).')');
 }
 
@@ -53,7 +54,7 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
 {
     array_unshift($parsers, $first, $second);
 
-    return (new Parser('seq', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parsers): Result {
+    return new Parser('seq', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parsers): Result {
         $results = [];
         $transaction = $stream->begin();
 
@@ -64,7 +65,7 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
                 return $result;
             }
 
-            if (!($result instanceof Skip)) {
+            if (!$result instanceof Skip) {
                 $results[] = $result->result();
             }
         }
@@ -72,12 +73,12 @@ function seq(Parser $first, Parser $second, Parser ...$parsers): Parser
         $transaction->commit();
 
         return new Success($results);
-    }))->stringify(fn (string $label): string => $label.'('.implode(', ', $parsers).')');
+    })->stringify(fn (string $label): string => $label.'('.implode(', ', $parsers).')');
 }
 
 function opt(Parser $parser): Parser
 {
-    return (new Parser('opt', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parser): Result {
+    return new Parser('opt', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parser): Result {
         $transaction = $stream->begin();
         $result = $parser($transaction, $debugger);
 
@@ -88,13 +89,13 @@ function opt(Parser $parser): Parser
         }
 
         return new Success(null);
-    }))
+    })
         ->stringify(fn (string $label): string => $label.'('.$parser.')');
 }
 
 function many(Parser $parser): Parser
 {
-    return (new Parser('many', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parser): Result {
+    return new Parser('many', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parser): Result {
         $count = 0;
         $results = [];
 
@@ -112,7 +113,7 @@ function many(Parser $parser): Parser
 
             ++$count;
 
-            if (!($result instanceof Skip)) {
+            if (!$result instanceof Skip) {
                 $results[] = $result->result();
             }
 
@@ -120,13 +121,13 @@ function many(Parser $parser): Parser
         }
 
         return new Success($results);
-    }))
+    })
         ->stringify(fn (string $label): string => $label.'('.$parser.')');
 }
 
 function repeat(int $times, Parser $parser): Parser
 {
-    return (new Parser('repeat', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parser, $times): Result {
+    return new Parser('repeat', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parser, $times): Result {
         $results = [];
         $transaction = $stream->begin();
 
@@ -137,7 +138,7 @@ function repeat(int $times, Parser $parser): Parser
                 return $result;
             }
 
-            if (!($result instanceof Skip)) {
+            if (!$result instanceof Skip) {
                 $results[] = $result->result();
             }
         }
@@ -145,7 +146,7 @@ function repeat(int $times, Parser $parser): Parser
         $transaction->commit();
 
         return new Success($results);
-    }))
+    })
         ->stringify(fn (string $label): string => $label.'('.$times.', '.$parser.')');
 }
 
@@ -153,7 +154,7 @@ function not(Parser $parser, Parser ...$parsers): Parser
 {
     array_unshift($parsers, $parser);
 
-    return (new Parser('not', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parsers): Result {
+    return new Parser('not', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($parsers): Result {
         foreach ($parsers as $parser) {
             $transaction = $stream->begin();
             $result = $parser($transaction, $debugger);
@@ -175,22 +176,22 @@ function not(Parser $parser, Parser ...$parsers): Parser
         $result = any()($stream, $debugger);
 
         return $result;
-    }))
+    })
         ->stringify(fn (string $label): string => $label.'('.implode(', ', $parsers).')');
 }
 
 function recurse(?Parser &$parser): Parser
 {
-    return (new Parser('recurse', function (Stream $stream, string $label, ?Debugger $debugger = null) use (&$parser): Result {
+    return new Parser('recurse', function (Stream $stream, string $label, ?Debugger $debugger = null) use (&$parser): Result {
         if (null === $parser) {
-            throw new Exception('Could not call parser');
+            throw new \Exception('Could not call parser');
         }
 
         return $parser($stream, $debugger);
-    }))
+    })
         ->stringify(function (string $label) use (&$parser): string {
             if (null === $parser) {
-                throw new Exception('Could not call parser');
+                throw new \Exception('Could not call parser');
             }
 
             return $label.'('.$parser->stringify(fn (string $label): string => $label).')';
@@ -199,9 +200,9 @@ function recurse(?Parser &$parser): Parser
 
 function enclosed(Parser $before, Parser $parser, ?Parser $after = null): Parser
 {
-    $after = $after ?? $before;
+    $after ??= $before;
 
-    return (new Parser('enclosed', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($before, $parser, $after): Result {
+    return new Parser('enclosed', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($before, $parser, $after): Result {
         $transaction = $stream->begin();
         $beforeResult = $before($transaction, $debugger);
 
@@ -224,13 +225,13 @@ function enclosed(Parser $before, Parser $parser, ?Parser $after = null): Parser
         $transaction->commit();
 
         return $result;
-    }))
+    })
         ->stringify(fn (string $label): string => $label.'('.$before.', '.$parser.', '.$after.')');
 }
 
 function separated(Parser $separator, Parser $parser): Parser
 {
-    return (new Parser('separated', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($separator, $parser): Result {
+    return new Parser('separated', function (Stream $stream, string $label, ?Debugger $debugger = null) use ($separator, $parser): Result {
         $results = [];
 
         while (true) {
@@ -259,6 +260,6 @@ function separated(Parser $separator, Parser $parser): Parser
         }
 
         return new Success($results);
-    }))
+    })
         ->stringify(fn (string $label): string => $label.'('.$separator.', '.$parser.')');
 }

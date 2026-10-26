@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,24 +13,23 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC\Tests\Combinators;
 
-use function jubianchi\PPC\Combinators\seq;
 use jubianchi\PPC\Parser\Result\Failure;
 use jubianchi\PPC\Parser\Result\Success;
-use function jubianchi\PPC\Parsers\char;
 use jubianchi\PPC\Stream\Char;
+use PHPUnit\Framework\Attributes\Small;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+use function jubianchi\PPC\Combinators\seq;
+use function jubianchi\PPC\Parsers\char;
+
 /**
- * @small
- *
  * @internal
  */
+#[Small]
 final class SeqTest extends TestCase
 {
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function bothMatch(): void
     {
         $stream = new Char('abc');
@@ -47,10 +47,7 @@ final class SeqTest extends TestCase
         self::assertEquals('c', $stream->current());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function onlyFirstMatch(): void
     {
         $stream = new Char('abc');
@@ -74,10 +71,7 @@ final class SeqTest extends TestCase
         self::assertEquals('a', $stream->current());
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function noMatch(): void
     {
         $stream = new Char('abc');

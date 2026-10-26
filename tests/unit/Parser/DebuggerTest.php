@@ -1,8 +1,9 @@
 <?php
+
 /**
  * This file is part of PPC.
  *
- * Copyright © 2020 Julien Bianchi <contact@jubianchi.fr>
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,20 +17,18 @@ use jubianchi\PPC\Parser;
 use jubianchi\PPC\Parser\Debugger;
 use jubianchi\PPC\Slice;
 use jubianchi\PPC\Stream\Char;
+use PHPUnit\Framework\Attributes\Small;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
- * @small
- *
  * @internal
  */
+#[Small]
 final class DebuggerTest extends TestCase
 {
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function info(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
@@ -45,10 +44,7 @@ final class DebuggerTest extends TestCase
         $debugger->info(__FUNCTION__);
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function error(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
@@ -64,10 +60,7 @@ final class DebuggerTest extends TestCase
         $debugger->error(__FUNCTION__);
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function enter(): void
     {
         $parser = $this->createMock(Parser::class);
@@ -91,10 +84,7 @@ final class DebuggerTest extends TestCase
         $debugger->enter($parser, $stream);
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function enterIncreasesPadding(): void
     {
         $parser = $this->createMock(Parser::class);
@@ -116,7 +106,7 @@ final class DebuggerTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::exactly(3))
             ->method('info')
-            ->withConsecutive(
+            ->withParameterSetsInOrder(
                 [
                     self::equalTo('> parser'),
                     self::identicalTo(['line' => 1, 'column' => 0, 'stream' => get_class($stream).'#'.spl_object_id($stream), 'ops' => 0]),
@@ -138,10 +128,7 @@ final class DebuggerTest extends TestCase
         $debugger->enter($grandChildParser, $stream);
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function exit(): void
     {
         $parser = $this->createMock(Parser::class);
@@ -160,17 +147,14 @@ final class DebuggerTest extends TestCase
                 self::identicalTo(['line' => 1, 'column' => 0, 'stream' => get_class($stream).'#'.spl_object_id($stream), 'ops' => 1])
             );
 
-        $result = $this->createMock(Parser\Result\Success::class);
+        $result = self::createStub(Parser\Result\Success::class);
 
         $debugger = new Debugger($logger);
 
         $debugger->exit($parser, $stream, $result);
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function exitDuration(): void
     {
         $parser = $this->createMock(Parser::class);
@@ -184,7 +168,7 @@ final class DebuggerTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::exactly(2))
             ->method('info')
-            ->withConsecutive(
+            ->withParameterSetsInOrder(
                 [
                     self::equalTo('> parser'),
                     self::identicalTo(['line' => 1, 'column' => 0, 'stream' => get_class($stream).'#'.spl_object_id($stream), 'ops' => 0]),
@@ -202,7 +186,7 @@ final class DebuggerTest extends TestCase
                 ],
             );
 
-        $result = $this->createMock(Parser\Result\Success::class);
+        $result = self::createStub(Parser\Result\Success::class);
 
         $debugger = new Debugger($logger);
 
@@ -213,10 +197,7 @@ final class DebuggerTest extends TestCase
         $debugger->exit($parser, $stream, $result);
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function exitConsumed(): void
     {
         $parser = $this->createMock(Parser::class);
@@ -239,7 +220,7 @@ final class DebuggerTest extends TestCase
                 self::identicalTo(['line' => 1, 'column' => 0, 'stream' => get_class($stream).'#'.spl_object_id($stream), 'consumed' => 'a', 'ops' => 1])
             );
 
-        $result = $this->createMock(Parser\Result\Success::class);
+        $result = self::createStub(Parser\Result\Success::class);
         $result->method('result')->willReturn($slice);
 
         $debugger = new Debugger($logger);
@@ -247,10 +228,7 @@ final class DebuggerTest extends TestCase
         $debugger->exit($parser, $stream, $result);
     }
 
-    /**
-     * @test
-     * @small
-     */
+    #[Test]
     public function exitFailure(): void
     {
         $parser = $this->createMock(Parser::class);
@@ -269,7 +247,7 @@ final class DebuggerTest extends TestCase
                 self::identicalTo(['line' => 1, 'column' => 0, 'stream' => get_class($stream).'#'.spl_object_id($stream), 'ops' => 1])
             );
 
-        $result = $this->createMock(Parser\Result\Failure::class);
+        $result = self::createStub(Parser\Result\Failure::class);
 
         $debugger = new Debugger($logger);
 
