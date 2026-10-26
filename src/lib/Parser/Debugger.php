@@ -40,7 +40,7 @@ class Debugger
 
         ++$this->padding;
 
-        $this->starts->attach($parser, microtime(true));
+        $this->starts[$parser] = microtime(true);
 
         return $this;
     }
@@ -50,9 +50,9 @@ class Debugger
         $context = $stream->position();
         $context = $context + ['stream' => get_class($stream).'#'.spl_object_id($stream)];
 
-        if ($this->starts->contains($parser)) {
+        if (isset($this->starts[$parser])) {
             $context = $context + ['duration' => round(microtime(true) - $this->starts[$parser], 6)];
-            $this->starts->detach($parser);
+            unset($this->starts[$parser]);
         }
 
         ++$this->ops;
