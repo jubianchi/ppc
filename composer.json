@@ -34,6 +34,7 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "jubianchi\\PPC\\Benchmarks\\": ["benchmarks"],
             "jubianchi\\PPC\\Tests\\": ["tests/unit"],
             "jubianchi\\PPC\\Tests\\Parsers\\": ["tests/unit/parsers"],
             "jubianchi\\PPC\\Tests\\Combinators\\": ["tests/unit/combinators"]

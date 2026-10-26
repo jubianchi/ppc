@@ -15,44 +15,61 @@ namespace jubianchi\PPC\Benchmarks;
 
 use jubianchi\PPC;
 use Parsica\Parsica;
+use PhpBench\Attributes\BeforeMethods;
 use PhpBench\Attributes\Iterations;
+use PhpBench\Attributes\ParamProviders;
 use PhpBench\Attributes\Revs;
 use PhpBench\Attributes\Warmup;
 
 #[Warmup(1)]
+#[Revs(1)]
+#[Iterations(5)]
+#[BeforeMethods('setUp')]
 class JSON
 {
     private string $data;
 
-    public function __construct()
+    /**
+     * @param array{records: int} $params
+     */
+    public function setUp(array $params): void
     {
-        $data = file_get_contents(__DIR__.'/../resources/composer.json');
-
-        if (false === $data) {
-            throw new \RuntimeException('Could not load file');
-        }
-
-        $this->data = $data;
+        $this->data = 0 === $params['records'] ? Documents::composer() : Documents::json($params['records'], Documents::ASCII);
     }
 
-    #[Revs(5)]
-    #[Iterations(3)]
+    /**
+     * @return \Generator<string, array{records: int}>
+     */
+    public function provideDocuments(): \Generator
+    {
+        yield from $this->provideSmallDocuments();
+        yield '100 kB' => ['records' => 400];
+    }
+
+    /**
+     * @return \Generator<string, array{records: int}>
+     */
+    public function provideSmallDocuments(): \Generator
+    {
+        yield 'composer' => ['records' => 0];
+        yield '10 kB' => ['records' => 40];
+    }
+
+    #[ParamProviders('provideDocuments')]
     public function bench_json_ppc(): void
     {
-        PPC\Parsers\json()(new PPC\Stream\Char($this->data));
+        PPC\Parsers\json()(new PPC\Stream\Char($this->data))->result();
     }
 
-    #[Revs(5)]
-    #[Iterations(3)]
+    #[ParamProviders('provideSmallDocuments')]
     public function bench_json_parsica(): void
     {
         Parsica\JSON\JSON::json()->tryString($this->data);
     }
 
-    #[Revs(5)]
-    #[Iterations(3)]
+    #[ParamProviders('provideDocuments')]
     public function bench_json_php(): void
     {
-        json_decode($this->data);
+        json_decode($this->data, flags: \JSON_THROW_ON_ERROR);
     }
 }
