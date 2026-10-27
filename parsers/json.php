@@ -13,125 +13,87 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC\Parsers;
 
-use jubianchi\PPC\Parser;
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Parser\Result\Success;
+use jubianchi\PPC\Failure;
+use jubianchi\PPC\Success;
 
-use function jubianchi\PPC\Combinators\alt;
-use function jubianchi\PPC\Combinators\enclosed;
-use function jubianchi\PPC\Combinators\many;
-use function jubianchi\PPC\Combinators\not;
-use function jubianchi\PPC\Combinators\opt;
-use function jubianchi\PPC\Combinators\recurse;
-use function jubianchi\PPC\Combinators\separated;
-use function jubianchi\PPC\Combinators\seq;
-use function jubianchi\PPC\Mappers\concat;
-use function jubianchi\PPC\Mappers\first;
-use function jubianchi\PPC\Mappers\otherwise;
-use function jubianchi\PPC\Mappers\php;
-use function jubianchi\PPC\Mappers\skip;
-use function jubianchi\PPC\Mappers\structure;
-use function jubianchi\PPC\Mappers\value;
+use function jubianchi\PPC\alt;
+use function jubianchi\PPC\char;
+use function jubianchi\PPC\enclosed;
+use function jubianchi\PPC\eos;
+use function jubianchi\PPC\label;
+use function jubianchi\PPC\many;
+use function jubianchi\PPC\map;
+use function jubianchi\PPC\recursive;
+use function jubianchi\PPC\regex;
+use function jubianchi\PPC\separated;
+use function jubianchi\PPC\seq;
+use function jubianchi\PPC\word;
 
-function json(): Parser
+/**
+ * Parses a JSON document (RFC 8259) into the same values as json_decode().
+ *
+ * @return \Closure(string, int): (Success<mixed>|Failure)
+ */
+function json(): \Closure
 {
-    $space = regex('/\s/')->label('space');
-    $spaces = opt(many($space))->label('spaces')->map(skip())->stringify(fn (string $label): string => $label);
-    $comma = seq($spaces, char(','), $spaces)->label('comma')->map(skip())->stringify(fn (string $label): string => $label);
-    $colon = seq($spaces, char(':'), $spaces)->label('colon')->map(skip())->stringify(fn (string $label): string => $label);
+    $whitespace = regex('/[ \t\n\r]*/');
+    $token = static fn (\Closure $parser): \Closure => seq($parser, $whitespace) |> map(static fn (array $values): mixed => $values[0]);
 
     $string = enclosed(
         char('"'),
-        opt(
-            many(
-                alt(
-                    word('\"'),
-                    word('\\\\'),
-                    not(char('"')),
-                ),
-            )->map(concat()->then(php('stripcslashes'))),
-        )->map(otherwise('')),
-    )
-        ->label('string');
+        many(alt(
+            regex('/[^"\\\\\x00-\x1F]+/') |> label('character'),
+            regex('/\\\\(?:["\\\\\/bfnrt]|u[0-9a-fA-F]{4}(?:\\\\u[0-9a-fA-F]{4})*)/') |> label('escape sequence') |> map(unescape(...)),
+        )) |> map(implode(...)),
+    ) |> label('string');
 
-    $boolean = alt(
-        word('true')->map(value(true)),
-        word('false')->map(value(false)),
-    )
-        ->label('boolean');
+    $number = regex('/-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?/')
+        |> label('number')
+        |> map(static fn (string $number): int|float => false === strpbrk($number, '.eE') && false !== ($integer = filter_var($number, \FILTER_VALIDATE_INT))
+            ? $integer
+            : (float) $number);
 
-    $null = word('null')
-        ->map(fn (Result $result) => new Success(null))
-        ->label('null');
+    $value = recursive(static function (\Closure $value) use ($token, $string, $number): \Closure {
+        $pair = seq($string |> $token, char(':') |> $token, $value);
+        $object = enclosed(char('{') |> $token, separated(char(',') |> $token, $pair), char('}'))
+            |> map(static function (array $pairs): \stdClass {
+                $object = new \stdClass();
 
-    $numeric = alt(
-        char('0'),
-        seq(
-            regex('/[1-9]/'),
-            opt(many(regex('/[0-9]/'))),
-            opt(
-                seq(
-                    char('.'),
-                    regex('/[0-9]/'),
-                    opt(many(regex('/[0-9]/'))),
-                )
-            )
-        )
-    )
-        ->label('numeric');
+                foreach ($pairs as [$key, , $member]) {
+                    $object->{$key} = $member;
+                }
 
-    $pair = seq(
-        recurse($string),
-        $colon,
-        recurse($value),
-    )
-        ->label('pair')
-        ->map(structure(['key', 'value']));
+                return $object;
+            });
 
-    $members = separated($comma, $pair)
-        ->label('members');
+        $array = enclosed(char('[') |> $token, separated(char(',') |> $token, $value), char(']'));
 
-    $object = enclosed(
-        seq(char('{'), $spaces),
-        opt($members),
-        seq($spaces, char('}')),
-    )
-        ->label('object')
-        ->map(function (Result $result): Result {
-            $object = new \stdClass();
+        return alt(
+            $object,
+            $array,
+            $string,
+            $number,
+            word('true') |> map(static fn (): bool => true),
+            word('false') |> map(static fn (): bool => false),
+            word('null') |> map(static fn (): null => null),
+        ) |> label('value') |> $token;
+    });
 
-            foreach ($result->result() as $pair) {
-                ['key' => $key, 'value' => $value] = $pair;
+    return seq($whitespace, $value, eos()) |> map(static fn (array $values): mixed => $values[1]);
+}
 
-                $object->{$key} = $value;
-            }
-
-            return new Success($object);
-        });
-
-    $items = separated(
-        seq($spaces, $comma = char(','), $spaces)->stringify(fn (): string => (string) $comma),
-        recurse($value)
-    )
-        ->label('items');
-
-    $array = enclosed(
-        seq($open = char('['), $spaces)->stringify(fn (): string => (string) $open),
-        opt($items),
-        seq($spaces, $close = char(']'))->stringify(fn (): string => (string) $close),
-    )
-        ->label('array');
-
-    $value = alt($object, $array, $string, $boolean, $null, $numeric)
-        ->label('value')
-        ->stringify(fn (string $label): string => $label);
-
-    return seq(
-        $value,
-        $spaces,
-        eos()->map(skip()),
-    )
-        ->label('json')
-        ->stringify(fn (string $label): string => $label)
-        ->map(first());
+/**
+ * @internal
+ */
+function unescape(string $escape): string
+{
+    return match ($escape[1]) {
+        'b' => "\x08",
+        'f' => "\f",
+        'n' => "\n",
+        'r' => "\r",
+        't' => "\t",
+        'u' => mb_convert_encoding((string) hex2bin(str_replace('\u', '', $escape)), 'UTF-8', 'UTF-16BE'),
+        default => $escape[1],
+    };
 }

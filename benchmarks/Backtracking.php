@@ -22,12 +22,13 @@ use PhpBench\Attributes\Warmup;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
 
-use function jubianchi\PPC\Combinators\alt;
-use function jubianchi\PPC\Combinators\separated;
-use function jubianchi\PPC\Combinators\seq;
-use function jubianchi\PPC\Parsers\char;
-use function jubianchi\PPC\Parsers\eos;
-use function jubianchi\PPC\Parsers\word;
+use function jubianchi\PPC\alt;
+use function jubianchi\PPC\char;
+use function jubianchi\PPC\eos;
+use function jubianchi\PPC\parse;
+use function jubianchi\PPC\separated;
+use function jubianchi\PPC\seq;
+use function jubianchi\PPC\word;
 
 #[Warmup(1)]
 #[Revs(1)]
@@ -39,7 +40,10 @@ class Backtracking
     private const string PREFIX = 'common_keyword_prefix_';
 
     private string $data;
-    private PPC\Parser $parser;
+    /**
+     * @var \Closure(string, int): (PPC\Success<mixed>|PPC\Failure)
+     */
+    private \Closure $parser;
 
     /**
      * @param array{keywords: int} $params
@@ -57,7 +61,7 @@ class Backtracking
         $this->parser = seq(
             separated(
                 char(' '),
-                alt(...array_map(static fn (int $suffix): PPC\Parser => seq(word(self::PREFIX), char((string) $suffix)), range(1, 9))),
+                alt(...array_map(static fn (int $suffix): \Closure => seq(word(self::PREFIX), char((string) $suffix)), range(1, 9))),
             ),
             eos(),
         );
@@ -74,6 +78,6 @@ class Backtracking
 
     public function bench_alternatives_with_common_prefix(): void
     {
-        ($this->parser)(new PPC\Stream\Char($this->data))->result();
+        parse($this->parser, $this->data);
     }
 }

@@ -1,20 +1,8 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: parsers/json.php
-
-		-
 			message: '#^Cannot use array destructuring on mixed\.$#'
 			identifier: offsetAccess.nonArray
-			count: 1
-			path: parsers/json.php
-
-		-
-			message: '#^Parameter \#3 \.\.\.\$parsers of function jubianchi\\PPC\\Combinators\\alt expects jubianchi\\PPC\\Parser, jubianchi\\PPC\\Parser\|null given\.$#'
-			identifier: argument.type
 			count: 1
 			path: parsers/json.php
 

@@ -58,7 +58,7 @@ class JSON
     #[ParamProviders('provideDocuments')]
     public function bench_json_ppc(): void
     {
-        PPC\Parsers\json()(new PPC\Stream\Char($this->data))->result();
+        PPC\parse(PPC\Parsers\json(), $this->data);
     }
 
     #[ParamProviders('provideSmallDocuments')]

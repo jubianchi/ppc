@@ -46,13 +46,8 @@ class Unicode
         yield '10 kB' => ['records' => 40];
     }
 
-    public function bench_json_char(): void
+    public function bench_json_ppc(): void
     {
-        PPC\Parsers\json()(new PPC\Stream\Char($this->data))->result();
-    }
-
-    public function bench_json_multibyte(): void
-    {
-        PPC\Parsers\json()(new PPC\Stream\MultiByteChar($this->data))->result();
+        PPC\parse(PPC\Parsers\json(), $this->data);
     }
 }
