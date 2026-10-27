@@ -73,6 +73,111 @@ function alt(\Closure $first, \Closure ...$parsers): \Closure
 }
 
 /**
+ * @template T
+ * @template D
+ *
+ * @param \Closure(string, int): (Success<T>|Failure) $parser
+ * @param D                                           $default
+ *
+ * @return \Closure(string, int): Success<T|D>
+ */
+function opt(\Closure $parser, mixed $default = null): \Closure
+{
+    return static function (string $input, int $offset) use ($parser, $default): Success {
+        $result = $parser($input, $offset);
+
+        return $result instanceof Success ? $result : new Success($default, $offset);
+    };
+}
+
+/**
+ * Matches the parser zero or more times.
+ *
+ * The returned parser throws a LogicException when the parser succeeds without consuming input,
+ * which would otherwise loop forever.
+ *
+ * @template T
+ *
+ * @param \Closure(string, int): (Success<T>|Failure) $parser
+ *
+ * @return \Closure(string, int): Success<list<T>>
+ */
+function many(\Closure $parser): \Closure
+{
+    return static function (string $input, int $offset) use ($parser): Success {
+        $values = [];
+
+        while (($result = $parser($input, $offset)) instanceof Success) {
+            if ($result->offset === $offset) {
+                throw new \LogicException(\sprintf('Parser succeeded without consuming input at offset %d', $offset));
+            }
+
+            $values[] = $result->value;
+            $offset = $result->offset;
+        }
+
+        return new Success($values, $offset);
+    };
+}
+
+/**
+ * Matches the parser one or more times.
+ *
+ * @template T
+ *
+ * @param \Closure(string, int): (Success<T>|Failure) $parser
+ *
+ * @return \Closure(string, int): (Success<non-empty-list<T>>|Failure)
+ */
+function many1(\Closure $parser): \Closure
+{
+    $many = many($parser);
+
+    return static function (string $input, int $offset) use ($parser, $many): Success|Failure {
+        $first = $parser($input, $offset);
+
+        if ($first instanceof Failure) {
+            return $first;
+        }
+
+        $rest = $many($input, $first->offset);
+
+        return new Success([$first->value, ...$rest->value], $rest->offset);
+    };
+}
+
+/**
+ * @template T
+ *
+ * @param \Closure(string, int): (Success<T>|Failure) $parser
+ *
+ * @return \Closure(string, int): (Success<list<T>>|Failure)
+ */
+function repeat(int $times, \Closure $parser): \Closure
+{
+    if ($times < 0) {
+        throw new \InvalidArgumentException(\sprintf('Expected a positive count, got %d', $times));
+    }
+
+    return static function (string $input, int $offset) use ($times, $parser): Success|Failure {
+        $values = [];
+
+        for ($i = 0; $i < $times; ++$i) {
+            $result = $parser($input, $offset);
+
+            if ($result instanceof Failure) {
+                return $result;
+            }
+
+            $values[] = $result->value;
+            $offset = $result->offset;
+        }
+
+        return new Success($values, $offset);
+    };
+}
+
+/**
  * @internal
  */
 function furthest(Failure $first, Failure $second): Failure
