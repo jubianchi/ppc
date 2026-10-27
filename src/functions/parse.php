@@ -16,7 +16,7 @@ namespace jubianchi\PPC;
 /**
  * @template T
  *
- * @param \Closure(string, int): (Success<T>|Failure) $parser
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser
  *
  * @return T
  *
@@ -24,10 +24,14 @@ namespace jubianchi\PPC;
  */
 function parse(\Closure $parser, string $input): mixed
 {
-    $result = $parser($input, 0);
+    $result = $parser($input, 0, false);
 
     if ($result instanceof Failure) {
         throw new SyntaxError($result, explain($result, $input));
+    }
+
+    if ($result instanceof Incomplete) {
+        throw new \LogicException('Parser returned Incomplete on a complete input');
     }
 
     return $result->value;
