@@ -5,8 +5,7 @@
     "require": {
         "php": "^8.5",
         "ext-json": "*",
-        "ext-mbstring": "*",
-        "psr/log": "^3.0"
+        "ext-mbstring": "*"
     },
     "require-dev": {
         "phpbench/phpbench": "^1.7",
@@ -26,10 +25,6 @@
             "jubianchi\\PPC\\Parsers\\": ["parsers"]
         },
         "files": [
-            "src/parsers.php",
-            "src/combinators.php",
-            "src/debug.php",
-            "src/mappers.php",
             "src/functions/combinators.php",
             "src/functions/modifiers.php",
             "src/functions/parse.php",
@@ -39,9 +34,7 @@
     "autoload-dev": {
         "psr-4": {
             "jubianchi\\PPC\\Benchmarks\\": ["benchmarks"],
-            "jubianchi\\PPC\\Tests\\": ["tests/unit"],
-            "jubianchi\\PPC\\Tests\\Parsers\\": ["tests/unit/parsers"],
-            "jubianchi\\PPC\\Tests\\Combinators\\": ["tests/unit/combinators"]
+            "jubianchi\\PPC\\Tests\\": ["tests/unit"]
         },
         "files": [
             "parsers/json.php"
