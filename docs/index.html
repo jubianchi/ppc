@@ -95,6 +95,12 @@
 <script src="//cdn.jsdelivr.net/npm/class-change"></script>
 <script src="//cdn.jsdelivr.net/npm/docsify-example-panels"></script>
 <script src="//unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script>
+<script type="module">
+    import mermaid from '//cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true });
+    window.mermaid = mermaid;
+</script>
+<script src="//unpkg.com/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
 
 <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-php.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>

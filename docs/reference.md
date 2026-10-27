@@ -6,930 +6,420 @@
 >
 > Head over to the [latest stable version](/1.0.0/reference.md) for an up-to-date documentation.
 
-## Parsers
+Every function lives in the `jubianchi\PPC` namespace.
 
-<!-- panels:start -->
+## Concepts
 
-<!-- div:title-panel -->
+### Parsers
 
-### any
+A parser is a plain closure taking the whole input and the byte offset to start at:
 
 ```phps
-function any(): Parser<Slice>
+\Closure(string $input, int $offset): Success|Failure
 ```
 
-<!-- div:left-panel -->
+* On success, it returns a `Success` holding the parsed `value` and the `offset` right after what it consumed.
+* On failure, it returns a `Failure` holding the list of what was `expected` and the `offset` where it was expected.
 
-The `any` parser matches any character and consumes it from the stream.
+The input is never copied nor sliced: parsers only move an offset forward. Backtracking is free, trying an alternative
+only means calling another parser with the same offset.
 
-It will always return a `Success` result containing a `Slice` holding the character unless it reaches the end of the
-stream.
+```mermaid
+flowchart LR
+    A["alt(word('if'), word('in'))"] -->|"1. input 'in', offset 0"| B["word('if')"]
+    B -->|"2. Failure: expected 'if' at offset 0"| A
+    A -->|"3. input 'in', offset 0"| C["word('in')"]
+    C -->|"4. Success: 'in', next offset 2"| A
+```
 
-If the end of the stream is reached, the parser will return a `Failure` result which can be turned into an exception
-when the wrapped value is accessed.
-
-<!-- div:right-panel -->
+Since parsers are closures, you can write your own:
 
 ```php
 <?php
 
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Parsers\any;
+use jubianchi\PPC\Failure;
+use jubianchi\PPC\Success;
 
-$stream = new Char('a');
-$parser = any();
-$result = $parser($stream);
+$digit = static fn (string $input, int $offset): Success|Failure => ctype_digit($input[$offset] ?? '')
+    ? new Success((int) $input[$offset], $offset + 1)
+    : new Failure(['digit'], $offset);
 
-assert($result instanceof Result\Success);
-assert($result->result() instanceof Slice);
-assert((string) $result->result() === 'a');
-
-assert($parser($stream) instanceof Result\Failure);
+assert($digit('a1', 1) == new Success(1, 2));
+assert($digit('a1', 0) == new Failure(['digit'], 0));
 ```
 
-<!-- div:title-panel -->
+### Errors
+
+When every alternative fails, PPC reports the failure that went the furthest in the input, merging what was expected
+by failures at the same offset. A `Success` also keeps, as a `hint`, the furthest failure met while succeeding: this is
+how `seq(many(char('a')), char('b'))` reports `Expected "a" or "b"` on `aac`.
+
+### parse
+
+```phps
+function parse(\Closure $parser, string $input): mixed
+```
+
+Runs the parser from the start of the input and returns its value. On failure, it throws a `SyntaxError` whose message
+tells what was expected, what was found and where. The `Failure` is available through its `failure` property.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{many, char, parse, seq};
+
+$parser = seq(many(char('a')), char('b'));
+
+assert(parse($parser, 'aab') === [['a', 'a'], 'b']);
+
+try {
+    parse($parser, "aa\nc");
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected "a" or "b", got "\n" at line 1, column 3');
+    assert($error->failure->offset === 2);
+}
+```
+
+## Primitives
 
 ### char
 
 ```phps
-function char(string $char): Parser<Slice>
+function char(string $char): \Closure
 ```
 
-<!-- div:left-panel -->
-
-The `char` parser matches the given character and consumes it from the stream.
-
-If the expected character is found, the parser will return a `Success` result containing a `Slice` holding the 
-character.
-
-If the expected character is not found, the parser will return a `Failure` result which can be turned into an exception
-when the wrapped value is accessed.
-
-<!-- div:right-panel -->
+Matches a single char, which may be multibyte. Its value is the char.
 
 ```php
 <?php
 
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Parsers\char;
+use function jubianchi\PPC\{char, parse};
 
-$stream = new Char('abc');
-$success = char('a');
-$failure = char('c');
-$result = $success($stream);
-
-assert($result instanceof Result\Success);
-assert($result->result() instanceof Slice);
-assert((string) $result->result() === 'a');
-
-assert($failure($stream) instanceof Result\Failure);
+assert(parse(char('é'), 'é') === 'é');
 ```
-
-<!-- div:title-panel -->
-
-### eos
-
-```phps
-function eos(): Parser<null>
-```
-<!-- div:left-panel -->
-
-The `eos` parser matches the end of the stream.
-
-It will always return a `Failure`  unless it reaches the end of the stream, in which case it will return a `Success` 
-result.
-
-> [!TIP]
-> Read the [Consuming until the end of the stream](/tutorials/consuming-until-the-end-of-the-stream.md) tutorial for an 
-> example use case.
-
-<!-- div:right-panel -->
-
-```php
-<?php
-
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Parsers\{char, eos};
-
-$stream = new Char('a');
-$char = char('a');
-$eos = eos();
-
-assert($eos($stream) instanceof Result\Failure);
-
-$char($stream);
-
-assert($eos($stream) instanceof Result\Success);
-```
-
-
-<!-- div:title-panel -->
-
-### regex
-
-```phps
-function regex(string $pattern): Parser<Slice>
-```
-
-<!-- div:left-panel -->
-
-The `regex` parser matches a single character matching the given regular expression.
-
-If the current character matches the regular expression, the parser will return a `Success` result containing a 
-`Slice` holding the character.
-
-If the expected character does not match, the parser will return a `Failure` result which can be turned into an 
-exception when the wrapped value is accessed.
-
-<!-- div:right-panel -->
-
-```php
-<?php
-
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Parsers\regex;
-
-$stream = new Char('abc');
-$parser = regex('/[a-z]/');
-$result = $parser($stream);
-
-assert($result instanceof Result\Success);
-assert($result->result() instanceof Slice);
-assert((string) $result->result() === 'a');
-```
-
-<!-- div:left-panel -->
-
-> [!NOTE]
-> Be carefull when using this parser: 
-> * whatever the regular expression is, it will only consume a **single** character;
-> * if the regular expression allow for `[0, n]` match, the parser will **always succeed**;
-> * if the regular expression tries to match more than one character, the parser will **always fail**.
-
-<!-- div:right-panel -->
-
-```php
-<?php
-
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Parsers\regex;
-
-$stream = new Char('123');
-$parser = regex('/[a-z]*/');
-$result = $parser($stream);
-
-assert($result instanceof Result\Success);
-assert($result->result() instanceof Slice);
-assert((string) $result->result() === '1');
-```
-
-```php
-<?php
-
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Parsers\regex;
-
-$stream = new Char('abc');
-$parser = regex('/[a-z]+c/');
-$result = $parser($stream);
-
-assert($result instanceof Result\Failure);
-```
-
-<!-- div:title-panel -->
 
 ### word
 
 ```phps
-function word(string $word): Parser<Slice>
+function word(string $word): \Closure
 ```
 
-<!-- div:left-panel -->
-
-The `word` parser matches the given _word_ and consumes it from the stream.
-
-If the expected _word_ is found, the parser will return a `Success` result containing a `Slice` holding the 
-_word_.
-
-If the expected _word_ is not found, the parser will return a `Failure` result which can be turned into an exception
-when the wrapped value is accessed.
-
-> [!NOTE]
-> Here, a _word_ is a set of consecutive characters: they can be letter, numbers or anything.
-
-<!-- div:right-panel -->
+Matches a non-empty string. Its value is the string.
 
 ```php
 <?php
 
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Parsers\word;
+use function jubianchi\PPC\{parse, word};
 
-$stream = new Char('ab3d_');
-$success = word('ab3');
-$failure = word('b_');
-$result = $success($stream);
-
-assert($result instanceof Result\Success);
-assert($result->result() instanceof Slice);
-assert((string) $result->result() === 'ab3');
-
-assert($failure($stream) instanceof Result\Failure);
+assert(parse(word('true'), 'true') === 'true');
 ```
 
-<!-- panels:end -->
+### regex
+
+```phps
+function regex(string $pattern): \Closure
+```
+
+Matches a PCRE pattern at the offset: the pattern is anchored, it never searches further in the input. Its value is the
+whole match.
+
+Matching chunks with a single pattern is much faster than combining parsers matching one char at a time.
+
+```php
+<?php
+
+use function jubianchi\PPC\{parse, regex};
+
+assert(parse(regex('/[0-9]+/'), '2026') === '2026');
+```
+
+### any
+
+```phps
+function any(): \Closure
+```
+
+Matches any UTF-8 char, or a single byte when the input is not valid UTF-8. It fails only at the end of the input.
+
+```php
+<?php
+
+use function jubianchi\PPC\{any, parse};
+
+assert(parse(any(), '€') === '€');
+```
+
+### eos
+
+```phps
+function eos(): \Closure
+```
+
+Matches the end of the input. Its value is `null`. Use it to make sure a parser consumed the whole input.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{char, eos, parse, seq};
+
+try {
+    parse(seq(char('a'), eos()), 'ab');
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected end of input, got "b" at line 1, column 2');
+}
+```
 
 ## Combinators
-
-<!-- panels:start -->
-
-<!-- div:title-panel -->
-
-### alt
-
-```phps
-function alt(Parser $first, Parser $second, Parser ...$parsers): Parser
-```
-
-<!-- div:left-panel -->
-
-The `alt` combinator executes each parser one by one and stops at the first successful one.
-
-If any of the given parsers matches, the combinator will return the `Success` result it got from the successful parser.
-
-If none of the given parsers succeeds, the combinator will return the first `Failure` result it got.
-
-<!-- div:right-panel -->
-
-```php
-<?php
-
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Combinators\alt;
-use function jubianchi\PPC\Parsers\char;
-
-$stream = new Char('abc');
-$success = alt(char('a'), char('b'));
-$failure = alt(char('d'), char('1'));
-$result = $success($stream);
-
-assert($result instanceof Result\Success);
-assert($result->result() instanceof Slice);
-assert((string) $result->result() === 'a');
-
-assert($failure($stream) instanceof Result\Failure);
-```
-
-<!-- div:title-panel -->
-
-### enclosed
-
-```phps
-function enclosed(Parser $before, Parser<T> $parser, ?Parser $after = null): Parser<T>
-```
-
-<!-- div:left-panel -->
-
-The `enclosed` combinator tries to match a parser which is preceded and followed by other parsers.
-
-If all of the given parsers matches, the combinator will return the `Success` result it got from the second one, which 
-is the parser matching the enclosed value
-
-If one of the given parsers fails, the combinator will return its `Failure` result.
-
-The main goal of this combinator is to ease the process of matching enclosed values. See the example snippets to see 
-the differences of using — With — (or not using — Without) the `enclosed` combinator.
-
-> [!TIP]
-> Read the [Matching enclosed values]() tutorial for an example use case.
-
-<!-- div:right-panel -->
-
-<!-- tabs:start -->
-
-### ** With **
-
-```php
-<?php
-
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Combinators\enclosed;
-use function jubianchi\PPC\Parsers\char;
-
-$stream = new Char('-a-');
-$success = enclosed(char('-'), char('a'));
-$failure = enclosed(char('"'), char('a'));
-$result = $success($stream);
-
-assert($result instanceof Result\Success);
-assert($result->result() instanceof Slice);
-assert((string) $result->result() === 'a');
-
-assert($failure($stream) instanceof Result\Failure);
-```
-
-### ** Without **
-
-```php
-<?php
-
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Combinators\seq;
-use function jubianchi\PPC\Mappers\{first, skip};
-use function jubianchi\PPC\Parsers\char;
-
-$stream = new Char('-a-');
-$success = seq(
-    char('-')->map(skip()), 
-    char('a'), 
-    char('-')->map(skip())
-)->map(first());
-$result = $success($stream);
-
-assert($result instanceof Result\Success);
-assert($result->result() instanceof Slice);
-assert((string) $result->result() === 'a');
-```
-
-> [!NOTE]
-> In this example, we want you to focus on verbosity and readability. We use mappers here, either ignore them or jump to
-> [their documentation](#mappers) if you want to more.
-
-
-<!-- tabs:end -->
-
-<!-- div:title-panel -->
-
-### many
-
-```phps
-function many(Parser<T> $parser): Parser<array<T>>
-```
-
-<!-- div:left-panel -->
-
-The `many` combinator tries to match a given parser one or several times, stopping at the first failure.
-
-If the given parsers matches at least one time, the combinator will return a `Success` containing an `array` holding 
-each result.
-
-If the given parsers never matches, the combinator will return the first `Failure` result it encountered.
-
-> [!TIP]
-> Read the [Matching lists](/tutorials/matching-lists.md) tutorial for an example use case.
-
-<!-- div:right-panel -->
-
-```php
-<?php
-
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Combinators\many;
-use function jubianchi\PPC\Parsers\regex;
-
-$stream = new Char('abc');
-$success = many(regex('/a|b/'));
-$failure = many(regex('/[d-z]/'));
-$result = $success($stream);
-
-assert($result instanceof Result\Success);
-assert(is_array($result->result()));
-assert((string) $result->result()[0] === 'a');
-assert((string) $result->result()[1] === 'b');
-
-assert($failure($stream) instanceof Result\Failure);
-```
-
-<!-- div:title-panel -->
-
-### not
-
-```phps
-function not(Parser $parser, Parser ...$parsers): Parser<Slice>
-```
-
-<!-- div:left-panel -->
-
-The `not` combinator will be successful when the given parsers fails.
-
-In such case, it will return a `Success` result containing eqaul to the result of a [`any`](#any) parser.
-
-If the one of the given parsers succeeds, the `not` combinator will return a `Failure` result.
-
-> [!TIP]
-> The `not` parser may be used to do negative lookaheads.
->
-> Read the [Looking ahead]() tutorial for an example use case.
-
-<!-- div:right-panel -->
-
-```php
-<?php
-
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Combinators\not;
-use function jubianchi\PPC\Parsers\char;
-
-$stream = new Char('abc');
-$success = not(char('b'), char('c'));
-$failure = not(char('b'));
-$result = $success($stream);
-
-assert($result instanceof Result\Success);
-assert($result->result() instanceof Slice);
-assert((string) $result->result() === 'a');
-
-assert($failure($stream) instanceof Result\Failure);
-```
-
-<!-- div:title-panel -->
-
-### opt
-
-```phps
-function opt(Parser<T> $parser): Parser<?T>
-```
-
-<!-- div:left-panel -->
-
-The `opt` combinator will be always be successful.
-
-When the given parser succeeds, the `opt` combinator will return its `Success` result.
-
-If the given parser fails, the `opt` combinator will return a `Success` result holding a null value.
-
-<!-- div:right-panel -->
-
-```php
-<?php
-
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Slice;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Combinators\opt;
-use function jubianchi\PPC\Parsers\char;
-
-$stream = new Char('abc');
-$success = opt(char('a'));
-$failure = opt(char('c'));
-$result = $success($stream);
-
-assert($result instanceof Result\Success);
-assert($result->result() instanceof Slice);
-assert((string) $result->result() === 'a');
-
-$result = $success($stream);
-assert($result instanceof Result\Success);
-assert($result->result() === null);
-```
-
-<!-- div:title-panel -->
-
-### separated
-
-```phps
-function separated(Parser $separator, Parser $parser<T>): Parser<array<T>>
-```
-
-> [!TIP]
-> Read the [Matching lists](/tutorials/matching-lists.md) tutorial for an example use case.
-
-<!-- div:left-panel -->
-
-!> **TODO** write this documentation
-
-<!-- div:right-panel -->
-
-!> **TODO** write this snippet
-
-<!-- div:title-panel -->
 
 ### seq
 
 ```phps
-function seq(Parser $first, Parser $second, Parser ...$parsers): Parser<array>
+function seq(\Closure $first, \Closure ...$parsers): \Closure
 ```
 
-<!-- div:left-panel -->
-
-The `seq` combinator executes each parser in turn and stops once they are all sucessful.
-
-If all the given parsers matches, the combinator will return a `Success` result holding each result.
-
-If any of the given parsers fails, the combinator will return the first `Failure` result it got.
-
-<!-- div:right-panel -->
+Matches every parser one after the other. Its value is the list of their values.
 
 ```php
 <?php
 
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Combinators\seq;
-use function jubianchi\PPC\Parsers\char;
+use function jubianchi\PPC\{char, parse, seq};
 
-$stream = new Char('abc');
-$success = seq(char('a'), char('b'));
-$failure = seq(char('c'), char('d'));
-$result = $success($stream);
-
-assert($result instanceof Result\Success);
-assert(is_array($result->result()));
-assert((string) $result->result()[0] === 'a');
-assert((string) $result->result()[1] === 'b');
-
-$result = $success($stream);
-assert($result instanceof Result\Failure);
+assert(parse(seq(char('a'), char('b')), 'ab') === ['a', 'b']);
 ```
 
-<!-- panels:end -->
-
-### Special combinators
-
-<!-- panels:start -->
-
-<!-- div:title-panel -->
-
-#### debug
+### alt
 
 ```phps
-function debug(Parser<T> $parser): Parser<T>
+function alt(\Closure $first, \Closure ...$parsers): \Closure
 ```
 
-<!-- div:left-panel -->
-
-The `debug` combinator is an helper to help you enable the debug-mode and get execution trace.
-
-Given a parser, it will return the exact same parser but with debugging facilities enabled.
-
-> [!TIP]
-> Read the [Debugging](/tutorials/debugging.md) tutorial for an example use case.
-
-<!-- div:right-panel -->
-
-<!-- tabs:start -->
-
-### ** Parser **
+Tries every parser in order, from the same offset, and returns the first success.
 
 ```php
 <?php
 
-use jubianchi\PPC\Parser\Result;
-use jubianchi\PPC\Stream\Char;
-use function jubianchi\PPC\Combinators\{alt, debug, repeat};
-use function jubianchi\PPC\Parsers\char;
+use function jubianchi\PPC\{alt, parse, word};
 
-$stream = new Char('abc');
-$success = debug(repeat(2, alt(char('a'), char('b'))));
-$result = $success($stream);
+$boolean = alt(word('true'), word('false'));
 
-assert($result instanceof Result\Success);
+assert(parse($boolean, 'false') === 'false');
 ```
 
-### ** Output **
-
-```
-[info]  > repeat(2, alt(char(a), char(b))) {"line":1,"column":0,"ops":0}
-[info]    > alt(char(a), char(b)) {"line":1,"column":0,"ops":0}
-[info]      > char(a) {"line":1,"column":0,"ops":0}
-[info]      < char(a) {"line":1,"column":1,"consumed":"a","ops":1,"duration":0.000198}
-[info]    < alt(char(a), char(b)) {"line":1,"column":1,"consumed":"a","ops":2,"duration":0.000243}
-[info]    > alt(char(a), char(b)) {"line":1,"column":1,"ops":2}
-[info]      > char(a) {"line":1,"column":1,"ops":2}
-[error]     < char(a) {"line":1,"column":1,"ops":3,"duration":0.000104}
-[info]      > char(b) {"line":1,"column":1,"ops":3}
-[info]      < char(b) {"line":1,"column":2,"consumed":"b","ops":4,"duration":5.0e-6}
-[info]    < alt(char(a), char(b)) {"line":1,"column":2,"consumed":"b","ops":5,"duration":0.000149}
-[info]  < repeat(2, alt(char(a), char(b))) {"line":1,"column":2,"ops":6,"duration":0.000446}
-```
-
-<!-- tabs:end -->
-
-<!-- div:title-panel -->
-
-#### recurse
+### opt
 
 ```phps
-function recurse(?Parser<T> &$parser): Parser<T>
+function opt(\Closure $parser, mixed $default = null): \Closure
 ```
 
-<!-- div:left-panel -->
-
-!> **TODO** write this documentation
-
-<!-- div:right-panel -->
-
-!> **TODO** write this snippet
-
-<!-- panels:end -->
-
-## Mappers
-
-<!-- panels:start -->
-
-<!-- div:title-panel -->
-
-### otherwise
-
-```phps
-function otherwise(mixed $value): Mapper
-```
-
-<!-- div:left-panel -->
-
-!> **TODO** write this documentation
-
-<!-- div:right-panel -->
-
-!> **TODO** write this snippet
-
-<!-- div:title-panel -->
-
-### concat
-
-```phps
-function concat(): Mapper
-```
-
-<!-- div:left-panel -->
-
-!> **TODO** write this documentation
-
-<!-- div:right-panel -->
-
-!> **TODO** write this snippet
-
-<!-- div:title-panel -->
-
-### structure
-
-```phps
-function structure(array<int, array-key> $mappings): Mapper
-```
-
-<!-- div:left-panel -->
-
-!> **TODO** write this documentation
-
-<!-- div:right-panel -->
-
-!> **TODO** write this snippet
-
-<!-- div:title-panel -->
-
-### php
-
-```phps
-function php(string $name): Mapper
-```
-
-<!-- div:left-panel -->
-
-!> **TODO** write this documentation
-
-<!-- div:right-panel -->
-
-!> **TODO** write this snippet
-
-<!-- div:title-panel -->
-
-### skip
-
-```phps
-function skip(): Mapper
-```
-
-<!-- div:left-panel -->
-
-!> **TODO** write this documentation
-
-<!-- div:right-panel -->
-
-!> **TODO** write this snippet
-
-<!-- div:title-panel -->
-
-### nth / first / last
-
-```phps
-function nth(int $nth): Mapper
-function first(): Mapper
-function last(): Mapper
-```
-
-<!-- div:left-panel -->
-
-!> **TODO** write this documentation
-
-<!-- div:right-panel -->
-
-<!-- tabs:start -->
-
-### ** nth **
-
-!> **TODO** write this snippet
-
-### ** first **
-
-!> **TODO** write this snippet
-
-### ** last **
-
-!> **TODO** write this snippet
-
-<!-- tabs:end -->
-
-<!-- div:title-panel -->
-
-### value
-
-```phps
-function value(mixed $value): Mapper
-```
-
-<!-- div:left-panel -->
-
-!> **TODO** write this documentation
-
-<!-- div:right-panel -->
-
-!> **TODO** write this snippet
-
-<!-- panels:end -->
-
-## Internals
-
-### Streams
-
-Streams are the containers from which parsers are going to read data from. They are designed to look like usual PHP 
-streams.
-
-They also implement a transaction mechanism allowing parsers to backtrack to previous positions when the need it.
-
-<!-- panels:start -->
-
-<!-- div:title-panel -->
-
-#### begin
-
-```phps
-public function begin(): Transaction
-```
-
-<!-- div:left-panel -->
-
-The `begin` method will start a transaction and hand it to the caller.
-
-This will actually create a copy of the initial stream on which parser will be able to work without altering the main 
-stream. 
-
-In the example snippet we use the `*` character to represent the cursor position.
-
-When the transaction is started, it copy the initial stream and its actual state: both the stream and the transaction 
-will be at the same position.
-
-When a parser consumes characters from the transaction it does not alter the initial stream until the transaction is
-committed: when this happens, the transaction applies its state to the initial stream. 
-
-<!-- div:right-panel -->
+Matches the parser or nothing. When the parser fails, its value is the default.
 
 ```php
 <?php
 
-use jubianchi\PPC\Stream\Char;
+use function jubianchi\PPC\{char, opt, parse, seq};
 
-$stream = new Char('abcd');      // Stream:      [*a b c d ]
+$signed = seq(opt(char('-'), '+'), char('1'));
 
-$stream->consume();              // Stream:      [ a*b c d ]
-
-$transaction = $stream->begin(); // Stream:      [ a*b c d ]
-                                 // Transaction: [ a*b c d ]
-
-$transaction->consume();         // Stream:      [ a*b c d ]
-                                 // Transaction: [ a b*c d ]
-
-$transaction->consume();         // Stream:      [ a*b c d ]
-                                 // Transaction: [ a b c*d ]
-
-$transaction->commit();          // Stream:      [ a b c*d ]
-                                 // Transaction: [ a b c*d ]
+assert(parse($signed, '1') === ['+', '1']);
+assert(parse($signed, '-1') === ['-', '1']);
 ```
 
-<!-- div:title-panel -->
-
-#### consume
+### many / many1
 
 ```phps
-public function consume(): Slice
+function many(\Closure $parser): \Closure
+function many1(\Closure $parser): \Closure
 ```
 
-<!-- div:left-panel -->
+`many` matches the parser zero or more times, `many1` one or more times. Their value is the list of values.
 
-!> **TODO** write this documentation
+They throw a `LogicException` when the parser succeeds without consuming anything, which would loop forever.
 
-<!-- div:right-panel -->
+```php
+<?php
 
-!> **TODO** write this snippet
+use function jubianchi\PPC\{char, many, many1, parse, seq};
 
-<!-- div:title-panel -->
+assert(parse(many(char('a')), '') === []);
+assert(parse(many1(char('a')), 'aa') === ['a', 'a']);
+```
 
-#### current
+### repeat
 
 ```phps
-public function current(): string
+function repeat(int $times, \Closure $parser): \Closure
 ```
 
-<!-- div:left-panel -->
+Matches the parser exactly the given number of times.
 
-!> **TODO** write this documentation
+```php
+<?php
 
-<!-- div:right-panel -->
+use function jubianchi\PPC\{parse, regex, repeat};
 
-!> **TODO** write this snippet
+assert(parse(repeat(2, regex('/[0-9]/')), '42') === ['4', '2']);
+```
 
-<!-- div:title-panel -->
-
-#### cut
+### separated
 
 ```phps
-public function cut(int $offset, ?int $length = null): string
+function separated(\Closure $separator, \Closure $parser): \Closure
 ```
 
-<!-- div:left-panel -->
+Matches the parser zero or more times, separated by the separator. Its value is the list of the parser values, the
+separator values are discarded. A trailing separator is not consumed.
 
-!> **TODO** write this documentation
+```php
+<?php
 
-<!-- div:right-panel -->
+use function jubianchi\PPC\{char, parse, regex, separated};
 
-!> **TODO** write this snippet
+assert(parse(separated(char(','), regex('/[0-9]/')), '1,2,3') === ['1', '2', '3']);
+```
 
-<!-- div:title-panel -->
-
-#### eos
+### enclosed
 
 ```phps
-public function eos(): bool
+function enclosed(\Closure $before, \Closure $parser, ?\Closure $after = null): \Closure
 ```
 
-<!-- div:left-panel -->
+Matches the parser between two others, which default to the same one. Its value is the value of the enclosed parser.
 
-!> **TODO** write this documentation
+```php
+<?php
 
-<!-- div:right-panel -->
+use function jubianchi\PPC\{char, enclosed, parse, regex};
 
-!> **TODO** write this snippet
+assert(parse(enclosed(char('"'), regex('/[a-z]*/')), '"ppc"') === 'ppc');
+assert(parse(enclosed(char('('), regex('/[a-z]*/'), char(')')), '(ppc)') === 'ppc');
+```
 
-<!-- div:title-panel -->
-
-#### seek
+### not
 
 ```phps
-public function seek(int $offset): bool
+function not(\Closure $parser): \Closure
 ```
 
-<!-- div:left-panel -->
+Matches any char, unless the parser matches at the offset.
 
-!> **TODO** write this documentation
+```php
+<?php
 
-<!-- div:right-panel -->
+use function jubianchi\PPC\{char, consumed, many, not, parse};
 
-!> **TODO** write this snippet
+assert(parse(many(not(char(';'))) |> consumed(), 'abc') === 'abc');
+```
 
-<!-- div:title-panel -->
-
-#### tell
+### recursive
 
 ```phps
-public function tell(): int
+function recursive(\Closure $definition): \Closure
 ```
 
-<!-- div:left-panel -->
+Defines a parser referring to itself: the definition receives the parser being defined and returns it.
 
-!> **TODO** write this documentation
+```php
+<?php
 
-<!-- div:right-panel -->
+use function jubianchi\PPC\{alt, char, enclosed, parse, recursive};
 
-!> **TODO** write this snippet
+$nested = recursive(static fn (\Closure $nested): \Closure => alt(
+    char('x'),
+    enclosed(char('('), $nested, char(')')),
+));
 
-<!-- panels:end -->
+assert(parse($nested, '((x))') === 'x');
+```
+
+## Modifiers
+
+Modifiers return a function wrapping a parser: they are meant to be used with the pipe operator.
+
+### map
+
+```phps
+function map(\Closure $mapper): \Closure
+```
+
+Transforms the value of a successful parser.
+
+```php
+<?php
+
+use function jubianchi\PPC\{map, parse, regex};
+
+$number = regex('/[0-9]+/') |> map(intval(...));
+
+assert(parse($number, '42') === 42);
+```
+
+### label
+
+```phps
+function label(string $label): \Closure
+```
+
+Replaces what the parser expects in error messages, when it fails without consuming anything.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{label, parse, regex};
+
+try {
+    parse(regex('/[0-9]+/') |> label('number'), 'x');
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected number, got "x" at line 1, column 1');
+}
+```
+
+### consumed
+
+```phps
+function consumed(): \Closure
+```
+
+Replaces the value of the parser with the text it consumed.
+
+```php
+<?php
+
+use function jubianchi\PPC\{char, consumed, opt, parse, regex, seq};
+
+$decimal = seq(regex('/[0-9]+/'), opt(seq(char('.'), regex('/[0-9]+/')))) |> consumed();
+
+assert(parse($decimal, '3.14') === '3.14');
+```
+
+### debug
+
+```phps
+function debug(string $name, \Closure $write): \Closure
+```
+
+Traces where the parser starts and what it matched, or why it failed. Each line is passed to the `$write` function, for
+example `error_log(...)`.
+
+```php
+<?php
+
+use function jubianchi\PPC\{char, debug, many, parse};
+
+$lines = [];
+$write = static function (string $line) use (&$lines): void {
+    $lines[] = $line;
+};
+
+parse(many(char('a')) |> debug('as', $write), 'aa');
+
+assert($lines === [
+    'as: start at line 1, column 1',
+    'as: matched "aa" up to line 1, column 3',
+]);
+```
