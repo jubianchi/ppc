@@ -47,6 +47,18 @@ function consumed(): \Closure
 }
 
 /**
+ * Traces each run of the parser, e.g. debug('value', error_log(...)).
+ *
+ * @param \Closure(string): mixed $write
+ *
+ * @return \Closure(\Closure(string, int): (Success<mixed>|Failure)): (\Closure(string, int): (Success<mixed>|Failure))
+ */
+function debug(string $name, \Closure $write): \Closure
+{
+    return static fn (\Closure $parser): \Closure => traced($parser, $name, $write);
+}
+
+/**
  * @internal
  *
  * @template T
@@ -101,5 +113,28 @@ function captured(\Closure $parser): \Closure
         $result = $parser($input, $offset);
 
         return $result instanceof Success ? new Success(substr($input, $offset, $result->offset - $offset), $result->offset, $result->hint) : $result;
+    };
+}
+
+/**
+ * @internal
+ *
+ * @param \Closure(string, int): (Success<mixed>|Failure) $parser
+ * @param \Closure(string): mixed                         $write
+ *
+ * @return \Closure(string, int): (Success<mixed>|Failure)
+ */
+function traced(\Closure $parser, string $name, \Closure $write): \Closure
+{
+    return static function (string $input, int $offset) use ($parser, $name, $write): Success|Failure {
+        $write(\sprintf('%s: start at %s', $name, position($input, $offset)));
+
+        $result = $parser($input, $offset);
+
+        $write($result instanceof Success
+            ? \sprintf('%s: matched %s up to %s', $name, quote(substr($input, $offset, $result->offset - $offset)), position($input, $result->offset))
+            : \sprintf('%s: %s', $name, explain($result, $input)));
+
+        return $result;
     };
 }
