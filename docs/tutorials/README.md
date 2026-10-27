@@ -46,4 +46,11 @@ happening in your parsers, and the [`label`](/reference.md#label) modifier to ge
 
 !> **TODO** write this tutorial
 
+<!-- div:left-panel -->
+
+## [Streaming big inputs](/tutorials/streaming.md) {docsify-ignore}
+
+In this tutorial, you will learn how to parse inputs too big to be loaded in memory, like large files or network
+streams, with the [`stream`](/reference.md#streaming) function.
+
 <!-- panels:end -->

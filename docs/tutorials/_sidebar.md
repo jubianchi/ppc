@@ -5,6 +5,7 @@
   * [Matching enclosed values](/tutorials/matching-enclosed-values.md)
   * [Matching lists](/tutorials/matching-lists.md)
   * [Debugging](/tutorials/debugging.md)
+  * [Streaming big inputs](/tutorials/streaming.md)
   * [Looking ahead](/tutorials/looking-ahead.md)
 * [Reference](/reference.md)
 * [Contribute](/contribute.md)
