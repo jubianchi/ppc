@@ -115,6 +115,16 @@ final class PrimitivesTest extends TestCase
     }
 
     #[Test]
+    public function regexAsksForMoreInputWhenAMultibyteCharIsCut(): void
+    {
+        $result = regex('/é+/u', 1)("é\xC3", 0, true);
+
+        self::assertInstanceOf(Partial::class, $result);
+        self::assertEquals(new Success('éé', 4), $result->resume("\xA9!"));
+        self::assertEquals(new Failure(['/é+/u'], 0), $result->resume(''));
+    }
+
+    #[Test]
     public function regexRequiresAPositiveLookahead(): void
     {
         $this->expectExceptionObject(new \InvalidArgumentException('Expected a positive lookahead, got 0'));

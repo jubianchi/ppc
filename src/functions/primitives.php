@@ -57,7 +57,7 @@ function word(string $word): \Closure
  *
  * PCRE cannot tell whether more input would change its result. When more input may come, the result is trusted only
  * once $lookahead bytes follow the match, or the offset when it fails: raise it for patterns which may need more bytes
- * to decide.
+ * to decide. PCRE errors, such as a UTF-8 char cut by the end of the input, also wait for more input.
  *
  * @return \Closure(string, int, bool=): (Success<string>|Failure|Partial<string>)
  */
@@ -76,7 +76,9 @@ function regex(string $pattern, int $lookahead = 64): \Closure
     $expected = [$pattern];
 
     return static function (string $input, int $offset, bool $partial = false) use ($anchored, $lookahead, $expected): Success|Failure|Partial {
-        if (1 === preg_match($anchored, $input, $matches, 0, $offset)) {
+        $matched = preg_match($anchored, $input, $matches, 0, $offset);
+
+        if (1 === $matched) {
             $end = $offset + \strlen($matches[0]);
 
             return $partial && \strlen($input) - $end < $lookahead
@@ -84,7 +86,7 @@ function regex(string $pattern, int $lookahead = 64): \Closure
                 : new Success($matches[0], $end);
         }
 
-        return $partial && \strlen($input) - $offset < $lookahead
+        return $partial && (false === $matched || \strlen($input) - $offset < $lookahead)
             ? retry(\Closure::getCurrent(), $input, $offset)
             : new Failure($expected, $offset);
     };
