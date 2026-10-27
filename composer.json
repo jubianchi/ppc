@@ -33,7 +33,8 @@
     "autoload-dev": {
         "psr-4": {
             "jubianchi\\PPC\\Benchmarks\\": ["benchmarks"],
-            "jubianchi\\PPC\\Tests\\": ["tests/unit"]
+            "jubianchi\\PPC\\Tests\\": ["tests/unit"],
+            "jubianchi\\PPC\\Tests\\Docs\\": ["tests/docs"]
         },
         "files": [
             "parsers/json.php"

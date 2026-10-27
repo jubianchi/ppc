@@ -4,6 +4,9 @@
     <testsuite name="PPC">
       <directory>tests/unit</directory>
     </testsuite>
+    <testsuite name="Documentation">
+      <directory>tests/docs</directory>
+    </testsuite>
   </testsuites>
   <logging>
     <junit outputFile="tmp/junit.xml"/>
