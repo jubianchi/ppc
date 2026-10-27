@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC\Tests\Combinator;
 
+use jubianchi\PPC\Failure;
 use jubianchi\PPC\Success;
 use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
@@ -21,30 +22,35 @@ use PHPUnit\Framework\TestCase;
 use function jubianchi\PPC\alt;
 use function jubianchi\PPC\char;
 use function jubianchi\PPC\enclosed;
-use function jubianchi\PPC\lazy;
+use function jubianchi\PPC\recursive;
 
 /**
  * @internal
  */
 #[Small]
-final class LazyTest extends TestCase
+final class RecursiveTest extends TestCase
 {
     #[Test]
-    public function allowsRecursiveGrammars(): void
+    public function passesTheParserBeingDefinedToItsDefinition(): void
     {
-        $nested = null;
-        $nested = alt(char('x'), enclosed(char('('), lazy(static function () use (&$nested): \Closure {
-            return $nested;
-        }), char(')')));
+        $nested = recursive(static fn (\Closure $nested): \Closure => alt(char('x'), enclosed(char('('), $nested, char(')'))));
 
         self::assertEquals(new Success('x', 7), $nested('(((x)))', 0));
     }
 
     #[Test]
-    public function buildsTheParserOnce(): void
+    public function failsLikeItsDefinition(): void
+    {
+        $nested = recursive(static fn (\Closure $nested): \Closure => alt(char('x'), enclosed(char('('), $nested, char(')'))));
+
+        self::assertEquals(new Failure(['"x"', '"("'], 2), $nested('((]', 0));
+    }
+
+    #[Test]
+    public function callsTheDefinitionOnce(): void
     {
         $calls = 0;
-        $parser = lazy(static function () use (&$calls): \Closure {
+        $parser = recursive(static function (\Closure $self) use (&$calls): \Closure {
             ++$calls;
 
             return char('a');

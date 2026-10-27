@@ -298,24 +298,26 @@ function not(\Closure $parser): \Closure
 }
 
 /**
- * Builds the parser on its first use, which allows recursive grammars:
- * lazy(function () use (&$value) { return $value; }).
+ * Defines a recursive parser: the definition receives the parser being defined,
+ * e.g. recursive(fn ($nested) => alt(char('x'), enclosed(char('('), $nested, char(')')))).
  *
  * @template T
  *
- * @param \Closure(): (\Closure(string, int): (Success<T>|Failure)) $factory
+ * @param \Closure(\Closure(string, int): (Success<T>|Failure)): (\Closure(string, int): (Success<T>|Failure)) $definition
  *
  * @return \Closure(string, int): (Success<T>|Failure)
  */
-function lazy(\Closure $factory): \Closure
+function recursive(\Closure $definition): \Closure
 {
+    /** @var ?\Closure(string, int): (Success<T>|Failure) $parser */
     $parser = null;
-
-    return static function (string $input, int $offset) use ($factory, &$parser): Success|Failure {
-        $parser ??= $factory();
+    $self = static function (string $input, int $offset) use (&$parser): Success|Failure {
+        \assert($parser instanceof \Closure);
 
         return $parser($input, $offset);
     };
+
+    return $parser = $definition($self);
 }
 
 /**
