@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace jubianchi\PPC\Tests;
 
 use jubianchi\PPC\Failure;
+use jubianchi\PPC\Incomplete;
 use jubianchi\PPC\Success;
 use jubianchi\PPC\SyntaxError;
 use PHPUnit\Framework\Attributes\Small;
@@ -81,6 +82,33 @@ final class ParseTest extends TestCase
         $this->expectExceptionMessage('Expected "]", got end of input at line 1, column 4');
 
         parse(self::failWith(new Failure(['"]"'], 3)), '[1,');
+    }
+
+    #[Test]
+    public function runsTheParserOnACompleteInput(): void
+    {
+        $parser = static fn (string $input, int $offset, bool $partial = false): Success|Incomplete => $partial
+            ? new Incomplete()
+            : new Success('complete', $offset);
+
+        self::assertSame('complete', parse($parser, 'abc'));
+    }
+
+    #[Test]
+    public function rejectsAnIncompleteResult(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Parser returned Incomplete on a complete input');
+
+        parse(self::incomplete(), 'abc');
+    }
+
+    /**
+     * @return \Closure(string, int, bool=): (Success<never>|Incomplete)
+     */
+    private static function incomplete(): \Closure
+    {
+        return static fn (): Incomplete => new Incomplete();
     }
 
     /**

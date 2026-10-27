@@ -41,7 +41,7 @@ class Backtracking
 
     private string $data;
     /**
-     * @var \Closure(string, int): (PPC\Success<mixed>|PPC\Failure)
+     * @var \Closure(string, int, bool=): (PPC\Success<mixed>|PPC\Failure|PPC\Incomplete)
      */
     private \Closure $parser;
 

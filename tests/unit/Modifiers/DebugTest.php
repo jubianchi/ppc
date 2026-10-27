@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace jubianchi\PPC\Tests\Modifiers;
 
 use jubianchi\PPC\Failure;
+use jubianchi\PPC\Incomplete;
 use jubianchi\PPC\Success;
 use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
@@ -78,6 +79,21 @@ final class DebugTest extends TestCase
                 'inner: start at line 1, column 1',
                 'inner: matched "a" up to line 1, column 2',
                 'outer: matched "a" up to line 1, column 2',
+            ],
+            $this->lines,
+        );
+    }
+
+    #[Test]
+    public function tracesAnIncompleteInput(): void
+    {
+        $parser = (static fn (): Incomplete => new Incomplete(3)) |> debug('word', $this->write(...));
+
+        self::assertEquals(new Incomplete(3), $parser('a', 1, true));
+        self::assertSame(
+            [
+                'word: start at line 1, column 2',
+                'word: incomplete input, 3 more bytes needed',
             ],
             $this->lines,
         );

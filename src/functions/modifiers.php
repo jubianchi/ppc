@@ -19,7 +19,7 @@ namespace jubianchi\PPC;
  *
  * @param \Closure(T): U $mapper
  *
- * @return \Closure(\Closure(string, int): (Success<T>|Failure)): (\Closure(string, int): (Success<U>|Failure))
+ * @return \Closure(\Closure(string, int, bool=): (Success<T>|Failure|Incomplete)): (\Closure(string, int, bool=): (Success<U>|Failure|Incomplete))
  */
 function map(\Closure $mapper): \Closure
 {
@@ -29,7 +29,7 @@ function map(\Closure $mapper): \Closure
 /**
  * Replaces the expectations of a failure that did not go past the offset the parser started at.
  *
- * @return \Closure(\Closure(string, int): (Success<mixed>|Failure)): (\Closure(string, int): (Success<mixed>|Failure))
+ * @return \Closure(\Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete)): (\Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete))
  */
 function label(string $label): \Closure
 {
@@ -39,7 +39,7 @@ function label(string $label): \Closure
 /**
  * Returns the text consumed by the parser instead of its value.
  *
- * @return \Closure(\Closure(string, int): (Success<mixed>|Failure)): (\Closure(string, int): (Success<string>|Failure))
+ * @return \Closure(\Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete)): (\Closure(string, int, bool=): (Success<string>|Failure|Incomplete))
  */
 function consumed(): \Closure
 {
@@ -51,7 +51,7 @@ function consumed(): \Closure
  *
  * @param \Closure(string): mixed $write
  *
- * @return \Closure(\Closure(string, int): (Success<mixed>|Failure)): (\Closure(string, int): (Success<mixed>|Failure))
+ * @return \Closure(\Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete)): (\Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete))
  */
 function debug(string $name, \Closure $write): \Closure
 {
@@ -64,15 +64,15 @@ function debug(string $name, \Closure $write): \Closure
  * @template T
  * @template U
  *
- * @param \Closure(string, int): (Success<T>|Failure) $parser
- * @param \Closure(T): U                              $mapper
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser
+ * @param \Closure(T): U                                                $mapper
  *
- * @return \Closure(string, int): (Success<U>|Failure)
+ * @return \Closure(string, int, bool=): (Success<U>|Failure|Incomplete)
  */
 function mapped(\Closure $parser, \Closure $mapper): \Closure
 {
-    return static function (string $input, int $offset) use ($parser, $mapper): Success|Failure {
-        $result = $parser($input, $offset);
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $mapper): Success|Failure|Incomplete {
+        $result = $parser($input, $offset, $partial);
 
         return $result instanceof Success ? new Success($mapper($result->value), $result->offset, $result->hint) : $result;
     };
@@ -81,19 +81,23 @@ function mapped(\Closure $parser, \Closure $mapper): \Closure
 /**
  * @internal
  *
- * @param \Closure(string, int): (Success<mixed>|Failure) $parser
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $parser
  *
- * @return \Closure(string, int): (Success<mixed>|Failure)
+ * @return \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete)
  */
 function labelled(\Closure $parser, string $label): \Closure
 {
     $expected = [$label];
 
-    return static function (string $input, int $offset) use ($parser, $expected): Success|Failure {
-        $result = $parser($input, $offset);
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $expected): Success|Failure|Incomplete {
+        $result = $parser($input, $offset, $partial);
 
         if ($result instanceof Failure) {
             return $result->offset === $offset ? new Failure($expected, $offset) : $result;
+        }
+
+        if ($result instanceof Incomplete) {
+            return $result;
         }
 
         return $result->hint?->offset === $offset ? new Success($result->value, $result->offset, new Failure($expected, $offset)) : $result;
@@ -103,14 +107,14 @@ function labelled(\Closure $parser, string $label): \Closure
 /**
  * @internal
  *
- * @param \Closure(string, int): (Success<mixed>|Failure) $parser
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $parser
  *
- * @return \Closure(string, int): (Success<string>|Failure)
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
  */
 function captured(\Closure $parser): \Closure
 {
-    return static function (string $input, int $offset) use ($parser): Success|Failure {
-        $result = $parser($input, $offset);
+    return static function (string $input, int $offset, bool $partial = false) use ($parser): Success|Failure|Incomplete {
+        $result = $parser($input, $offset, $partial);
 
         return $result instanceof Success ? new Success(substr($input, $offset, $result->offset - $offset), $result->offset, $result->hint) : $result;
     };
@@ -119,21 +123,23 @@ function captured(\Closure $parser): \Closure
 /**
  * @internal
  *
- * @param \Closure(string, int): (Success<mixed>|Failure) $parser
- * @param \Closure(string): mixed                         $write
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $parser
+ * @param \Closure(string): mixed                                           $write
  *
- * @return \Closure(string, int): (Success<mixed>|Failure)
+ * @return \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete)
  */
 function traced(\Closure $parser, string $name, \Closure $write): \Closure
 {
-    return static function (string $input, int $offset) use ($parser, $name, $write): Success|Failure {
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $name, $write): Success|Failure|Incomplete {
         $write(\sprintf('%s: start at %s', $name, position($input, $offset)));
 
-        $result = $parser($input, $offset);
+        $result = $parser($input, $offset, $partial);
 
-        $write($result instanceof Success
-            ? \sprintf('%s: matched %s up to %s', $name, quote(substr($input, $offset, $result->offset - $offset)), position($input, $result->offset))
-            : \sprintf('%s: %s', $name, explain($result, $input)));
+        $write(match (true) {
+            $result instanceof Success => \sprintf('%s: matched %s up to %s', $name, quote(substr($input, $offset, $result->offset - $offset)), position($input, $result->offset)),
+            $result instanceof Failure => \sprintf('%s: %s', $name, explain($result, $input)),
+            default => \sprintf('%s: incomplete input%s', $name, null === $result->needed ? '' : \sprintf(', %d more bytes needed', $result->needed)),
+        });
 
         return $result;
     };
