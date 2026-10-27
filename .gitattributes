@@ -1,14 +1,13 @@
-benchmarks          export-ignore
-resources           export-ignore
-tests               export-ignore
+benchmarks              export-ignore
+resources               export-ignore
+tests                   export-ignore
 
-benchmarks/ref.xml  merge=ours
-.php_cs             export-ignore
-composer.lock       merge=ours
-infection.json      export-ignore
-LAST_COMMIT         export-subst
-package-lock.json   export-ignore
-phpbench.json       export-ignore
-phpmetrics.json     export-ignore
-phpstan.neon        export-ignore
-phpunit.xml         export-ignore
+.php-cs-fixer.dist.php  export-ignore
+composer.lock           merge=ours
+infection.json          export-ignore
+LAST_COMMIT             export-subst
+package-lock.json       export-ignore
+phpbench.json           export-ignore
+phpmetrics.json         export-ignore
+phpstan.neon            export-ignore
+phpunit.xml             export-ignore
