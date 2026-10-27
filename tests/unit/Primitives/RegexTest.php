@@ -94,6 +94,18 @@ final class RegexTest extends TestCase
     }
 
     #[Test]
+    public function isIncompleteWhenAPartialInputEndsInsideAMultiByteChar(): void
+    {
+        self::assertEquals(new Incomplete(), regex('/\p{L}+/u', 1)("\u{e9}\xC3", 0, true));
+    }
+
+    #[Test]
+    public function failsOnInvalidUtf8InACompleteInput(): void
+    {
+        self::assertEquals(new Failure(['/\p{L}+/u'], 0), regex('/\p{L}+/u', 1)("\u{e9}\xC3", 0));
+    }
+
+    #[Test]
     public function ignoresTheWindowOnACompleteInput(): void
     {
         self::assertEquals(new Success('12', 2), regex('/[0-9]+/')('12', 0));
