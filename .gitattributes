@@ -4,7 +4,6 @@ tests                   export-ignore
 
 .php-cs-fixer.dist.php  export-ignore
 composer.lock           merge=ours
-infection.json          export-ignore
 LAST_COMMIT             export-subst
 package-lock.json       export-ignore
 phpbench.json           export-ignore

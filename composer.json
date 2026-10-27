@@ -15,7 +15,6 @@
         "phpstan/phpstan": "^2.3",
         "phpstan/phpstan-strict-rules": "^2.1",
         "phpstan/extension-installer": "^1.4",
-        "infection/infection": "^0.35.8",
         "phpmetrics/phpmetrics": "^2.11",
         "parsica-php/parsica": "^0.8.3"
     },
@@ -45,7 +44,6 @@
         "bm:ref": "phpbench run --report=aggregate --tag=reference --ansi",
         "bmc": "phpbench run --report=aggregate --ref=reference --ansi",
         "cs": "php-cs-fixer fix --ansi --allow-risky=yes",
-        "mt": "infection --ansi --no-progress --threads=max",
         "sa": "phpstan analyse --ansi --memory-limit=1G",
         "pm": "phpunit --testdox && phpmetrics --config=phpmetrics.json",
         "ut": "phpunit --testdox",
@@ -56,7 +54,6 @@
     },
     "config": {
         "allow-plugins": {
-            "infection/extension-installer": true,
             "phpstan/extension-installer": true
         }
     }
