@@ -15,11 +15,13 @@ Every function lives in the `jubianchi\PPC` namespace.
 A parser is a plain closure taking the whole input and the byte offset to start at:
 
 ```phps
-\Closure(string $input, int $offset): Success|Failure
+\Closure(string $input, int $offset, bool $partial = false): Success|Failure|Partial
 ```
 
 * On success, it returns a `Success` holding the parsed `value` and the `offset` right after what it consumed.
 * On failure, it returns a `Failure` holding the list of what was `expected` and the `offset` where it was expected.
+* When `$partial` tells that more input may follow and the parser cannot decide yet, it returns a `Partial`: see
+  [Streaming](#streaming).
 
 The input is never copied nor sliced: parsers only move an offset forward. Backtracking is free, trying an alternative
 only means calling another parser with the same offset.
@@ -119,13 +121,15 @@ assert(parse(word('true'), 'true') === 'true');
 ### regex
 
 ```phps
-function regex(string $pattern): \Closure
+function regex(string $pattern, int $lookahead = 64): \Closure
 ```
 
 Matches a PCRE pattern at the offset: the pattern is anchored, it never searches further in the input. Its value is the
 whole match.
 
 Matching chunks with a single pattern is much faster than combining parsers matching one char at a time.
+
+The `$lookahead` only matters when [streaming](#streaming).
 
 ```php
 <?php
@@ -423,3 +427,73 @@ assert($lines === [
     'as: matched "aa" up to line 1, column 3',
 ]);
 ```
+
+## Streaming
+
+Large files or network streams do not have to be loaded in memory: parsers can be fed chunk by chunk.
+
+### Partial results
+
+When called with `$partial` set to `true`, parsers know more input may follow. Instead of failing or succeeding too
+early, a parser running out of input returns a `Partial`: `resume($chunk)` continues where it stopped with the next
+chunk, an empty chunk meaning the end of the input.
+
+```mermaid
+sequenceDiagram
+    participant Caller
+    participant Parser as word('true')
+    Caller->>Parser: 'tr', offset 0, partial
+    Parser-->>Caller: Partial
+    Caller->>Parser: resume('ue')
+    Parser-->>Caller: Success('true', 4)
+```
+
+Combinators resume where they stopped, including `alt` which tries its next alternatives once the pending one is
+decided: the whole input of the item being parsed is kept, so backtracking still works.
+
+```php
+<?php
+
+use jubianchi\PPC\Partial;
+use jubianchi\PPC\Success;
+
+use function jubianchi\PPC\{alt, word};
+
+$parser = alt(word('true'), word('trap'));
+$result = $parser('tr', 0, true);
+
+assert($result instanceof Partial);
+assert($result->resume('ap') == new Success('trap', 4));
+```
+
+### stream
+
+```phps
+function stream(\Closure $item, $source, int $chunk = 8192): \Generator
+```
+
+Parses items one after the other from a blocking stream resource read in chunks, and yields their values. Only the item
+being parsed is kept in memory, whatever the size of the stream. Errors are reported from the start of the stream.
+
+```php
+<?php
+
+use function jubianchi\PPC\{char, map, regex, seq, stream};
+
+$source = fopen('php://memory', 'r+');
+fwrite($source, "1\n22\n333\n");
+rewind($source);
+
+$line = seq(regex('/[0-9]*/', 1), char("\n")) |> map(static fn (array $values): int => (int) $values[0]);
+
+assert(iterator_to_array(stream($line, $source, chunk: 4), false) === [1, 22, 333]);
+```
+
+### Limitations
+
+* PCRE cannot tell whether more input would change its result: `regex` trusts it only once `$lookahead` bytes follow
+  the match, or the offset when it fails. Prefer patterns whose result only depends on the next byte, such as
+  `seq(regex('/[^\n]*/', 1), char("\n"))` rather than `regex('/[^\n]*\n/')` whose failure needs a whole line.
+* Each resumption appends the chunk to the input of the item being parsed: an item spanning many chunks is copied once
+  per chunk.
+* `stream` needs a blocking stream: a read returning nothing before the end of the stream is retried at once.
