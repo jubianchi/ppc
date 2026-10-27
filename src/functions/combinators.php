@@ -14,24 +14,24 @@ declare(strict_types=1);
 namespace jubianchi\PPC;
 
 /**
- * @param \Closure(string, int): (Success<mixed>|Failure) $first
- * @param \Closure(string, int): (Success<mixed>|Failure) ...$parsers
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Partial<mixed>) $first
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Partial<mixed>) ...$parsers
  *
- * @return \Closure(string, int): (Success<list<mixed>>|Failure)
+ * @return \Closure(string, int, bool=): (Success<list<mixed>>|Failure|Partial<list<mixed>>)
  */
 function seq(\Closure $first, \Closure ...$parsers): \Closure
 {
-    array_unshift($parsers, $first);
+    $parsers = [$first, ...array_values($parsers)];
 
-    return static function (string $input, int $offset) use ($parsers): Success|Failure {
+    return static function (string $input, int $offset, bool $partial = false) use ($parsers): Success|Failure|Partial {
         $values = [];
         $hint = null;
 
         foreach ($parsers as $parser) {
-            $result = $parser($input, $offset);
+            $result = $parser($input, $offset, $partial);
 
-            if ($result instanceof Failure) {
-                return furthest($hint, $result);
+            if (!$result instanceof Success) {
+                return $result instanceof Failure ? furthest($hint, $result) : sequence($parsers, \count($values), $result, $values, $hint);
             }
 
             $values[] = $result->value;
@@ -48,23 +48,27 @@ function seq(\Closure $first, \Closure ...$parsers): \Closure
  *
  * @template T
  *
- * @param \Closure(string, int): (Success<T>|Failure) $first
- * @param \Closure(string, int): (Success<T>|Failure) ...$parsers
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>) $first
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>) ...$parsers
  *
- * @return \Closure(string, int): (Success<T>|Failure)
+ * @return \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>)
  */
 function alt(\Closure $first, \Closure ...$parsers): \Closure
 {
-    array_unshift($parsers, $first);
+    $parsers = [$first, ...array_values($parsers)];
 
-    return static function (string $input, int $offset) use ($parsers): Success|Failure {
+    return static function (string $input, int $offset, bool $partial = false) use ($parsers): Success|Failure|Partial {
         $failure = null;
 
-        foreach ($parsers as $parser) {
-            $result = $parser($input, $offset);
+        foreach ($parsers as $index => $parser) {
+            $result = $parser($input, $offset, $partial);
 
             if ($result instanceof Success) {
                 return null === $failure ? $result : new Success($result->value, $result->offset, furthest($failure, $result->hint));
+            }
+
+            if (!$result instanceof Failure) {
+                return alternative($parsers, $index, $result, $offset, $failure);
             }
 
             $failure = furthest($failure, $result);
@@ -78,17 +82,23 @@ function alt(\Closure $first, \Closure ...$parsers): \Closure
  * @template T
  * @template D
  *
- * @param \Closure(string, int): (Success<T>|Failure) $parser
- * @param D                                           $default
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>) $parser
+ * @param D                                                             $default
  *
- * @return \Closure(string, int): Success<T|D>
+ * @return \Closure(string, int, bool=): (Success<T|D>|Partial<T|D>)
  */
 function opt(\Closure $parser, mixed $default = null): \Closure
 {
-    return static function (string $input, int $offset) use ($parser, $default): Success {
-        $result = $parser($input, $offset);
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $default): Success|Partial {
+        $result = $parser($input, $offset, $partial);
 
-        return $result instanceof Success ? $result : new Success($default, $offset, $result);
+        if ($result instanceof Success) {
+            return $result;
+        }
+
+        return $result instanceof Failure
+            ? new Success($default, $offset, $result)
+            : then($result, static fn (Success|Failure $result): Success => $result instanceof Success ? $result : new Success($default, $offset, $result));
     };
 }
 
@@ -100,32 +110,13 @@ function opt(\Closure $parser, mixed $default = null): \Closure
  *
  * @template T
  *
- * @param \Closure(string, int): (Success<T>|Failure) $parser
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>) $parser
  *
- * @return \Closure(string, int): Success<list<T>>
+ * @return \Closure(string, int, bool=): (Success<list<T>>|Partial<list<T>>)
  */
 function many(\Closure $parser): \Closure
 {
-    return static function (string $input, int $offset) use ($parser): Success {
-        $values = [];
-        $hint = null;
-
-        while (true) {
-            $result = $parser($input, $offset);
-
-            if ($result instanceof Failure) {
-                return new Success($values, $offset, furthest($hint, $result));
-            }
-
-            if ($result->offset === $offset) {
-                throw new \LogicException(\sprintf('Parser succeeded without consuming input at offset %d', $offset));
-            }
-
-            $values[] = $result->value;
-            $offset = $result->offset;
-            $hint = furthest($hint, $result->hint);
-        }
-    };
+    return static fn (string $input, int $offset, bool $partial = false): Success|Partial => repeating($parser, $input, $offset, $partial, [], null, null);
 }
 
 /**
@@ -133,33 +124,31 @@ function many(\Closure $parser): \Closure
  *
  * @template T
  *
- * @param \Closure(string, int): (Success<T>|Failure) $parser
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>) $parser
  *
- * @return \Closure(string, int): (Success<non-empty-list<T>>|Failure)
+ * @return \Closure(string, int, bool=): (Success<non-empty-list<T>>|Failure|Partial<non-empty-list<T>>)
  */
 function many1(\Closure $parser): \Closure
 {
     $many = many($parser);
 
-    return static function (string $input, int $offset) use ($parser, $many): Success|Failure {
-        $first = $parser($input, $offset);
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $many): Success|Failure|Partial {
+        $first = $parser($input, $offset, $partial);
 
-        if ($first instanceof Failure) {
-            return $first;
+        if ($first instanceof Partial) {
+            return then($first, static fn (Success|Failure $first, string $input, bool $partial): Success|Failure|Partial => $first instanceof Failure ? $first : prepend($first, $many($input, $first->offset, $partial)));
         }
 
-        $rest = $many($input, $first->offset);
-
-        return new Success([$first->value, ...$rest->value], $rest->offset, furthest($first->hint, $rest->hint));
+        return $first instanceof Failure ? $first : prepend($first, $many($input, $first->offset, $partial));
     };
 }
 
 /**
  * @template T
  *
- * @param \Closure(string, int): (Success<T>|Failure) $parser
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>) $parser
  *
- * @return \Closure(string, int): (Success<list<T>>|Failure)
+ * @return \Closure(string, int, bool=): (Success<list<T>>|Failure|Partial<list<T>>)
  */
 function repeat(int $times, \Closure $parser): \Closure
 {
@@ -167,15 +156,17 @@ function repeat(int $times, \Closure $parser): \Closure
         throw new \InvalidArgumentException(\sprintf('Expected a positive count, got %d', $times));
     }
 
-    return static function (string $input, int $offset) use ($times, $parser): Success|Failure {
+    $parsers = array_fill(0, $times, $parser);
+
+    return static function (string $input, int $offset, bool $partial = false) use ($parsers): Success|Failure|Partial {
         $values = [];
         $hint = null;
 
-        for ($i = 0; $i < $times; ++$i) {
-            $result = $parser($input, $offset);
+        foreach ($parsers as $parser) {
+            $result = $parser($input, $offset, $partial);
 
-            if ($result instanceof Failure) {
-                return furthest($hint, $result);
+            if (!$result instanceof Success) {
+                return $result instanceof Failure ? furthest($hint, $result) : sequence($parsers, \count($values), $result, $values, $hint);
             }
 
             $values[] = $result->value;
@@ -196,79 +187,64 @@ function repeat(int $times, \Closure $parser): \Closure
  *
  * @template T
  *
- * @param \Closure(string, int): (Success<mixed>|Failure) $separator
- * @param \Closure(string, int): (Success<T>|Failure)     $parser
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Partial<mixed>) $separator
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>)         $parser
  *
- * @return \Closure(string, int): Success<list<T>>
+ * @return \Closure(string, int, bool=): (Success<list<T>>|Partial<list<T>>)
  */
 function separated(\Closure $separator, \Closure $parser): \Closure
 {
-    return static function (string $input, int $offset) use ($separator, $parser): Success {
-        $result = $parser($input, $offset);
+    return static function (string $input, int $offset, bool $partial = false) use ($separator, $parser): Success|Partial {
+        $first = $parser($input, $offset, $partial);
 
-        if ($result instanceof Failure) {
-            return new Success([], $offset, $result);
+        if ($first instanceof Partial) {
+            return then($first, static fn (Success|Failure $first, string $input, bool $partial): Success|Partial => $first instanceof Failure
+                ? new Success([], $offset, $first)
+                : separating($separator, $parser, $input, $first->offset, $partial, [$first->value], $first->hint, null, null, null));
         }
 
-        $values = [$result->value];
-        $offset = $result->offset;
-        $hint = $result->hint;
-
-        while (true) {
-            $next = $separator($input, $offset);
-
-            if ($next instanceof Failure) {
-                return new Success($values, $offset, furthest($hint, $next));
-            }
-
-            $result = $parser($input, $next->offset);
-
-            if ($result instanceof Failure) {
-                return new Success($values, $offset, furthest($hint, furthest($next->hint, $result)));
-            }
-
-            if ($result->offset === $offset) {
-                throw new \LogicException(\sprintf('Separator and parser succeeded without consuming input at offset %d', $offset));
-            }
-
-            $values[] = $result->value;
-            $offset = $result->offset;
-            $hint = furthest($hint, furthest($next->hint, $result->hint));
-        }
+        return $first instanceof Failure
+            ? new Success([], $offset, $first)
+            : separating($separator, $parser, $input, $first->offset, $partial, [$first->value], $first->hint, null, null, null);
     };
 }
 
 /**
  * @template T
  *
- * @param \Closure(string, int): (Success<mixed>|Failure)  $before
- * @param \Closure(string, int): (Success<T>|Failure)      $parser
- * @param ?\Closure(string, int): (Success<mixed>|Failure) $after  defaults to $before
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Partial<mixed>)  $before
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>)          $parser
+ * @param ?\Closure(string, int, bool=): (Success<mixed>|Failure|Partial<mixed>) $after  defaults to $before
  *
- * @return \Closure(string, int): (Success<T>|Failure)
+ * @return \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>)
  */
 function enclosed(\Closure $before, \Closure $parser, ?\Closure $after = null): \Closure
 {
     $after ??= $before;
+    $parsers = [$before, $parser, $after];
 
-    return static function (string $input, int $offset) use ($before, $parser, $after): Success|Failure {
-        $opening = $before($input, $offset);
+    return static function (string $input, int $offset, bool $partial = false) use ($before, $parser, $after, $parsers): Success|Failure|Partial {
+        $opening = $before($input, $offset, $partial);
 
-        if ($opening instanceof Failure) {
-            return $opening;
+        if (!$opening instanceof Success) {
+            return $opening instanceof Failure ? $opening : middle(sequence($parsers, 0, $opening, [], null));
         }
 
-        $result = $parser($input, $opening->offset);
+        $result = $parser($input, $opening->offset, $partial);
 
-        if ($result instanceof Failure) {
-            return furthest($opening->hint, $result);
+        if (!$result instanceof Success) {
+            return $result instanceof Failure
+                ? furthest($opening->hint, $result)
+                : middle(sequence($parsers, 1, $result, [$opening->value], $opening->hint));
         }
 
         $hint = furthest($opening->hint, $result->hint);
-        $closing = $after($input, $result->offset);
+        $closing = $after($input, $result->offset, $partial);
 
-        if ($closing instanceof Failure) {
-            return furthest($hint, $closing);
+        if (!$closing instanceof Success) {
+            return $closing instanceof Failure
+                ? furthest($hint, $closing)
+                : middle(sequence($parsers, 2, $closing, [$opening->value, $result->value], $hint));
         }
 
         return new Success($result->value, $closing->offset, furthest($hint, $closing->hint));
@@ -278,22 +254,28 @@ function enclosed(\Closure $before, \Closure $parser, ?\Closure $after = null): 
 /**
  * Consumes one char when the parser does not match at the offset.
  *
- * @param \Closure(string, int): (Success<mixed>|Failure) $parser
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Partial<mixed>) $parser
  *
- * @return \Closure(string, int): (Success<string>|Failure)
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Partial<string>)
  */
 function not(\Closure $parser): \Closure
 {
     $any = any();
 
-    return static function (string $input, int $offset) use ($parser, $any): Success|Failure {
-        $result = $parser($input, $offset);
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $any): Success|Failure|Partial {
+        $result = $parser($input, $offset, $partial);
 
         if ($result instanceof Success) {
             return new Failure(['anything but '.quote(substr($input, $offset, $result->offset - $offset))], $offset);
         }
 
-        return $any($input, $offset);
+        if ($result instanceof Failure) {
+            return $any($input, $offset, $partial);
+        }
+
+        return then($result, static fn (Success|Failure $result, string $input, bool $partial): Success|Failure|Partial => $result instanceof Success
+            ? new Failure(['anything but '.quote(substr($input, $offset, $result->offset - $offset))], $offset)
+            : $any($input, $offset, $partial));
     };
 }
 
@@ -303,21 +285,242 @@ function not(\Closure $parser): \Closure
  *
  * @template T
  *
- * @param \Closure(\Closure(string, int): (Success<T>|Failure)): (\Closure(string, int): (Success<T>|Failure)) $definition
+ * @param \Closure(\Closure(string, int, bool=): (Success<T>|Failure|Partial<T>)): (\Closure(string, int, bool=): (Success<T>|Failure|Partial<T>)) $definition
  *
- * @return \Closure(string, int): (Success<T>|Failure)
+ * @return \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>)
  */
 function recursive(\Closure $definition): \Closure
 {
-    /** @var ?\Closure(string, int): (Success<T>|Failure) $parser */
+    /** @var ?\Closure(string, int, bool=): (Success<T>|Failure|Partial<T>) $parser */
     $parser = null;
-    $self = static function (string $input, int $offset) use (&$parser): Success|Failure {
+    $self = static function (string $input, int $offset, bool $partial = false) use (&$parser): Success|Failure|Partial {
         \assert($parser instanceof \Closure);
 
-        return $parser($input, $offset);
+        return $parser($input, $offset, $partial);
     };
 
     return $parser = $definition($self);
+}
+
+/**
+ * Returns a Partial handing the result of the pending one to $next once it is decided.
+ *
+ * Combinators keep their fast path free of resumption logic: when a parser asks for more input, they hand their
+ * state over to one of the functions below, which continue where they stopped.
+ *
+ * @internal
+ *
+ * @template T
+ * @template U
+ *
+ * @param Partial<T>                                                                  $pending
+ * @param \Closure(Success<T>|Failure, string, bool): (Success<U>|Failure|Partial<U>) $next
+ *
+ * @return Partial<U>
+ */
+function then(Partial $pending, \Closure $next): Partial
+{
+    return new Partial($pending->input, static function (string $input, bool $partial) use ($pending, $next): Success|Failure|Partial {
+        $result = ($pending->continuation)($input, $partial);
+
+        return $result instanceof Partial ? then($result, $next) : $next($result, $input, $partial);
+    });
+}
+
+/**
+ * Continues seq() once the parser at $index is decided.
+ *
+ * @internal
+ *
+ * @template T
+ *
+ * @param list<\Closure(string, int, bool=): (Success<T>|Failure|Partial<T>)> $parsers
+ * @param Partial<T>                                                          $pending
+ * @param list<T>                                                             $values
+ *
+ * @return Partial<list<T>>
+ */
+function sequence(array $parsers, int $index, Partial $pending, array $values, ?Failure $hint): Partial
+{
+    return then($pending, static function (Success|Failure $result, string $input, bool $partial) use ($parsers, $index, $values, $hint): Success|Failure|Partial {
+        $count = \count($parsers);
+
+        while (true) {
+            if ($result instanceof Failure) {
+                return furthest($hint, $result);
+            }
+
+            $values[] = $result->value;
+            $hint = furthest($hint, $result->hint);
+
+            if (++$index === $count) {
+                return new Success($values, $result->offset, $hint);
+            }
+
+            $result = $parsers[$index]($input, $result->offset, $partial);
+
+            if ($result instanceof Partial) {
+                return sequence($parsers, $index, $result, $values, $hint);
+            }
+        }
+    });
+}
+
+/**
+ * Continues alt() once the parser at $index is decided.
+ *
+ * @internal
+ *
+ * @template T
+ *
+ * @param list<\Closure(string, int, bool=): (Success<T>|Failure|Partial<T>)> $parsers
+ * @param Partial<T>                                                          $pending
+ *
+ * @return Partial<T>
+ */
+function alternative(array $parsers, int $index, Partial $pending, int $offset, ?Failure $failure): Partial
+{
+    return then($pending, static function (Success|Failure $result, string $input, bool $partial) use ($parsers, $index, $offset, $failure): Success|Failure|Partial {
+        $count = \count($parsers);
+
+        while (true) {
+            if ($result instanceof Success) {
+                return null === $failure ? $result : new Success($result->value, $result->offset, furthest($failure, $result->hint));
+            }
+
+            $failure = furthest($failure, $result);
+
+            if (++$index === $count) {
+                return $failure;
+            }
+
+            $result = $parsers[$index]($input, $offset, $partial);
+
+            if ($result instanceof Partial) {
+                return alternative($parsers, $index, $result, $offset, $failure);
+            }
+        }
+    });
+}
+
+/**
+ * The loop of many(), resumed with the result of the parser at $offset once it is decided.
+ *
+ * @internal
+ *
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>) $parser
+ * @param list<T>                                                       $values
+ * @param Success<T>|Failure|null                                       $result
+ *
+ * @return Success<list<T>>|Partial<list<T>>
+ */
+function repeating(\Closure $parser, string $input, int $offset, bool $partial, array $values, ?Failure $hint, Success|Failure|null $result): Success|Partial
+{
+    while (true) {
+        $result ??= $parser($input, $offset, $partial);
+
+        if (!$result instanceof Success) {
+            return $result instanceof Failure
+                ? new Success($values, $offset, furthest($hint, $result))
+                : then($result, static fn (Success|Failure $result, string $input, bool $partial): Success|Partial => repeating($parser, $input, $offset, $partial, $values, $hint, $result));
+        }
+
+        if ($result->offset === $offset) {
+            throw new \LogicException(\sprintf('Parser succeeded without consuming input at offset %d', $offset));
+        }
+
+        $values[] = $result->value;
+        $offset = $result->offset;
+        $hint = furthest($hint, $result->hint);
+        $result = null;
+    }
+}
+
+/**
+ * The loop of separated() after its first item, resumed with the result of the separator at $offset, or of the
+ * item following the $next separator, once it is decided.
+ *
+ * @internal
+ *
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Partial<mixed>) $separator
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>)         $parser
+ * @param list<T>                                                               $values
+ * @param ?Success<mixed>                                                       $next      the separator preceding the item
+ * @param Success<mixed>|Failure|null                                           $separated
+ * @param Success<T>|Failure|null                                               $result
+ *
+ * @return Success<list<T>>|Partial<list<T>>
+ */
+function separating(\Closure $separator, \Closure $parser, string $input, int $offset, bool $partial, array $values, ?Failure $hint, ?Success $next, Success|Failure|null $separated, Success|Failure|null $result): Success|Partial
+{
+    while (true) {
+        if (null === $next) {
+            $separated ??= $separator($input, $offset, $partial);
+
+            if (!$separated instanceof Success) {
+                return $separated instanceof Failure
+                    ? new Success($values, $offset, furthest($hint, $separated))
+                    : then($separated, static fn (Success|Failure $separated, string $input, bool $partial): Success|Partial => separating($separator, $parser, $input, $offset, $partial, $values, $hint, null, $separated, null));
+            }
+
+            $next = $separated;
+            $separated = null;
+        }
+
+        $result ??= $parser($input, $next->offset, $partial);
+
+        if (!$result instanceof Success) {
+            return $result instanceof Failure
+                ? new Success($values, $offset, furthest($hint, furthest($next->hint, $result)))
+                : then($result, static fn (Success|Failure $result, string $input, bool $partial): Success|Partial => separating($separator, $parser, $input, $offset, $partial, $values, $hint, $next, null, $result));
+        }
+
+        if ($result->offset === $offset) {
+            throw new \LogicException(\sprintf('Separator and parser succeeded without consuming input at offset %d', $offset));
+        }
+
+        $values[] = $result->value;
+        $offset = $result->offset;
+        $hint = furthest($hint, furthest($next->hint, $result->hint));
+        $next = $result = null;
+    }
+}
+
+/**
+ * Keeps the value of the enclosed parser once enclosed() is decided.
+ *
+ * @internal
+ *
+ * @param Partial<list<mixed>> $pending
+ *
+ * @return Partial<mixed>
+ */
+function middle(Partial $pending): Partial
+{
+    return then($pending, static fn (Success|Failure $result): Success|Failure => $result instanceof Success ? new Success($result->value[1], $result->offset, $result->hint) : $result);
+}
+
+/**
+ * @internal
+ *
+ * @template T
+ *
+ * @param Success<T>                        $first
+ * @param Success<list<T>>|Partial<list<T>> $rest
+ *
+ * @return Success<non-empty-list<T>>|Partial<non-empty-list<T>>
+ */
+function prepend(Success $first, Success|Partial $rest): Success|Partial
+{
+    if ($rest instanceof Partial) {
+        return then($rest, static fn (Success|Failure $rest): Success|Failure|Partial => $rest instanceof Failure ? $rest : prepend($first, $rest));
+    }
+
+    return new Success([$first->value, ...$rest->value], $rest->offset, furthest($first->hint, $rest->hint));
 }
 
 /**

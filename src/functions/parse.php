@@ -16,7 +16,7 @@ namespace jubianchi\PPC;
 /**
  * @template T
  *
- * @param \Closure(string, int): (Success<T>|Failure) $parser
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Partial<T>) $parser
  *
  * @return T
  *
@@ -28,6 +28,10 @@ function parse(\Closure $parser, string $input): mixed
 
     if ($result instanceof Failure) {
         throw new SyntaxError($result, explain($result, $input));
+    }
+
+    if ($result instanceof Partial) {
+        throw new \LogicException('Parser asked for more input although the input is complete');
     }
 
     return $result->value;

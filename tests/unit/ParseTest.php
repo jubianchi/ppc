@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace jubianchi\PPC\Tests;
 
 use jubianchi\PPC\Failure;
+use jubianchi\PPC\Partial;
 use jubianchi\PPC\Success;
 use jubianchi\PPC\SyntaxError;
 use PHPUnit\Framework\Attributes\Small;
@@ -81,6 +82,14 @@ final class ParseTest extends TestCase
         $this->expectExceptionMessage('Expected "]", got end of input at line 1, column 4');
 
         parse(self::failWith(new Failure(['"]"'], 3)), '[1,');
+    }
+
+    #[Test]
+    public function rejectsParsersAskingForMoreInput(): void
+    {
+        $this->expectExceptionObject(new \LogicException('Parser asked for more input although the input is complete'));
+
+        parse(static fn (string $input): Partial => new Partial($input, static fn (): Failure => new Failure([], 1)), 'a');
     }
 
     /**

@@ -13,6 +13,10 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC\Tests\Examples;
 
+use jubianchi\PPC\Benchmarks\Documents;
+use jubianchi\PPC\Failure;
+use jubianchi\PPC\Partial;
+use jubianchi\PPC\Success;
 use jubianchi\PPC\SyntaxError;
 use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
@@ -71,5 +75,53 @@ final class JsonTest extends TestCase
         $this->expectExceptionMessage($message);
 
         parse(json(), $json);
+    }
+
+    /**
+     * @param positive-int $size
+     */
+    #[Test]
+    #[TestWith([1])]
+    #[TestWith([7])]
+    #[TestWith([100])]
+    public function decodesChunkByChunkLikeACompleteInput(int $size): void
+    {
+        $document = Documents::json(5, Documents::UTF8);
+
+        self::assertEquals(json()($document, 0), self::chunked($document, $size));
+    }
+
+    #[Test]
+    #[TestWith(['{"a": tru}'])]
+    #[TestWith(['[1, "x]'])]
+    #[TestWith(["{\n  \"a\": [1, 2 3]\n}"])]
+    #[TestWith(['[1] 2'])]
+    #[TestWith(['01'])]
+    public function failsChunkByChunkLikeACompleteInput(string $json): void
+    {
+        self::assertEquals(json()($json, 0), self::chunked($json, 1));
+    }
+
+    /**
+     * @param positive-int $size
+     *
+     * @return Success<mixed>|Failure
+     */
+    private static function chunked(string $document, int $size): Success|Failure
+    {
+        $chunks = str_split($document, $size);
+        $result = json()((string) array_shift($chunks), 0, true);
+
+        foreach ([...$chunks, ''] as $chunk) {
+            if (!$result instanceof Partial) {
+                break;
+            }
+
+            $result = $result->resume($chunk);
+        }
+
+        self::assertNotInstanceOf(Partial::class, $result);
+
+        return $result;
     }
 }

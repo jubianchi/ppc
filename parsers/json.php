@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace jubianchi\PPC\Parsers;
 
 use jubianchi\PPC\Failure;
+use jubianchi\PPC\Partial;
 use jubianchi\PPC\Success;
 
 use function jubianchi\PPC\alt;
@@ -32,7 +33,7 @@ use function jubianchi\PPC\word;
 /**
  * Parses a JSON document (RFC 8259) into the same values as json_decode().
  *
- * @return \Closure(string, int): (Success<mixed>|Failure)
+ * @return \Closure(string, int, bool=): (Success<mixed>|Failure|Partial<mixed>)
  */
 function json(): \Closure
 {
