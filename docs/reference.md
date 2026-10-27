@@ -15,11 +15,13 @@ Every function lives in the `jubianchi\PPC` namespace.
 A parser is a plain closure taking the whole input and the byte offset to start at:
 
 ```phps
-\Closure(string $input, int $offset): Success|Failure
+\Closure(string $input, int $offset, bool $partial = false): Success|Failure|Incomplete
 ```
 
 * On success, it returns a `Success` holding the parsed `value` and the `offset` right after what it consumed.
 * On failure, it returns a `Failure` holding the list of what was `expected` and the `offset` where it was expected.
+* On a partial input, when [streaming](#streaming), it returns an `Incomplete` result when the input ends before it can
+  decide. Parsers ignoring the `$partial` argument work too, they just cannot be streamed reliably.
 
 The input is never copied nor sliced: parsers only move an offset forward. Backtracking is free, trying an alternative
 only means calling another parser with the same offset.
@@ -82,6 +84,45 @@ try {
 }
 ```
 
+### Streaming
+
+```phps
+function stream(\Closure $item, resource $source, int $chunk = 8192): \Generator
+```
+
+Parses the items of a source, a file or a socket for example, one after the other while reading it by chunks: only the
+items being parsed are kept in memory, never the whole source. Each item value is yielded as soon as it is parsed, and
+syntax errors are thrown as `SyntaxError` with their absolute position in the source.
+
+Until the end of the source, parsers are given a third argument telling the input is partial. When the input ends
+before they can decide, they return an `Incomplete` result instead of failing, like nom does: `stream` then reads more
+bytes and parses the item again from its start.
+
+PHP does not expose partial matching for regular expressions: on a partial input, a `regex` result is only trusted
+when the input extends at least `$window` bytes past where it stopped. Give a larger window to patterns needing more
+bytes to decide, or a smaller one to patterns which only look at the next byte, to read less.
+
+```php
+<?php
+
+use function jubianchi\PPC\{char, map, regex, seq, stream};
+
+$source = fopen('php://memory', 'w+');
+fwrite($source, "1,ppc\n2,parser\n3,combinator\n");
+rewind($source);
+
+$record = seq(regex('/[0-9]+/', 1), char(','), regex('/[a-z]+/', 1), char("\n"))
+    |> map(static fn (array $values): array => [(int) $values[0] => $values[2]]);
+
+$records = [];
+
+foreach (stream($record, $source, chunk: 4) as $value) {
+    $records += $value;
+}
+
+assert($records === [1 => 'ppc', 2 => 'parser', 3 => 'combinator']);
+```
+
 ## Primitives
 
 ### char
@@ -119,11 +160,11 @@ assert(parse(word('true'), 'true') === 'true');
 ### regex
 
 ```phps
-function regex(string $pattern): \Closure
+function regex(string $pattern, int $window = 64): \Closure
 ```
 
 Matches a PCRE pattern at the offset: the pattern is anchored, it never searches further in the input. Its value is the
-whole match.
+whole match. The window only matters when [streaming](#streaming).
 
 Matching chunks with a single pattern is much faster than combining parsers matching one char at a time.
 
