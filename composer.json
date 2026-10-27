@@ -29,7 +29,8 @@
             "src/parsers.php",
             "src/combinators.php",
             "src/debug.php",
-            "src/mappers.php"
+            "src/mappers.php",
+            "src/functions/primitives.php"
         ]
     },
     "autoload-dev": {
