@@ -178,6 +178,123 @@ function repeat(int $times, \Closure $parser): \Closure
 }
 
 /**
+ * Matches the parser zero or more times, separated by the separator whose values are discarded.
+ * A trailing separator is not consumed.
+ *
+ * The returned parser throws a LogicException when the separator and the parser both succeed
+ * without consuming input, which would otherwise loop forever.
+ *
+ * @template T
+ *
+ * @param \Closure(string, int): (Success<mixed>|Failure) $separator
+ * @param \Closure(string, int): (Success<T>|Failure)     $parser
+ *
+ * @return \Closure(string, int): Success<list<T>>
+ */
+function separated(\Closure $separator, \Closure $parser): \Closure
+{
+    return static function (string $input, int $offset) use ($separator, $parser): Success {
+        $first = $parser($input, $offset);
+
+        if ($first instanceof Failure) {
+            return new Success([], $offset);
+        }
+
+        $values = [$first->value];
+        $offset = $first->offset;
+
+        while (
+            ($next = $separator($input, $offset)) instanceof Success
+            && ($result = $parser($input, $next->offset)) instanceof Success
+        ) {
+            if ($result->offset === $offset) {
+                throw new \LogicException(\sprintf('Separator and parser succeeded without consuming input at offset %d', $offset));
+            }
+
+            $values[] = $result->value;
+            $offset = $result->offset;
+        }
+
+        return new Success($values, $offset);
+    };
+}
+
+/**
+ * @template T
+ *
+ * @param \Closure(string, int): (Success<mixed>|Failure)  $before
+ * @param \Closure(string, int): (Success<T>|Failure)      $parser
+ * @param ?\Closure(string, int): (Success<mixed>|Failure) $after  defaults to $before
+ *
+ * @return \Closure(string, int): (Success<T>|Failure)
+ */
+function enclosed(\Closure $before, \Closure $parser, ?\Closure $after = null): \Closure
+{
+    $after ??= $before;
+
+    return static function (string $input, int $offset) use ($before, $parser, $after): Success|Failure {
+        $opening = $before($input, $offset);
+
+        if ($opening instanceof Failure) {
+            return $opening;
+        }
+
+        $result = $parser($input, $opening->offset);
+
+        if ($result instanceof Failure) {
+            return $result;
+        }
+
+        $closing = $after($input, $result->offset);
+
+        return $closing instanceof Failure ? $closing : new Success($result->value, $closing->offset);
+    };
+}
+
+/**
+ * Consumes one char when the parser does not match at the offset.
+ *
+ * @param \Closure(string, int): (Success<mixed>|Failure) $parser
+ *
+ * @return \Closure(string, int): (Success<string>|Failure)
+ */
+function not(\Closure $parser): \Closure
+{
+    $any = any();
+
+    return static function (string $input, int $offset) use ($parser, $any): Success|Failure {
+        $result = $parser($input, $offset);
+
+        if ($result instanceof Success) {
+            return new Failure(['anything but '.quote(substr($input, $offset, $result->offset - $offset))], $offset);
+        }
+
+        return $any($input, $offset);
+    };
+}
+
+/**
+ * Builds the parser on its first use, which allows recursive grammars:
+ * lazy(function () use (&$value) { return $value; }).
+ *
+ * @template T
+ *
+ * @param \Closure(): (\Closure(string, int): (Success<T>|Failure)) $factory
+ *
+ * @return \Closure(string, int): (Success<T>|Failure)
+ */
+function lazy(\Closure $factory): \Closure
+{
+    $parser = null;
+
+    return static function (string $input, int $offset) use ($factory, &$parser): Success|Failure {
+        $parser ??= $factory();
+
+        return $parser($input, $offset);
+    };
+}
+
+/**
  * @internal
  */
 function furthest(Failure $first, Failure $second): Failure
