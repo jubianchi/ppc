@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f33918bdd472b0f74d8e1ec384a12249",
+    "content-hash": "58e29a1493b6d27e6b0034c31607cd2d",
     "packages": [],
     "packages-dev": [
         {
@@ -1190,76 +1190,6 @@
                 }
             ],
             "time": "2026-06-08T19:09:20+00:00"
-        },
-        {
-            "name": "phpmetrics/phpmetrics",
-            "version": "v2.11.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/phpmetrics/PhpMetrics.git",
-                "reference": "55c5e23b34afb8fa9b6c6ea95cbd59b710160235"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/phpmetrics/PhpMetrics/zipball/55c5e23b34afb8fa9b6c6ea95cbd59b710160235",
-                "reference": "55c5e23b34afb8fa9b6c6ea95cbd59b710160235",
-                "shasum": ""
-            },
-            "require": {
-                "ext-dom": "*",
-                "ext-tokenizer": "*",
-                "nikic/php-parser": "^3|^4|^5"
-            },
-            "replace": {
-                "halleck45/php-metrics": "*",
-                "halleck45/phpmetrics": "*"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "*"
-            },
-            "bin": [
-                "bin/phpmetrics"
-            ],
-            "type": "library",
-            "autoload": {
-                "files": [
-                    "./src/functions.php"
-                ],
-                "psr-0": {
-                    "Hal\\": "./src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Jean-François Lépine",
-                    "email": "lepinejeanfrancois@yahoo.fr",
-                    "homepage": "http://www.lepine.pro",
-                    "role": "Copyright Holder"
-                }
-            ],
-            "description": "Static analyzer tool for PHP : Coupling, Cyclomatic complexity, Maintainability Index, Halstead's metrics... and more !",
-            "homepage": "http://www.phpmetrics.org",
-            "keywords": [
-                "analysis",
-                "qa",
-                "quality",
-                "testing"
-            ],
-            "support": {
-                "issues": "https://github.com/PhpMetrics/PhpMetrics/issues",
-                "source": "https://github.com/phpmetrics/PhpMetrics/tree/v2.11.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/Halleck45",
-                    "type": "github"
-                }
-            ],
-            "time": "2026-08-09T06:58:42+00:00"
         },
         {
             "name": "phpstan/extension-installer",

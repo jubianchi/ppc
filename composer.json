@@ -15,7 +15,6 @@
         "phpstan/phpstan": "^2.3",
         "phpstan/phpstan-strict-rules": "^2.1",
         "phpstan/extension-installer": "^1.4",
-        "phpmetrics/phpmetrics": "^2.11",
         "parsica-php/parsica": "^0.8.3"
     },
     "autoload": {
@@ -46,7 +45,6 @@
         "bmc": "phpbench run --report=aggregate --ref=reference --ansi",
         "cs": "php-cs-fixer fix --ansi --allow-risky=yes",
         "sa": "phpstan analyse --ansi --memory-limit=1G",
-        "pm": "phpunit --testdox && phpmetrics --config=phpmetrics.json",
         "ut": "phpunit --testdox",
         "dev:docs": [
             "Composer\\Config::disableProcessTimeout",

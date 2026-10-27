@@ -7,6 +7,5 @@ composer.lock           merge=ours
 LAST_COMMIT             export-subst
 package-lock.json       export-ignore
 phpbench.json           export-ignore
-phpmetrics.json         export-ignore
 phpstan.neon            export-ignore
 phpunit.xml             export-ignore

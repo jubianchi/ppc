@@ -8,9 +8,6 @@
       <directory>tests/docs</directory>
     </testsuite>
   </testsuites>
-  <logging>
-    <junit outputFile="tmp/junit.xml"/>
-  </logging>
   <source>
     <include>
       <directory>src</directory>
