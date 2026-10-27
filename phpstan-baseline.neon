@@ -1,7 +1,0 @@
-parameters:
-	ignoreErrors:
-		-
-			message: '#^Cannot use array destructuring on mixed\.$#'
-			identifier: offsetAccess.nonArray
-			count: 1
-			path: parsers/json.php

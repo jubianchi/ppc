@@ -59,6 +59,7 @@ function json(): \Closure
             |> map(static function (array $pairs): \stdClass {
                 $object = new \stdClass();
 
+                /** @var list<array{string, string, mixed}> $pairs */
                 foreach ($pairs as [$key, , $member]) {
                     $object->{$key} = $member;
                 }
