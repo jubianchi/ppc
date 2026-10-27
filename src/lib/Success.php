@@ -15,8 +15,10 @@ namespace jubianchi\PPC;
 
 /**
  * @template-covariant T
+ *
+ * @implements Result<T>
  */
-final readonly class Success
+final readonly class Success implements Result
 {
     /**
      * The furthest failure met while succeeding, e.g. the one that stopped many(): when the next parser fails,

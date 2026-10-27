@@ -15,8 +15,10 @@ namespace jubianchi\PPC;
 
 /**
  * The input ended before the parser could decide: run it again from the start once more input is available.
+ *
+ * @implements Result<never>
  */
-final readonly class Incomplete
+final readonly class Incomplete implements Result
 {
     /**
      * @param ?positive-int $needed the number of missing bytes, when known

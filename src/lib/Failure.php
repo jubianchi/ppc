@@ -13,7 +13,10 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC;
 
-final readonly class Failure
+/**
+ * @implements Result<never>
+ */
+final readonly class Failure implements Result
 {
     /**
      * @param list<string> $expected
