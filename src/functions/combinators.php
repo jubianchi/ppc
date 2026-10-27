@@ -23,7 +23,7 @@ function seq(\Closure $first, \Closure ...$parsers): \Closure
 {
     array_unshift($parsers, $first);
 
-    return static function (string $input, int $offset, bool $partial = false) use ($parsers) {
+    return static function (string $input, int $offset, bool $partial = false) use ($parsers): Result {
         $values = [];
         $hint = null;
 
@@ -58,7 +58,7 @@ function alt(\Closure $first, \Closure ...$parsers): \Closure
 {
     array_unshift($parsers, $first);
 
-    return static function (string $input, int $offset, bool $partial = false) use ($parsers) {
+    return static function (string $input, int $offset, bool $partial = false) use ($parsers): Result {
         $failure = null;
 
         foreach ($parsers as $parser) {
@@ -90,7 +90,7 @@ function alt(\Closure $first, \Closure ...$parsers): \Closure
  */
 function opt(\Closure $parser, mixed $default = null): \Closure
 {
-    return static function (string $input, int $offset, bool $partial = false) use ($parser, $default) {
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $default): Result {
         $result = $parser($input, $offset, $partial);
 
         return $result instanceof Failure ? new Success($default, $offset, $result) : $result;
@@ -111,7 +111,7 @@ function opt(\Closure $parser, mixed $default = null): \Closure
  */
 function many(\Closure $parser): \Closure
 {
-    return static function (string $input, int $offset, bool $partial = false) use ($parser) {
+    return static function (string $input, int $offset, bool $partial = false) use ($parser): Result {
         $values = [];
         $hint = null;
 
@@ -146,7 +146,7 @@ function many1(\Closure $parser): \Closure
 {
     $many = many($parser);
 
-    return static function (string $input, int $offset, bool $partial = false) use ($parser, $many) {
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $many): Result {
         $first = $parser($input, $offset, $partial);
 
         if (!$first instanceof Success) {
@@ -176,7 +176,7 @@ function repeat(int $times, \Closure $parser): \Closure
         throw new \InvalidArgumentException(\sprintf('Expected a positive count, got %d', $times));
     }
 
-    return static function (string $input, int $offset, bool $partial = false) use ($times, $parser) {
+    return static function (string $input, int $offset, bool $partial = false) use ($times, $parser): Result {
         $values = [];
         $hint = null;
 
@@ -212,7 +212,7 @@ function repeat(int $times, \Closure $parser): \Closure
  */
 function separated(\Closure $separator, \Closure $parser): \Closure
 {
-    return static function (string $input, int $offset, bool $partial = false) use ($separator, $parser) {
+    return static function (string $input, int $offset, bool $partial = false) use ($separator, $parser): Result {
         $result = $parser($input, $offset, $partial);
 
         if (!$result instanceof Success) {
@@ -260,7 +260,7 @@ function enclosed(\Closure $before, \Closure $parser, ?\Closure $after = null): 
 {
     $after ??= $before;
 
-    return static function (string $input, int $offset, bool $partial = false) use ($before, $parser, $after) {
+    return static function (string $input, int $offset, bool $partial = false) use ($before, $parser, $after): Result {
         $opening = $before($input, $offset, $partial);
 
         if (!$opening instanceof Success) {
@@ -295,7 +295,7 @@ function not(\Closure $parser): \Closure
 {
     $any = any();
 
-    return static function (string $input, int $offset, bool $partial = false) use ($parser, $any) {
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $any): Result {
         $result = $parser($input, $offset, $partial);
 
         if ($result instanceof Success) {
@@ -320,7 +320,7 @@ function recursive(\Closure $definition): \Closure
 {
     /** @var ?\Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser */
     $parser = null;
-    $self = static function (string $input, int $offset, bool $partial = false) use (&$parser) {
+    $self = static function (string $input, int $offset, bool $partial = false) use (&$parser): Result {
         \assert($parser instanceof \Closure);
 
         return $parser($input, $offset, $partial);
