@@ -36,21 +36,37 @@ flowchart LR
     C -->|"4. Success: 'in', next offset 2"| A
 ```
 
-Since parsers are closures, you can write your own:
+Since parsers are closures, you can write your own. To be [streamed](#streaming), a parser must return an `Incomplete`
+result when a partial input ends before it can decide:
 
 ```php
 <?php
 
 use jubianchi\PPC\Failure;
+use jubianchi\PPC\Incomplete;
+use jubianchi\PPC\Result;
 use jubianchi\PPC\Success;
 
-$digit = static fn (string $input, int $offset): Success|Failure => ctype_digit($input[$offset] ?? '')
-    ? new Success((int) $input[$offset], $offset + 1)
-    : new Failure(['digit'], $offset);
+$digit = static function (string $input, int $offset, bool $partial = false): Result {
+    if (!isset($input[$offset])) {
+        return $partial ? new Incomplete(1) : new Failure(['digit'], $offset);
+    }
+
+    return ctype_digit($input[$offset])
+        ? new Success((int) $input[$offset], $offset + 1)
+        : new Failure(['digit'], $offset);
+};
 
 assert($digit('a1', 1) == new Success(1, 2));
 assert($digit('a1', 0) == new Failure(['digit'], 0));
+assert($digit('a', 1, partial: true) == new Incomplete(1));
 ```
+
+Parsers built by PPC declare `Result` as their native return type: a parser returning anything else makes PHP throw a
+`TypeError` as soon as it is combined, even without static analysis.
+
+To describe a parser in PHPDoc, use `\Closure(string, int, bool=): (Success<T>|Failure|Incomplete)` rather than
+`Result<T>`: PHPStan does not keep `T` when narrowing a `Result<T>` to a `Success`, and combinators expect the union.
 
 ### Errors
 
@@ -446,13 +462,13 @@ assert(parse($decimal, '3.14') === '3.14');
 function debug(string $name, \Closure $write): \Closure
 ```
 
-Traces where the parser starts and what it matched, or why it failed. Each line is passed to the `$write` function, for
-example `error_log(...)`.
+Traces where the parser starts and what it matched, why it failed or how many bytes it was missing on a partial input.
+Each line is passed to the `$write` function, for example `error_log(...)`.
 
 ```php
 <?php
 
-use function jubianchi\PPC\{char, debug, many, parse};
+use function jubianchi\PPC\{char, debug, many, parse, word};
 
 $lines = [];
 $write = static function (string $line) use (&$lines): void {
@@ -460,9 +476,12 @@ $write = static function (string $line) use (&$lines): void {
 };
 
 parse(many(char('a')) |> debug('as', $write), 'aa');
+(word('true') |> debug('true', $write))('tr', 0, partial: true);
 
 assert($lines === [
     'as: start at line 1, column 1',
     'as: matched "aa" up to line 1, column 3',
+    'true: start at line 1, column 1',
+    'true: incomplete input, 2 more bytes needed',
 ]);
 ```
