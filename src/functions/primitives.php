@@ -58,9 +58,13 @@ function word(string $word): \Closure
 /**
  * The pattern is anchored at the offset with the A modifier: PCRE never searches past it.
  *
- * @return \Closure(string, int): (Success<string>|Failure)
+ * PHP does not expose PCRE partial matching: on a partial input, the result is only trusted when the input extends at
+ * least $window bytes past the end of the match, or past the offset on failure. Patterns looking further than that,
+ * or needing more bytes to fail, must be given a larger window.
+ *
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
  */
-function regex(string $pattern): \Closure
+function regex(string $pattern, int $window = 64): \Closure
 {
     $anchored = $pattern.'A';
 
@@ -68,11 +72,21 @@ function regex(string $pattern): \Closure
         throw new \InvalidArgumentException(\sprintf('Invalid pattern %s: %s', $pattern, preg_last_error_msg()));
     }
 
+    if ($window < 1) {
+        throw new \InvalidArgumentException(\sprintf('Expected a positive window, got %d', $window));
+    }
+
     $expected = [$pattern];
 
-    return static fn (string $input, int $offset): Success|Failure => 1 === preg_match($anchored, $input, $matches, 0, $offset)
-        ? new Success($matches[0], $offset + \strlen($matches[0]))
-        : new Failure($expected, $offset);
+    return static function (string $input, int $offset, bool $partial = false) use ($anchored, $window, $expected): Success|Failure|Incomplete {
+        if (1 === preg_match($anchored, $input, $matches, 0, $offset)) {
+            $end = $offset + \strlen($matches[0]);
+
+            return $partial && \strlen($input) - $end < $window ? new Incomplete() : new Success($matches[0], $end);
+        }
+
+        return $partial && \strlen($input) - $offset < $window ? new Incomplete() : new Failure($expected, $offset);
+    };
 }
 
 /**
