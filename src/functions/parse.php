@@ -39,8 +39,11 @@ function parse(\Closure $parser, string $input): mixed
 
 /**
  * @internal
+ *
+ * @param int $line   the line the input starts at
+ * @param int $column the column the input starts at
  */
-function explain(Failure $failure, string $input): string
+function explain(Failure $failure, string $input, int $line = 1, int $column = 1): string
 {
     $expected = array_values(array_unique($failure->expected));
     $last = array_pop($expected);
@@ -49,18 +52,34 @@ function explain(Failure $failure, string $input): string
     $actual = any()($input, $failure->offset);
     $actual = $actual instanceof Success ? quote($actual->value) : 'end of input';
 
-    return \sprintf('Expected %s, got %s at %s', $expected, $actual, position($input, $failure->offset));
+    return \sprintf('Expected %s, got %s at %s', $expected, $actual, position($input, $failure->offset, $line, $column));
 }
 
 /**
  * @internal
+ *
+ * @param int $line   the line the input starts at
+ * @param int $column the column the input starts at
  */
-function position(string $input, int $offset): string
+function position(string $input, int $offset, int $line = 1, int $column = 1): string
 {
-    $before = substr($input, 0, $offset);
-    $lineStart = strrpos($before, "\n");
-    $line = 1 + substr_count($before, "\n");
-    $column = 1 + mb_strlen(false === $lineStart ? $before : substr($before, $lineStart + 1));
+    [$line, $column] = advance(substr($input, 0, $offset), $line, $column);
 
     return \sprintf('line %d, column %d', $line, $column);
+}
+
+/**
+ * Returns the line and column reached after the text, starting from the given ones.
+ *
+ * @internal
+ *
+ * @return array{int, int}
+ */
+function advance(string $text, int $line, int $column): array
+{
+    $lineStart = strrpos($text, "\n");
+
+    return false === $lineStart
+        ? [$line, $column + mb_strlen($text)]
+        : [$line + substr_count($text, "\n"), 1 + mb_strlen(substr($text, $lineStart + 1))];
 }
