@@ -15,7 +15,7 @@ some key elements and features of PPC and how to use them in a basic way.
 
 <!-- div:right-panel -->
 
-## [Consuming until the end of the stream](/tutorials/consuming-until-the-end-of-the-stream.md) {docsify-ignore}
+## [Consuming the whole input](/tutorials/consuming-until-the-end-of-the-stream.md) {docsify-ignore}
 
 In this tutorial, you will learn how to ensure your parser is able to consume an input until its end. This is 
 particularly useful when you want to be sure there is nothing left to consume meaning your parser is complete.
@@ -37,8 +37,8 @@ allow variant on the list.
 
 ## [Debugging](/tutorials/debugging.md) {docsify-ignore}
 
-In this tutorial, you will learn how to use the [`debug`](/reference.md#debug) combinator to get a clear view of what's 
-happening in your parsers.
+In this tutorial, you will learn how to use the [`debug`](/reference.md#debug) modifier to get a clear view of what's
+happening in your parsers, and the [`label`](/reference.md#label) modifier to get clearer error messages.
 
 <!-- div:right-panel -->
 
