@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace jubianchi\PPC\Tests\Primitives;
 
 use jubianchi\PPC\Failure;
+use jubianchi\PPC\Incomplete;
 use jubianchi\PPC\Success;
 use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
@@ -49,6 +50,25 @@ final class WordTest extends TestCase
     public function failsWhenTheInputEndsInsideTheWord(): void
     {
         self::assertEquals(new Failure(['"null"'], 1), word('null')('[nul', 1));
+    }
+
+    #[Test]
+    public function isIncompleteWhenAPartialInputEndsInsideTheWord(): void
+    {
+        self::assertEquals(new Incomplete(1), word('null')('[nul', 1, true));
+        self::assertEquals(new Incomplete(4), word('null')('[', 1, true));
+    }
+
+    #[Test]
+    public function failsOnAnotherWordOfAPartialInput(): void
+    {
+        self::assertEquals(new Failure(['"null"'], 1), word('null')('[nux', 1, true));
+    }
+
+    #[Test]
+    public function matchesTheWordAtTheEndOfAPartialInput(): void
+    {
+        self::assertEquals(new Success('null', 5), word('null')('[null', 1, true));
     }
 
     #[Test]

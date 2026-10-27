@@ -57,13 +57,13 @@ final class IncompleteTest extends TestCase
         yield 'alt after a failure' => [alt(char('b'), $stub), 'a'];
         yield 'opt' => [opt($stub), 'a'];
         yield 'many' => [many($stub), 'a'];
-        yield 'many after a success' => [many(alt(char('a'), $stub)), 'a'];
+        yield 'many after a success' => [many(alt(char('a'), $stub)), 'ab'];
         yield 'many1' => [many1($stub), 'a'];
-        yield 'many1 after a success' => [many1(alt(char('a'), $stub)), 'a'];
-        yield 'repeat' => [repeat(2, alt(char('a'), $stub)), 'a'];
+        yield 'many1 after a success' => [many1(alt(char('a'), $stub)), 'ab'];
+        yield 'repeat' => [repeat(2, alt(char('a'), $stub)), 'ab'];
         yield 'separated' => [separated(char(','), $stub), 'a'];
         yield 'separated separator' => [separated($stub, char('a')), 'a'];
-        yield 'separated after a separator' => [separated(char(','), alt(char('a'), $stub)), 'a,'];
+        yield 'separated after a separator' => [separated(char(','), alt(char('a'), $stub)), 'a,b'];
         yield 'enclosed before' => [enclosed($stub, char('a')), 'a'];
         yield 'enclosed parser' => [enclosed(char('('), $stub, char(')')), '('];
         yield 'enclosed after' => [enclosed(char('('), char('a'), $stub), '(a'];

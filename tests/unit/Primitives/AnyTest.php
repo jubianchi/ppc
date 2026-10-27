@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace jubianchi\PPC\Tests\Primitives;
 
 use jubianchi\PPC\Failure;
+use jubianchi\PPC\Incomplete;
 use jubianchi\PPC\Success;
 use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
@@ -48,5 +49,24 @@ final class AnyTest extends TestCase
     public function failsAtTheEndOfInput(): void
     {
         self::assertEquals(new Failure(['any char'], 3), any()('abc', 3));
+    }
+
+    #[Test]
+    public function isIncompleteAtTheEndOfAPartialInput(): void
+    {
+        self::assertEquals(new Incomplete(1), any()('abc', 3, true));
+    }
+
+    #[Test]
+    public function isIncompleteWhenAPartialInputEndsInsideAMultiByteChar(): void
+    {
+        self::assertEquals(new Incomplete(1), any()("\xE6\x97", 0, true));
+        self::assertEquals(new Incomplete(2), any()("\xE6", 0, true));
+    }
+
+    #[Test]
+    public function consumesASingleByteOfAnInvalidMultiByteCharInAPartialInput(): void
+    {
+        self::assertEquals(new Success("\xE6", 1), any()("\xE6a", 0, true));
     }
 }

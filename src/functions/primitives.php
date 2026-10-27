@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace jubianchi\PPC;
 
 /**
- * @return \Closure(string, int): (Success<string>|Failure)
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
  */
 function char(string $char): \Closure
 {
@@ -26,7 +26,9 @@ function char(string $char): \Closure
 }
 
 /**
- * @return \Closure(string, int): (Success<string>|Failure)
+ * On a partial input, the word is incomplete when the input ends with its beginning.
+ *
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
  */
 function word(string $word): \Closure
 {
@@ -37,9 +39,20 @@ function word(string $word): \Closure
     $length = \strlen($word);
     $expected = [quote($word)];
 
-    return static fn (string $input, int $offset): Success|Failure => 0 === substr_compare($input, $word, $offset, $length)
-        ? new Success($word, $offset + $length)
-        : new Failure($expected, $offset);
+    return static function (string $input, int $offset, bool $partial = false) use ($word, $length, $expected): Success|Failure|Incomplete {
+        if (0 === substr_compare($input, $word, $offset, $length)) {
+            return new Success($word, $offset + $length);
+        }
+
+        $available = \strlen($input) - $offset;
+        $missing = $length - $available;
+
+        if ($partial && $missing > 0 && 0 === substr_compare($input, $word, $offset, $available)) {
+            return new Incomplete($missing);
+        }
+
+        return new Failure($expected, $offset);
+    };
 }
 
 /**
@@ -65,24 +78,31 @@ function regex(string $pattern): \Closure
 /**
  * Consumes one UTF-8 char, or a single byte when the input is not valid UTF-8 at the offset.
  *
- * @return \Closure(string, int): (Success<string>|Failure)
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
  */
 function any(): \Closure
 {
-    return static function (string $input, int $offset): Success|Failure {
+    return static function (string $input, int $offset, bool $partial = false): Success|Failure|Incomplete {
         if (!isset($input[$offset])) {
-            return new Failure(['any char'], $offset);
+            return $partial ? new Incomplete(1) : new Failure(['any char'], $offset);
         }
 
         $byte = \ord($input[$offset]);
-        $char = substr($input, $offset, match (true) {
+        $length = match (true) {
             $byte >= 0xF0 => 4,
             $byte >= 0xE0 => 3,
             $byte >= 0xC0 => 2,
             default => 1,
-        });
+        };
+        $char = substr($input, $offset, $length);
 
         if (!mb_check_encoding($char, 'UTF-8')) {
+            $missing = $length - \strlen($char);
+
+            if ($partial && $missing > 0 && 1 === preg_match('/^[\x80-\xBF]*$/', substr($char, 1))) {
+                return new Incomplete($missing);
+            }
+
             $char = $input[$offset];
         }
 
@@ -91,13 +111,17 @@ function any(): \Closure
 }
 
 /**
- * @return \Closure(string, int): (Success<null>|Failure)
+ * @return \Closure(string, int, bool=): (Success<null>|Failure|Incomplete)
  */
 function eos(): \Closure
 {
-    return static fn (string $input, int $offset): Success|Failure => $offset >= \strlen($input)
-        ? new Success(null, $offset)
-        : new Failure(['end of input'], $offset);
+    return static function (string $input, int $offset, bool $partial = false): Success|Failure|Incomplete {
+        if ($offset < \strlen($input)) {
+            return new Failure(['end of input'], $offset);
+        }
+
+        return $partial ? new Incomplete() : new Success(null, $offset);
+    };
 }
 
 /**
