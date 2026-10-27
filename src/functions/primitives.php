@@ -44,11 +44,13 @@ function word(string $word): \Closure
             return new Success($word, $offset + $length);
         }
 
-        $available = \strlen($input) - $offset;
-        $missing = $length - $available;
+        if ($partial) {
+            $available = \strlen($input) - $offset;
+            $missing = $length - $available;
 
-        if ($partial && $missing > 0 && 0 === substr_compare($input, $word, $offset, $available)) {
-            return new Incomplete($missing);
+            if ($missing > 0 && 0 === substr_compare($input, $word, $offset, $available)) {
+                return new Incomplete($missing);
+            }
         }
 
         return new Failure($expected, $offset);
