@@ -15,8 +15,10 @@ Every function lives in the `jubianchi\PPC` namespace.
 A parser is a plain closure taking the whole input and the byte offset to start at:
 
 ```phps
-\Closure(string $input, int $offset, bool $partial = false): Success|Failure|Incomplete
+\Closure(string $input, int $offset, bool $partial = false): Result
 ```
+
+`Result` is an interface implemented by three final classes:
 
 * On success, it returns a `Success` holding the parsed `value` and the `offset` right after what it consumed.
 * On failure, it returns a `Failure` holding the list of what was `expected` and the `offset` where it was expected.
