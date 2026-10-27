@@ -71,7 +71,7 @@ function debug(string $name, \Closure $write): \Closure
  */
 function mapped(\Closure $parser, \Closure $mapper): \Closure
 {
-    return static function (string $input, int $offset, bool $partial = false) use ($parser, $mapper) {
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $mapper): Result {
         $result = $parser($input, $offset, $partial);
 
         return $result instanceof Success ? new Success($mapper($result->value), $result->offset, $result->hint) : $result;
@@ -89,7 +89,7 @@ function labelled(\Closure $parser, string $label): \Closure
 {
     $expected = [$label];
 
-    return static function (string $input, int $offset, bool $partial = false) use ($parser, $expected) {
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $expected): Result {
         $result = $parser($input, $offset, $partial);
 
         if ($result instanceof Failure) {
@@ -113,7 +113,7 @@ function labelled(\Closure $parser, string $label): \Closure
  */
 function captured(\Closure $parser): \Closure
 {
-    return static function (string $input, int $offset, bool $partial = false) use ($parser) {
+    return static function (string $input, int $offset, bool $partial = false) use ($parser): Result {
         $result = $parser($input, $offset, $partial);
 
         return $result instanceof Success ? new Success(substr($input, $offset, $result->offset - $offset), $result->offset, $result->hint) : $result;
@@ -130,7 +130,7 @@ function captured(\Closure $parser): \Closure
  */
 function traced(\Closure $parser, string $name, \Closure $write): \Closure
 {
-    return static function (string $input, int $offset, bool $partial = false) use ($parser, $name, $write) {
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $name, $write): Result {
         $write(\sprintf('%s: start at %s', $name, position($input, $offset)));
 
         $result = $parser($input, $offset, $partial);

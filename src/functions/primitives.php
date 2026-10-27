@@ -39,7 +39,7 @@ function word(string $word): \Closure
     $length = \strlen($word);
     $expected = [quote($word)];
 
-    return static function (string $input, int $offset, bool $partial = false) use ($word, $length, $expected) {
+    return static function (string $input, int $offset, bool $partial = false) use ($word, $length, $expected): Result {
         if (0 === substr_compare($input, $word, $offset, $length)) {
             return new Success($word, $offset + $length);
         }
@@ -81,7 +81,7 @@ function regex(string $pattern, int $window = 64): \Closure
 
     $expected = [$pattern];
 
-    return static function (string $input, int $offset, bool $partial = false) use ($anchored, $window, $expected) {
+    return static function (string $input, int $offset, bool $partial = false) use ($anchored, $window, $expected): Result {
         $matched = preg_match($anchored, $input, $matches, 0, $offset);
 
         if (1 === $matched) {
@@ -101,7 +101,7 @@ function regex(string $pattern, int $window = 64): \Closure
  */
 function any(): \Closure
 {
-    return static function (string $input, int $offset, bool $partial = false) {
+    return static function (string $input, int $offset, bool $partial = false): Result {
         if (!isset($input[$offset])) {
             return $partial ? new Incomplete(1) : new Failure(['any char'], $offset);
         }
@@ -134,7 +134,7 @@ function any(): \Closure
  */
 function eos(): \Closure
 {
-    return static function (string $input, int $offset, bool $partial = false) {
+    return static function (string $input, int $offset, bool $partial = false): Result {
         if ($offset < \strlen($input)) {
             return new Failure(['end of input'], $offset);
         }
