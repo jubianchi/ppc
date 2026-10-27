@@ -54,13 +54,13 @@ everything PHP can do fos us.
 
 ## Installation
 
-PPC requires you to have at least PHP `7.4.0` and the [Multibyte String](https://www.php.net/manual/en/book.mbstring.php) 
-(`mbstring`) extension enabled. You may want to check if your setup is correct using the following script: 
+PPC requires PHP `8.5` and the [Multibyte String](https://www.php.net/manual/en/book.mbstring.php) (`mbstring`)
+extension. You may want to check if your setup is correct using the following script:
 
 ```bash
 #!/usr/bin/env bash
 
-echo "PHP version: $(php -v | head -n1 | grep -qE '7.([4-9]|1[0-9]).(0|[1-9][0-9]*)' && echo '✅' || echo '❌')"
+echo "PHP version: $(php -r 'exit(PHP_VERSION_ID >= 80500 ? 0 : 1);' && echo '✅' || echo '❌')"
 echo "Multibyte String extension: $(php -m | grep -qE 'mbstring' && echo '✅' || echo '❌')"
 ```
 
