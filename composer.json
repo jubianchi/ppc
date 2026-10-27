@@ -30,6 +30,7 @@
             "src/combinators.php",
             "src/debug.php",
             "src/mappers.php",
+            "src/functions/parse.php",
             "src/functions/primitives.php"
         ]
     },
