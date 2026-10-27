@@ -20,7 +20,9 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\char;
+use function jubianchi\PPC\many;
 use function jubianchi\PPC\repeat;
+use function jubianchi\PPC\seq;
 
 /**
  * @internal
@@ -38,6 +40,18 @@ final class RepeatTest extends TestCase
     public function failsWhenThereAreNotEnoughMatches(): void
     {
         self::assertEquals(new Failure(['"a"'], 2), repeat(3, char('a'))('aab', 0));
+    }
+
+    #[Test]
+    public function mergesTheFailureWithTheHintOfThePreviousMatches(): void
+    {
+        self::assertEquals(new Failure(['"a"', '"b"'], 3), repeat(2, seq(many(char('a')), char('b')))('abac', 0));
+    }
+
+    #[Test]
+    public function keepsTheHintOfTheLastMatch(): void
+    {
+        self::assertEquals(new Success([['a']], 1, new Failure(['"a"'], 1)), repeat(1, many(char('a')))('ab', 0));
     }
 
     #[Test]

@@ -35,7 +35,7 @@ final class ConsumedTest extends TestCase
     {
         $parser = seq(char('a'), many(char('é'))) |> consumed();
 
-        self::assertEquals(new Success('aéé', 6), $parser('_aééb', 1));
+        self::assertEquals(new Success('aéé', 6, new Failure(['"é"'], 6)), $parser('_aééb', 1));
     }
 
     #[Test]

@@ -22,6 +22,8 @@ use PHPUnit\Framework\TestCase;
 use function jubianchi\PPC\alt;
 use function jubianchi\PPC\char;
 use function jubianchi\PPC\label;
+use function jubianchi\PPC\many;
+use function jubianchi\PPC\opt;
 use function jubianchi\PPC\seq;
 
 /**
@@ -44,6 +46,22 @@ final class LabelTest extends TestCase
         $parser = alt(char('0'), char('1')) |> label('digit');
 
         self::assertEquals(new Failure(['digit'], 0), $parser('x', 0));
+    }
+
+    #[Test]
+    public function replacesTheExpectationsOfAHintWithoutProgress(): void
+    {
+        $parser = opt(char('-')) |> label('sign');
+
+        self::assertEquals(new Success(null, 0, new Failure(['sign'], 0)), $parser('1', 0));
+    }
+
+    #[Test]
+    public function keepsAHintThatWentFurther(): void
+    {
+        $parser = many(char('a')) |> label('letters');
+
+        self::assertEquals(new Success(['a'], 1, new Failure(['"a"'], 1)), $parser('ab', 0));
     }
 
     #[Test]

@@ -22,6 +22,7 @@ use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\char;
 use function jubianchi\PPC\enclosed;
+use function jubianchi\PPC\many;
 use function jubianchi\PPC\word;
 
 /**
@@ -49,5 +50,11 @@ final class EnclosedTest extends TestCase
     public function failsOnAnyMissingPart(string $input, int $offset, string $expected): void
     {
         self::assertEquals(new Failure([$expected], $offset), enclosed(char('('), word('ab'), char(')'))($input, 0));
+    }
+
+    #[Test]
+    public function mergesTheClosingFailureWithTheHintOfTheParser(): void
+    {
+        self::assertEquals(new Failure(['"a"', '")"'], 2), enclosed(char('('), many(char('a')), char(')'))('(ab', 0));
     }
 }

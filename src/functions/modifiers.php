@@ -62,7 +62,7 @@ function mapped(\Closure $parser, \Closure $mapper): \Closure
     return static function (string $input, int $offset) use ($parser, $mapper): Success|Failure {
         $result = $parser($input, $offset);
 
-        return $result instanceof Success ? new Success($mapper($result->value), $result->offset) : $result;
+        return $result instanceof Success ? new Success($mapper($result->value), $result->offset, $result->hint) : $result;
     };
 }
 
@@ -80,7 +80,11 @@ function labelled(\Closure $parser, string $label): \Closure
     return static function (string $input, int $offset) use ($parser, $expected): Success|Failure {
         $result = $parser($input, $offset);
 
-        return $result instanceof Failure && $result->offset === $offset ? new Failure($expected, $offset) : $result;
+        if ($result instanceof Failure) {
+            return $result->offset === $offset ? new Failure($expected, $offset) : $result;
+        }
+
+        return $result->hint?->offset === $offset ? new Success($result->value, $result->offset, new Failure($expected, $offset)) : $result;
     };
 }
 
@@ -96,6 +100,6 @@ function captured(\Closure $parser): \Closure
     return static function (string $input, int $offset) use ($parser): Success|Failure {
         $result = $parser($input, $offset);
 
-        return $result instanceof Success ? new Success(substr($input, $offset, $result->offset - $offset), $result->offset) : $result;
+        return $result instanceof Success ? new Success(substr($input, $offset, $result->offset - $offset), $result->offset, $result->hint) : $result;
     };
 }

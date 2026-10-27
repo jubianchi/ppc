@@ -13,12 +13,14 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC\Tests\Combinator;
 
+use jubianchi\PPC\Failure;
 use jubianchi\PPC\Success;
 use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\char;
+use function jubianchi\PPC\many1;
 use function jubianchi\PPC\opt;
 use function jubianchi\PPC\separated;
 
@@ -31,19 +33,34 @@ final class SeparatedTest extends TestCase
     #[Test]
     public function collectsTheValuesWithoutTheSeparators(): void
     {
-        self::assertEquals(new Success(['a', 'a', 'a'], 5), separated(char(','), char('a'))('a,a,a]', 0));
+        self::assertEquals(
+            new Success(['a', 'a', 'a'], 5, new Failure(['","'], 5)),
+            separated(char(','), char('a'))('a,a,a]', 0),
+        );
     }
 
     #[Test]
     public function succeedsWithoutAnyMatch(): void
     {
-        self::assertEquals(new Success([], 0), separated(char(','), char('a'))(']', 0));
+        self::assertEquals(new Success([], 0, new Failure(['"a"'], 0)), separated(char(','), char('a'))(']', 0));
     }
 
     #[Test]
-    public function stopsBeforeATrailingSeparator(): void
+    public function stopsBeforeATrailingSeparatorAndKeepsTheFailureAfterItAsHint(): void
     {
-        self::assertEquals(new Success(['a', 'a'], 3), separated(char(','), char('a'))('a,a,]', 0));
+        self::assertEquals(
+            new Success(['a', 'a'], 3, new Failure(['"a"'], 4)),
+            separated(char(','), char('a'))('a,a,]', 0),
+        );
+    }
+
+    #[Test]
+    public function keepsTheHintsOfTheSeparatorAndTheParser(): void
+    {
+        self::assertEquals(
+            new Success([['a']], 1, new Failure(['"a"', '","'], 1)),
+            separated(char(','), many1(char('a')))('a]', 0),
+        );
     }
 
     #[Test]

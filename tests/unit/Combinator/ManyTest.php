@@ -34,19 +34,31 @@ final class ManyTest extends TestCase
     #[Test]
     public function collectsEveryMatch(): void
     {
-        self::assertEquals(new Success(['a', 'a', 'a'], 3), many(char('a'))('aaab', 0));
+        self::assertEquals(new Success(['a', 'a', 'a'], 3, new Failure(['"a"'], 3)), many(char('a'))('aaab', 0));
     }
 
     #[Test]
     public function succeedsWithoutAnyMatch(): void
     {
-        self::assertEquals(new Success([], 0), many(char('a'))('b', 0));
+        self::assertEquals(new Success([], 0, new Failure(['"a"'], 0)), many(char('a'))('b', 0));
     }
 
     #[Test]
-    public function stopsBeforeAPartialMatch(): void
+    public function stopsBeforeAPartialMatchAndKeepsItsFailureAsHint(): void
     {
-        self::assertEquals(new Success([['a', 'b']], 2), many(seq(char('a'), char('b')))('abac', 0));
+        self::assertEquals(
+            new Success([['a', 'b']], 2, new Failure(['"b"'], 3)),
+            many(seq(char('a'), char('b')))('abac', 0),
+        );
+    }
+
+    #[Test]
+    public function keepsTheFurthestHintOfItsMatches(): void
+    {
+        self::assertEquals(
+            new Success([['a', ['b']]], 2, new Failure(['"b"', '"a"'], 2)),
+            many(seq(char('a'), many(char('b'))))('abc', 0),
+        );
     }
 
     #[Test]
@@ -60,7 +72,7 @@ final class ManyTest extends TestCase
     #[Test]
     public function many1CollectsEveryMatch(): void
     {
-        self::assertEquals(new Success(['a', 'a'], 2), many1(char('a'))('aab', 0));
+        self::assertEquals(new Success(['a', 'a'], 2, new Failure(['"a"'], 2)), many1(char('a'))('aab', 0));
     }
 
     #[Test]

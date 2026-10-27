@@ -20,6 +20,8 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\char;
+use function jubianchi\PPC\many;
+use function jubianchi\PPC\opt;
 use function jubianchi\PPC\seq;
 use function jubianchi\PPC\word;
 
@@ -44,6 +46,33 @@ final class SeqTest extends TestCase
         self::assertEquals(
             new Failure(['"c"'], 1),
             seq(char('a'), char('c'), char('d'))('abd', 0),
+        );
+    }
+
+    #[Test]
+    public function mergesTheFailureWithTheHintOfThePreviousParsers(): void
+    {
+        self::assertEquals(
+            new Failure(['"a"', '"b"'], 1),
+            seq(many(char('a')), char('b'))('ac', 0),
+        );
+    }
+
+    #[Test]
+    public function returnsAHintThatWentFurtherThanTheFailure(): void
+    {
+        self::assertEquals(
+            new Failure(['"b"'], 2),
+            seq(opt(seq(char('a'), char('a'), char('b'))), char('c'))('aax', 0),
+        );
+    }
+
+    #[Test]
+    public function keepsTheFurthestHint(): void
+    {
+        self::assertEquals(
+            new Success([['a'], null], 1, new Failure(['"a"', '"b"'], 1)),
+            seq(many(char('a')), opt(char('b')))('ac', 0),
         );
     }
 }

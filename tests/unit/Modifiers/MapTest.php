@@ -20,6 +20,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\char;
+use function jubianchi\PPC\many;
 use function jubianchi\PPC\map;
 
 /**
@@ -34,6 +35,14 @@ final class MapTest extends TestCase
         $parser = char('a') |> map(strtoupper(...));
 
         self::assertEquals(new Success('A', 1), $parser('a', 0));
+    }
+
+    #[Test]
+    public function keepsTheHint(): void
+    {
+        $parser = many(char('a')) |> map(implode(...));
+
+        self::assertEquals(new Success('aa', 2, new Failure(['"a"'], 2)), $parser('aab', 0));
     }
 
     #[Test]

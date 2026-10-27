@@ -13,12 +13,14 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC\Tests\Combinator;
 
+use jubianchi\PPC\Failure;
 use jubianchi\PPC\Success;
 use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\char;
+use function jubianchi\PPC\many;
 use function jubianchi\PPC\opt;
 
 /**
@@ -34,14 +36,20 @@ final class OptTest extends TestCase
     }
 
     #[Test]
-    public function succeedsWithoutConsumingWhenTheParserFails(): void
+    public function succeedsWithoutConsumingAndKeepsTheFailureAsHint(): void
     {
-        self::assertEquals(new Success(null, 0), opt(char('a'))('b', 0));
+        self::assertEquals(new Success(null, 0, new Failure(['"a"'], 0)), opt(char('a'))('b', 0));
     }
 
     #[Test]
     public function returnsTheDefaultValueWhenTheParserFails(): void
     {
-        self::assertEquals(new Success('', 0), opt(char('a'), '')('b', 0));
+        self::assertEquals(new Success('', 0, new Failure(['"a"'], 0)), opt(char('a'), '')('b', 0));
+    }
+
+    #[Test]
+    public function keepsTheHintOfTheParser(): void
+    {
+        self::assertEquals(new Success(['a'], 1, new Failure(['"a"'], 1)), opt(many(char('a')))('ab', 0));
     }
 }

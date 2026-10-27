@@ -21,6 +21,7 @@ use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\alt;
 use function jubianchi\PPC\char;
+use function jubianchi\PPC\many;
 use function jubianchi\PPC\seq;
 use function jubianchi\PPC\word;
 
@@ -42,6 +43,24 @@ final class AltTest extends TestCase
         self::assertEquals(
             new Success('ac', 3),
             alt(word('ab'), word('ac'))('_ac', 1),
+        );
+    }
+
+    #[Test]
+    public function keepsTheFailuresOfThePreviousAlternativesAsHint(): void
+    {
+        self::assertEquals(
+            new Success('a', 1, new Failure(['"b"'], 1)),
+            alt(seq(char('a'), char('b')), char('a'))('ac', 0),
+        );
+    }
+
+    #[Test]
+    public function keepsTheHintOfTheSuccessfulAlternative(): void
+    {
+        self::assertEquals(
+            new Success(['a'], 1, new Failure(['"a"'], 1)),
+            alt(char('x'), many(char('a')))('ab', 0),
         );
     }
 

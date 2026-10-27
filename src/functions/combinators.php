@@ -25,19 +25,21 @@ function seq(\Closure $first, \Closure ...$parsers): \Closure
 
     return static function (string $input, int $offset) use ($parsers): Success|Failure {
         $values = [];
+        $hint = null;
 
         foreach ($parsers as $parser) {
             $result = $parser($input, $offset);
 
             if ($result instanceof Failure) {
-                return $result;
+                return furthest($hint, $result);
             }
 
             $values[] = $result->value;
             $offset = $result->offset;
+            $hint = furthest($hint, $result->hint);
         }
 
-        return new Success($values, $offset);
+        return new Success($values, $offset, $hint);
     };
 }
 
@@ -62,10 +64,10 @@ function alt(\Closure $first, \Closure ...$parsers): \Closure
             $result = $parser($input, $offset);
 
             if ($result instanceof Success) {
-                return $result;
+                return null === $failure ? $result : new Success($result->value, $result->offset, furthest($failure, $result->hint));
             }
 
-            $failure = null === $failure ? $result : furthest($failure, $result);
+            $failure = furthest($failure, $result);
         }
 
         return $failure;
@@ -86,7 +88,7 @@ function opt(\Closure $parser, mixed $default = null): \Closure
     return static function (string $input, int $offset) use ($parser, $default): Success {
         $result = $parser($input, $offset);
 
-        return $result instanceof Success ? $result : new Success($default, $offset);
+        return $result instanceof Success ? $result : new Success($default, $offset, $result);
     };
 }
 
@@ -106,17 +108,23 @@ function many(\Closure $parser): \Closure
 {
     return static function (string $input, int $offset) use ($parser): Success {
         $values = [];
+        $hint = null;
 
-        while (($result = $parser($input, $offset)) instanceof Success) {
+        while (true) {
+            $result = $parser($input, $offset);
+
+            if ($result instanceof Failure) {
+                return new Success($values, $offset, furthest($hint, $result));
+            }
+
             if ($result->offset === $offset) {
                 throw new \LogicException(\sprintf('Parser succeeded without consuming input at offset %d', $offset));
             }
 
             $values[] = $result->value;
             $offset = $result->offset;
+            $hint = furthest($hint, $result->hint);
         }
-
-        return new Success($values, $offset);
     };
 }
 
@@ -142,7 +150,7 @@ function many1(\Closure $parser): \Closure
 
         $rest = $many($input, $first->offset);
 
-        return new Success([$first->value, ...$rest->value], $rest->offset);
+        return new Success([$first->value, ...$rest->value], $rest->offset, furthest($first->hint, $rest->hint));
     };
 }
 
@@ -161,19 +169,21 @@ function repeat(int $times, \Closure $parser): \Closure
 
     return static function (string $input, int $offset) use ($times, $parser): Success|Failure {
         $values = [];
+        $hint = null;
 
         for ($i = 0; $i < $times; ++$i) {
             $result = $parser($input, $offset);
 
             if ($result instanceof Failure) {
-                return $result;
+                return furthest($hint, $result);
             }
 
             $values[] = $result->value;
             $offset = $result->offset;
+            $hint = furthest($hint, $result->hint);
         }
 
-        return new Success($values, $offset);
+        return new Success($values, $offset, $hint);
     };
 }
 
@@ -194,28 +204,37 @@ function repeat(int $times, \Closure $parser): \Closure
 function separated(\Closure $separator, \Closure $parser): \Closure
 {
     return static function (string $input, int $offset) use ($separator, $parser): Success {
-        $first = $parser($input, $offset);
+        $result = $parser($input, $offset);
 
-        if ($first instanceof Failure) {
-            return new Success([], $offset);
+        if ($result instanceof Failure) {
+            return new Success([], $offset, $result);
         }
 
-        $values = [$first->value];
-        $offset = $first->offset;
+        $values = [$result->value];
+        $offset = $result->offset;
+        $hint = $result->hint;
 
-        while (
-            ($next = $separator($input, $offset)) instanceof Success
-            && ($result = $parser($input, $next->offset)) instanceof Success
-        ) {
+        while (true) {
+            $next = $separator($input, $offset);
+
+            if ($next instanceof Failure) {
+                return new Success($values, $offset, furthest($hint, $next));
+            }
+
+            $result = $parser($input, $next->offset);
+
+            if ($result instanceof Failure) {
+                return new Success($values, $offset, furthest($hint, furthest($next->hint, $result)));
+            }
+
             if ($result->offset === $offset) {
                 throw new \LogicException(\sprintf('Separator and parser succeeded without consuming input at offset %d', $offset));
             }
 
             $values[] = $result->value;
             $offset = $result->offset;
+            $hint = furthest($hint, furthest($next->hint, $result->hint));
         }
-
-        return new Success($values, $offset);
     };
 }
 
@@ -242,12 +261,17 @@ function enclosed(\Closure $before, \Closure $parser, ?\Closure $after = null): 
         $result = $parser($input, $opening->offset);
 
         if ($result instanceof Failure) {
-            return $result;
+            return furthest($opening->hint, $result);
         }
 
+        $hint = furthest($opening->hint, $result->hint);
         $closing = $after($input, $result->offset);
 
-        return $closing instanceof Failure ? $closing : new Success($result->value, $closing->offset);
+        if ($closing instanceof Failure) {
+            return furthest($hint, $closing);
+        }
+
+        return new Success($result->value, $closing->offset, furthest($hint, $closing->hint));
     };
 }
 
@@ -295,10 +319,18 @@ function lazy(\Closure $factory): \Closure
 }
 
 /**
+ * Returns the failure that went the furthest, merging the expectations of failures at the same offset.
+ *
  * @internal
+ *
+ * @return ($second is null ? ($first is null ? null : Failure) : Failure)
  */
-function furthest(Failure $first, Failure $second): Failure
+function furthest(?Failure $first, ?Failure $second): ?Failure
 {
+    if (null === $first || null === $second) {
+        return $first ?? $second;
+    }
+
     return match ($first->offset <=> $second->offset) {
         1 => $first,
         -1 => $second,
