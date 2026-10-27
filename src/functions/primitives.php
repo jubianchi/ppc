@@ -60,7 +60,8 @@ function word(string $word): \Closure
  *
  * PHP does not expose PCRE partial matching: on a partial input, the result is only trusted when the input extends at
  * least $window bytes past the end of the match, or past the offset on failure. Patterns looking further than that,
- * or needing more bytes to fail, must be given a larger window.
+ * or needing more bytes to fail, must be given a larger window. A matching error, such as a UTF-8 char cut by the end
+ * of a partial input with the u modifier, is incomplete too.
  *
  * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
  */
@@ -79,13 +80,15 @@ function regex(string $pattern, int $window = 64): \Closure
     $expected = [$pattern];
 
     return static function (string $input, int $offset, bool $partial = false) use ($anchored, $window, $expected): Success|Failure|Incomplete {
-        if (1 === preg_match($anchored, $input, $matches, 0, $offset)) {
+        $matched = preg_match($anchored, $input, $matches, 0, $offset);
+
+        if (1 === $matched) {
             $end = $offset + \strlen($matches[0]);
 
             return $partial && \strlen($input) - $end < $window ? new Incomplete() : new Success($matches[0], $end);
         }
 
-        return $partial && \strlen($input) - $offset < $window ? new Incomplete() : new Failure($expected, $offset);
+        return $partial && (false === $matched || \strlen($input) - $offset < $window) ? new Incomplete() : new Failure($expected, $offset);
     };
 }
 
