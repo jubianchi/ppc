@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace jubianchi\PPC\Tests\Primitives;
 
 use jubianchi\PPC\Failure;
+use jubianchi\PPC\Incomplete;
 use jubianchi\PPC\Success;
 use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
@@ -56,6 +57,12 @@ final class CharTest extends TestCase
     public function doesNotMatchAPartialMultiByteChar(): void
     {
         self::assertEquals(new Failure(['"é"'], 0), char('é')("\xC3", 0));
+    }
+
+    #[Test]
+    public function isIncompleteWhenAPartialInputEndsInsideTheChar(): void
+    {
+        self::assertEquals(new Incomplete(1), char('é')("\xC3", 0, true));
     }
 
     #[Test]

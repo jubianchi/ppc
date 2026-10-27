@@ -302,7 +302,7 @@ function not(\Closure $parser): \Closure
             return new Failure(['anything but '.quote(substr($input, $offset, $result->offset - $offset))], $offset);
         }
 
-        return $result instanceof Failure ? $any($input, $offset) : $result;
+        return $result instanceof Failure ? $any($input, $offset, $partial) : $result;
     };
 }
 

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace jubianchi\PPC\Tests\Primitives;
 
 use jubianchi\PPC\Failure;
+use jubianchi\PPC\Incomplete;
 use jubianchi\PPC\Success;
 use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
@@ -43,5 +44,12 @@ final class EosTest extends TestCase
     public function failsBeforeTheEndOfInput(): void
     {
         self::assertEquals(new Failure(['end of input'], 2), eos()('abc', 2));
+        self::assertEquals(new Failure(['end of input'], 2), eos()('abc', 2, true));
+    }
+
+    #[Test]
+    public function isIncompleteAtTheEndOfAPartialInput(): void
+    {
+        self::assertEquals(new Incomplete(), eos()('abc', 3, true));
     }
 }
