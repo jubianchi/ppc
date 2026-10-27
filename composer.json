@@ -26,7 +26,8 @@
             "src/functions/combinators.php",
             "src/functions/modifiers.php",
             "src/functions/parse.php",
-            "src/functions/primitives.php"
+            "src/functions/primitives.php",
+            "src/functions/stream.php"
         ]
     },
     "autoload-dev": {
