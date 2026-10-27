@@ -71,7 +71,7 @@ function debug(string $name, \Closure $write): \Closure
  */
 function mapped(\Closure $parser, \Closure $mapper): \Closure
 {
-    return static function (string $input, int $offset, bool $partial = false) use ($parser, $mapper): Success|Failure|Incomplete {
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $mapper) {
         $result = $parser($input, $offset, $partial);
 
         return $result instanceof Success ? new Success($mapper($result->value), $result->offset, $result->hint) : $result;
@@ -89,7 +89,7 @@ function labelled(\Closure $parser, string $label): \Closure
 {
     $expected = [$label];
 
-    return static function (string $input, int $offset, bool $partial = false) use ($parser, $expected): Success|Failure|Incomplete {
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $expected) {
         $result = $parser($input, $offset, $partial);
 
         if ($result instanceof Failure) {
@@ -113,7 +113,7 @@ function labelled(\Closure $parser, string $label): \Closure
  */
 function captured(\Closure $parser): \Closure
 {
-    return static function (string $input, int $offset, bool $partial = false) use ($parser): Success|Failure|Incomplete {
+    return static function (string $input, int $offset, bool $partial = false) use ($parser) {
         $result = $parser($input, $offset, $partial);
 
         return $result instanceof Success ? new Success(substr($input, $offset, $result->offset - $offset), $result->offset, $result->hint) : $result;
@@ -130,7 +130,7 @@ function captured(\Closure $parser): \Closure
  */
 function traced(\Closure $parser, string $name, \Closure $write): \Closure
 {
-    return static function (string $input, int $offset, bool $partial = false) use ($parser, $name, $write): Success|Failure|Incomplete {
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $name, $write) {
         $write(\sprintf('%s: start at %s', $name, position($input, $offset)));
 
         $result = $parser($input, $offset, $partial);
