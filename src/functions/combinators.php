@@ -310,6 +310,9 @@ function not(\Closure $parser): \Closure
  * Defines a recursive parser: the definition receives the parser being defined,
  * e.g. recursive(fn ($nested) => alt(char('x'), enclosed(char('('), $nested, char(')')))).
  *
+ * The returned parser throws a LogicException when it calls itself at the same offset of the same input: parsers are
+ * pure, so such a left recursion would never end.
+ *
  * @template T
  *
  * @param \Closure(\Closure(string, int, bool=): (Success<T>|Failure|Incomplete)): (\Closure(string, int, bool=): (Success<T>|Failure|Incomplete)) $definition
@@ -320,10 +323,28 @@ function recursive(\Closure $definition): \Closure
 {
     /** @var ?\Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser */
     $parser = null;
-    $self = static function (string $input, int $offset, bool $partial = false) use (&$parser): Result {
+    /** @var array<int, string> $running */
+    $running = [];
+    $self = static function (string $input, int $offset, bool $partial = false) use (&$parser, &$running): Result {
         \assert($parser instanceof \Closure);
 
-        return $parser($input, $offset, $partial);
+        $previous = $running[$offset] ?? null;
+
+        if ($previous === $input) {
+            throw new \LogicException(\sprintf('Left recursion detected at offset %d: the recursive parser calls itself without consuming input', $offset));
+        }
+
+        $running[$offset] = $input;
+
+        try {
+            return $parser($input, $offset, $partial);
+        } finally {
+            if (null === $previous) {
+                unset($running[$offset]);
+            } else {
+                $running[$offset] = $previous;
+            }
+        }
     };
 
     return $parser = $definition($self);
