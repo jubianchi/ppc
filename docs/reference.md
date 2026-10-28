@@ -394,6 +394,29 @@ $nested = recursive(static fn (\Closure $nested): \Closure => alt(
 assert(parse($nested, '((x))') === 'x');
 ```
 
+A left-recursive definition, calling itself before consuming any input, would never end: the parser throws a
+`LogicException` instead. Such a grammar has to be rewritten so that the recursion comes after some input, e.g. with
+[`many`](#many).
+
+```php
+<?php
+
+use function jubianchi\PPC\{alt, char, parse, recursive, seq};
+
+$sum = recursive(static fn (\Closure $sum): \Closure => alt(
+    seq($sum, char('+'), char('1')),
+    char('1'),
+));
+
+try {
+    parse($sum, '1+1');
+} catch (\LogicException $exception) {
+    $message = $exception->getMessage();
+}
+
+assert($message === 'Left recursion detected at offset 0: the recursive parser calls itself without consuming input');
+```
+
 ## Modifiers
 
 Modifiers return a function wrapping a parser: they are meant to be used with the pipe operator.
