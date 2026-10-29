@@ -249,7 +249,7 @@ function separated(\Closure $separator, \Closure $parser): \Closure
 
 /**
  * Matches one or more operands separated by operators, folded from the left with the functions returned by the
- * operators: 10-2-3 is (10-2)-3. A trailing operator is not consumed.
+ * operators: a | b | c is (a | b) | c. A trailing operator is not consumed.
  *
  * The returned parser throws a LogicException when the operator and the operand both succeed
  * without consuming input, which would otherwise loop forever.
@@ -300,7 +300,7 @@ function chainl1(\Closure $operand, \Closure $operator): \Closure
 
 /**
  * Matches one or more operands separated by operators, folded from the right with the functions returned by the
- * operators: 2^3^2 is 2^(3^2). A trailing operator is not consumed.
+ * operators: a -> b -> c is a -> (b -> c). A trailing operator is not consumed.
  *
  * The returned parser throws a LogicException when the operator and the operand both succeed
  * without consuming input, which would otherwise loop forever.
