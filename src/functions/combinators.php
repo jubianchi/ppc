@@ -248,6 +248,129 @@ function separated(\Closure $separator, \Closure $parser): \Closure
 }
 
 /**
+ * Matches one or more operands separated by operators, folded from the left with the functions returned by the
+ * operators: 10-2-3 is (10-2)-3. A trailing operator is not consumed.
+ *
+ * The returned parser throws a LogicException when the operator and the operand both succeed
+ * without consuming input, which would otherwise loop forever.
+ *
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)                 $operand
+ * @param \Closure(string, int, bool=): (Success<\Closure(T, T): T>|Failure|Incomplete) $operator
+ *
+ * @return \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)
+ */
+function chainl1(\Closure $operand, \Closure $operator): \Closure
+{
+    return static function (string $input, int $offset, bool $partial = false) use ($operand, $operator): Result {
+        $result = $operand($input, $offset, $partial);
+
+        if (!$result instanceof Success) {
+            return $result;
+        }
+
+        $value = $result->value;
+        $offset = $result->offset;
+        $hint = $result->hint;
+
+        while (true) {
+            $next = $operator($input, $offset, $partial);
+
+            if (!$next instanceof Success) {
+                return $next instanceof Failure ? new Success($value, $offset, furthest($hint, $next)) : $next;
+            }
+
+            $result = $operand($input, $next->offset, $partial);
+
+            if (!$result instanceof Success) {
+                return $result instanceof Failure ? new Success($value, $offset, furthest($hint, furthest($next->hint, $result))) : $result;
+            }
+
+            if ($result->offset === $offset) {
+                throw new \LogicException(\sprintf('Operator and operand succeeded without consuming input at offset %d', $offset));
+            }
+
+            $value = ($next->value)($value, $result->value);
+            $offset = $result->offset;
+            $hint = furthest($hint, furthest($next->hint, $result->hint));
+        }
+    };
+}
+
+/**
+ * Matches one or more operands separated by operators, folded from the right with the functions returned by the
+ * operators: 2^3^2 is 2^(3^2). A trailing operator is not consumed.
+ *
+ * The returned parser throws a LogicException when the operator and the operand both succeed
+ * without consuming input, which would otherwise loop forever.
+ *
+ * @template U
+ *
+ * @param \Closure(string, int, bool=): (Success<U>|Failure|Incomplete)                 $operand
+ * @param \Closure(string, int, bool=): (Success<\Closure(U, U): U>|Failure|Incomplete) $operator
+ *
+ * @return \Closure(string, int, bool=): (Success<U>|Failure|Incomplete)
+ */
+function chainr1(\Closure $operand, \Closure $operator): \Closure
+{
+    return static function (string $input, int $offset, bool $partial = false) use ($operand, $operator): Result {
+        $result = $operand($input, $offset, $partial);
+
+        if (!$result instanceof Success) {
+            return $result;
+        }
+
+        $pending = [];
+        $value = $result->value;
+        $offset = $result->offset;
+        $hint = $result->hint;
+
+        while (true) {
+            $next = $operator($input, $offset, $partial);
+
+            if (!$next instanceof Success) {
+                if ($next instanceof Incomplete) {
+                    return $next;
+                }
+
+                $hint = furthest($hint, $next);
+
+                break;
+            }
+
+            $result = $operand($input, $next->offset, $partial);
+
+            if (!$result instanceof Success) {
+                if ($result instanceof Incomplete) {
+                    return $result;
+                }
+
+                $hint = furthest($hint, furthest($next->hint, $result));
+
+                break;
+            }
+
+            if ($result->offset === $offset) {
+                throw new \LogicException(\sprintf('Operator and operand succeeded without consuming input at offset %d', $offset));
+            }
+
+            $pending[] = [$value, $next->value];
+            $value = $result->value;
+            $offset = $result->offset;
+            $hint = furthest($hint, furthest($next->hint, $result->hint));
+        }
+
+        while ([] !== $pending) {
+            [$left, $apply] = array_pop($pending);
+            $value = $apply($left, $value);
+        }
+
+        return new Success($value, $offset, $hint);
+    };
+}
+
+/**
  * @template T
  *
  * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete)  $before
