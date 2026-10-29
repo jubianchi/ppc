@@ -454,7 +454,7 @@ function recursive(\Closure $definition): \Closure
         $previous = $running[$offset] ?? null;
 
         if ($previous === $input) {
-            throw new \LogicException(\sprintf('Left recursion detected at offset %d: the recursive parser calls itself without consuming input', $offset));
+            throw new \LogicException(\sprintf('Left recursion detected at offset %d: the recursive parser calls itself without consuming input, use chainl1() for left-associative operators', $offset));
         }
 
         $running[$offset] = $input;

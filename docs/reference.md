@@ -448,7 +448,7 @@ assert(parse($nested, '((x))') === 'x');
 
 A left-recursive definition, calling itself before consuming any input, would never end: the parser throws a
 `LogicException` instead. Such a grammar has to be rewritten so that the recursion comes after some input, e.g. with
-[`many`](#many).
+[`chainl1`](#chainl1) for left-associative operators.
 
 ```php
 <?php
@@ -466,7 +466,7 @@ try {
     $message = $exception->getMessage();
 }
 
-assert($message === 'Left recursion detected at offset 0: the recursive parser calls itself without consuming input');
+assert($message === 'Left recursion detected at offset 0: the recursive parser calls itself without consuming input, use chainl1() for left-associative operators');
 ```
 
 ## Modifiers
