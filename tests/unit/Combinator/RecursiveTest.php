@@ -70,7 +70,7 @@ final class RecursiveTest extends TestCase
         $sum = recursive(static fn (\Closure $sum): \Closure => alt(seq($sum, char('+'), char('1')), char('1')));
 
         $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('Left recursion detected at offset 2: the recursive parser calls itself without consuming input, use chainl1() for left-associative operators');
+        $this->expectExceptionMessage('Left recursion detected at offset 2: the recursive parser calls itself without consuming input, use chainLeft() for left-associative operators');
 
         seq(char('('), char(' '), $sum)('( 1+1', 0);
     }
