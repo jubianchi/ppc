@@ -22,6 +22,8 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\alt;
+use function jubianchi\PPC\chainl1;
+use function jubianchi\PPC\chainr1;
 use function jubianchi\PPC\char;
 use function jubianchi\PPC\consumed;
 use function jubianchi\PPC\debug;
@@ -51,6 +53,7 @@ final class IncompleteTest extends TestCase
     public static function parsers(): \Generator
     {
         $stub = self::stub();
+        $concat = self::concat();
 
         yield 'seq' => [seq(char('a'), $stub), 'a'];
         yield 'alt does not try the next parser' => [alt($stub, char('a')), 'a'];
@@ -64,6 +67,12 @@ final class IncompleteTest extends TestCase
         yield 'separated' => [separated(char(','), $stub), 'a'];
         yield 'separated separator' => [separated($stub, char('a')), 'a'];
         yield 'separated after a separator' => [separated(char(','), alt(char('a'), $stub)), 'a,b'];
+        yield 'chainl1 operand' => [chainl1($stub, $concat), 'a'];
+        yield 'chainl1 operator' => [chainl1(char('a'), $stub), 'a'];
+        yield 'chainl1 after an operator' => [chainl1(alt(char('a'), $stub), $concat), 'a-b'];
+        yield 'chainr1 operand' => [chainr1($stub, $concat), 'a'];
+        yield 'chainr1 operator' => [chainr1(char('a'), $stub), 'a'];
+        yield 'chainr1 after an operator' => [chainr1(alt(char('a'), $stub), $concat), 'a-b'];
         yield 'enclosed before' => [enclosed($stub, char('a')), 'a'];
         yield 'enclosed parser' => [enclosed(char('('), $stub, char(')')), '('];
         yield 'enclosed after' => [enclosed(char('('), char('a'), $stub), '(a'];
@@ -96,9 +105,17 @@ final class IncompleteTest extends TestCase
     }
 
     /**
+     * @return \Closure(string, int, bool=): (Success<\Closure(string, string): string>|Failure|Incomplete)
+     */
+    private static function concat(): \Closure
+    {
+        return char('-') |> map(static fn (): \Closure => static fn (string $a, string $b): string => $a.$b);
+    }
+
+    /**
      * Incomplete on a partial input, failing otherwise.
      *
-     * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
+     * @return \Closure(string, int, bool=): (Success<never>|Failure|Incomplete)
      */
     private static function stub(): \Closure
     {
