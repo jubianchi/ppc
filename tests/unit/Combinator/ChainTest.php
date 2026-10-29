@@ -20,8 +20,8 @@ use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-use function jubianchi\PPC\chainl1;
-use function jubianchi\PPC\chainr1;
+use function jubianchi\PPC\chainLeft;
+use function jubianchi\PPC\chainRight;
 use function jubianchi\PPC\char;
 use function jubianchi\PPC\map;
 use function jubianchi\PPC\opt;
@@ -34,43 +34,43 @@ use function jubianchi\PPC\regex;
 final class ChainTest extends TestCase
 {
     #[Test]
-    public function chainl1FoldsFromTheLeft(): void
+    public function chainLeftFoldsFromTheLeft(): void
     {
-        self::assertEquals(new Success(5, 6, new Failure(['"-"'], 6)), chainl1(self::number(), self::minus())('10-2-3', 0));
+        self::assertEquals(new Success(5, 6, new Failure(['"-"'], 6)), chainLeft(self::number(), self::minus())('10-2-3', 0));
     }
 
     #[Test]
-    public function chainr1FoldsFromTheRight(): void
+    public function chainRightFoldsFromTheRight(): void
     {
-        self::assertEquals(new Success(11, 6, new Failure(['"-"'], 6)), chainr1(self::number(), self::minus())('10-2-3', 0));
+        self::assertEquals(new Success(11, 6, new Failure(['"-"'], 6)), chainRight(self::number(), self::minus())('10-2-3', 0));
     }
 
     #[Test]
     public function succeedsWithASingleOperand(): void
     {
-        self::assertEquals(new Success(7, 1, new Failure(['"-"'], 1)), chainl1(self::number(), self::minus())('7', 0));
-        self::assertEquals(new Success(7, 1, new Failure(['"-"'], 1)), chainr1(self::number(), self::minus())('7', 0));
+        self::assertEquals(new Success(7, 1, new Failure(['"-"'], 1)), chainLeft(self::number(), self::minus())('7', 0));
+        self::assertEquals(new Success(7, 1, new Failure(['"-"'], 1)), chainRight(self::number(), self::minus())('7', 0));
     }
 
     #[Test]
     public function failsWithoutAnOperand(): void
     {
-        self::assertEquals(new Failure(['/\d+/'], 0), chainl1(self::number(), self::minus())('-1', 0));
-        self::assertEquals(new Failure(['/\d+/'], 0), chainr1(self::number(), self::minus())('-1', 0));
+        self::assertEquals(new Failure(['/\d+/'], 0), chainLeft(self::number(), self::minus())('-1', 0));
+        self::assertEquals(new Failure(['/\d+/'], 0), chainRight(self::number(), self::minus())('-1', 0));
     }
 
     #[Test]
     public function stopsBeforeATrailingOperatorAndKeepsTheFailureAfterItAsHint(): void
     {
-        self::assertEquals(new Success(1, 1, new Failure(['/\d+/'], 2)), chainl1(self::number(), self::minus())('1-]', 0));
-        self::assertEquals(new Success(1, 1, new Failure(['/\d+/'], 2)), chainr1(self::number(), self::minus())('1-]', 0));
+        self::assertEquals(new Success(1, 1, new Failure(['/\d+/'], 2)), chainLeft(self::number(), self::minus())('1-]', 0));
+        self::assertEquals(new Success(1, 1, new Failure(['/\d+/'], 2)), chainRight(self::number(), self::minus())('1-]', 0));
     }
 
     #[Test]
     public function propagatesIncomplete(): void
     {
-        self::assertEquals(new Incomplete(1), chainl1(self::digit(), self::minus())('1-', 0, true));
-        self::assertEquals(new Incomplete(1), chainr1(self::digit(), self::minus())('1-', 0, true));
+        self::assertEquals(new Incomplete(1), chainLeft(self::digit(), self::minus())('1-', 0, true));
+        self::assertEquals(new Incomplete(1), chainRight(self::digit(), self::minus())('1-', 0, true));
     }
 
     #[Test]
@@ -82,7 +82,7 @@ final class ChainTest extends TestCase
         $operand = opt(char('1'), '1') |> map(self::integer(...));
         $operator = opt(char('-')) |> map(static fn (): \Closure => static fn (int $a, int $b): int => $a - $b);
 
-        chainl1($operand, $operator)('1]', 0);
+        chainLeft($operand, $operator)('1]', 0);
     }
 
     /**

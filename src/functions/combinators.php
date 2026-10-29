@@ -261,7 +261,7 @@ function separated(\Closure $separator, \Closure $parser): \Closure
  *
  * @return \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)
  */
-function chainl1(\Closure $operand, \Closure $operator): \Closure
+function chainLeft(\Closure $operand, \Closure $operator): \Closure
 {
     return static function (string $input, int $offset, bool $partial = false) use ($operand, $operator): Result {
         $result = $operand($input, $offset, $partial);
@@ -312,7 +312,7 @@ function chainl1(\Closure $operand, \Closure $operator): \Closure
  *
  * @return \Closure(string, int, bool=): (Success<U>|Failure|Incomplete)
  */
-function chainr1(\Closure $operand, \Closure $operator): \Closure
+function chainRight(\Closure $operand, \Closure $operator): \Closure
 {
     return static function (string $input, int $offset, bool $partial = false) use ($operand, $operator): Result {
         $result = $operand($input, $offset, $partial);
@@ -454,7 +454,7 @@ function recursive(\Closure $definition): \Closure
         $previous = $running[$offset] ?? null;
 
         if ($previous === $input) {
-            throw new \LogicException(\sprintf('Left recursion detected at offset %d: the recursive parser calls itself without consuming input, use chainl1() for left-associative operators', $offset));
+            throw new \LogicException(\sprintf('Left recursion detected at offset %d: the recursive parser calls itself without consuming input, use chainLeft() for left-associative operators', $offset));
         }
 
         $running[$offset] = $input;

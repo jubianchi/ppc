@@ -340,10 +340,10 @@ use function jubianchi\PPC\{char, parse, regex, separated};
 assert(parse(separated(char(','), regex('/[0-9]/')), '1,2,3') === ['1', '2', '3']);
 ```
 
-### chainl1
+### chainLeft
 
 ```phps
-function chainl1(\Closure $operand, \Closure $operator): \Closure
+function chainLeft(\Closure $operand, \Closure $operator): \Closure
 ```
 
 Matches the operand one or more times, separated by the operator. The value of the operator is a function combining two
@@ -355,12 +355,12 @@ reading the output of everything before it:
 ```php
 <?php
 
-use function jubianchi\PPC\{chainl1, map, parse, regex};
+use function jubianchi\PPC\{chainLeft, map, parse, regex};
 
 $command = regex('/[a-z][a-z.\- ]*[a-z]/') |> map(static fn (string $line): array => ['run', $line]);
 $pipe = regex('/ \| /') |> map(static fn (): \Closure => static fn (array $from, array $to): array => ['pipe', $from, $to]);
 
-assert(parse(chainl1($command, $pipe), 'cat access.log | grep error | wc -l') === [
+assert(parse(chainLeft($command, $pipe), 'cat access.log | grep error | wc -l') === [
     'pipe',
     ['pipe', ['run', 'cat access.log'], ['run', 'grep error']],
     ['run', 'wc -l'],
@@ -372,16 +372,16 @@ Chaining chains gives operators their precedence: below, the operands of a sum a
 ```php
 <?php
 
-use function jubianchi\PPC\{alt, chainl1, char, map, parse, regex};
+use function jubianchi\PPC\{alt, chainLeft, char, map, parse, regex};
 
 $number = regex('/[0-9]+/') |> map(intval(...));
 $operator = static fn (string $symbol, \Closure $apply): \Closure => char($symbol) |> map(static fn (): \Closure => $apply);
 
-$product = chainl1($number, alt(
+$product = chainLeft($number, alt(
     $operator('*', static fn (int $a, int $b): int => $a * $b),
     $operator('/', static fn (int $a, int $b): int => intdiv($a, $b)),
 ));
-$sum = chainl1($product, alt(
+$sum = chainLeft($product, alt(
     $operator('+', static fn (int $a, int $b): int => $a + $b),
     $operator('-', static fn (int $a, int $b): int => $a - $b),
 ));
@@ -390,13 +390,13 @@ assert(parse($sum, '10-2-3') === 5);
 assert(parse($sum, '1+2*3') === 7);
 ```
 
-### chainr1
+### chainRight
 
 ```phps
-function chainr1(\Closure $operand, \Closure $operator): \Closure
+function chainRight(\Closure $operand, \Closure $operator): \Closure
 ```
 
-Like [`chainl1`](#chainl1), but the operands are folded from the right, `a -> b -> c` being `a -> (b -> c)`: for
+Like [`chainLeft`](#chainleft), but the operands are folded from the right, `a -> b -> c` being `a -> (b -> c)`: for
 right-associative operators.
 
 Function types are an example: `int -> string -> bool` is a function taking an `int` and returning a function from
@@ -405,12 +405,12 @@ Function types are an example: `int -> string -> bool` is a function taking an `
 ```php
 <?php
 
-use function jubianchi\PPC\{chainr1, map, parse, regex, word};
+use function jubianchi\PPC\{chainRight, map, parse, regex, word};
 
 $type = regex('/[a-z]+/');
 $arrow = word(' -> ') |> map(static fn (): \Closure => static fn (array|string $from, array|string $to): array => ['fn', $from, $to]);
 
-assert(parse(chainr1($type, $arrow), 'int -> string -> bool') === ['fn', 'int', ['fn', 'string', 'bool']]);
+assert(parse(chainRight($type, $arrow), 'int -> string -> bool') === ['fn', 'int', ['fn', 'string', 'bool']]);
 ```
 
 So is the power operator:
@@ -418,10 +418,10 @@ So is the power operator:
 ```php
 <?php
 
-use function jubianchi\PPC\{chainr1, char, map, parse, regex};
+use function jubianchi\PPC\{chainRight, char, map, parse, regex};
 
 $number = regex('/[0-9]+/') |> map(intval(...));
-$power = chainr1($number, char('^') |> map(static fn (): \Closure => static fn (int $a, int $b): int => $a ** $b));
+$power = chainRight($number, char('^') |> map(static fn (): \Closure => static fn (int $a, int $b): int => $a ** $b));
 
 assert(parse($power, '2^3^2') === 512);
 ```
@@ -482,7 +482,7 @@ assert(parse($nested, '((x))') === 'x');
 
 A left-recursive definition, calling itself before consuming any input, would never end: the parser throws a
 `LogicException` instead. Such a grammar has to be rewritten so that the recursion comes after some input, e.g. with
-[`chainl1`](#chainl1) for left-associative operators.
+[`chainLeft`](#chainleft) for left-associative operators.
 
 ```php
 <?php
@@ -500,7 +500,7 @@ try {
     $message = $exception->getMessage();
 }
 
-assert($message === 'Left recursion detected at offset 0: the recursive parser calls itself without consuming input, use chainl1() for left-associative operators');
+assert($message === 'Left recursion detected at offset 0: the recursive parser calls itself without consuming input, use chainLeft() for left-associative operators');
 ```
 
 ## Modifiers
