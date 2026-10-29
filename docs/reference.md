@@ -340,6 +340,58 @@ use function jubianchi\PPC\{char, parse, regex, separated};
 assert(parse(separated(char(','), regex('/[0-9]/')), '1,2,3') === ['1', '2', '3']);
 ```
 
+### chainl1
+
+```phps
+function chainl1(\Closure $operand, \Closure $operator): \Closure
+```
+
+Matches the operand one or more times, separated by the operator. The value of the operator is a function combining two
+operands: the operands are folded from the left, `10-2-3` being `(10-2)-3`. A trailing operator is not consumed.
+
+Chaining chains gives the operators their precedence: below, the operands of a sum are products.
+
+```php
+<?php
+
+use function jubianchi\PPC\{alt, chainl1, char, map, parse, regex};
+
+$number = regex('/[0-9]+/') |> map(intval(...));
+$operator = static fn (string $symbol, \Closure $apply): \Closure => char($symbol) |> map(static fn (): \Closure => $apply);
+
+$product = chainl1($number, alt(
+    $operator('*', static fn (int $a, int $b): int => $a * $b),
+    $operator('/', static fn (int $a, int $b): int => intdiv($a, $b)),
+));
+$sum = chainl1($product, alt(
+    $operator('+', static fn (int $a, int $b): int => $a + $b),
+    $operator('-', static fn (int $a, int $b): int => $a - $b),
+));
+
+assert(parse($sum, '10-2-3') === 5);
+assert(parse($sum, '1+2*3') === 7);
+```
+
+### chainr1
+
+```phps
+function chainr1(\Closure $operand, \Closure $operator): \Closure
+```
+
+Like [`chainl1`](#chainl1), but the operands are folded from the right, `2^3^2` being `2^(3^2)`: for right-associative
+operators.
+
+```php
+<?php
+
+use function jubianchi\PPC\{chainr1, char, map, parse, regex};
+
+$number = regex('/[0-9]+/') |> map(intval(...));
+$power = chainr1($number, char('^') |> map(static fn (): \Closure => static fn (int $a, int $b): int => $a ** $b));
+
+assert(parse($power, '2^3^2') === 512);
+```
+
 ### enclosed
 
 ```phps
