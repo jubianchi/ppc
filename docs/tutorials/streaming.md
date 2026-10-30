@@ -38,12 +38,9 @@ $entry = seq($method, char(' '), $path, char(' '), $status, char("\n"))
 With [`parse`](/reference.md#parse), the log has to be loaded in memory, and all the entries are returned at once:
 
 ```phps
-use function jubianchi\PPC\{eos, many, parse};
+use function jubianchi\PPC\{eos, many, parse, terminated};
 
-$entries = parse(
-    seq(many($entry), eos()) |> map(static fn (array $values): array => $values[0]),
-    file_get_contents('access.log'),
-);
+$entries = parse(terminated(many($entry), eos()), file_get_contents('access.log'));
 ```
 
 This is fine for small inputs, but the memory used grows with the size of the log: the input, and every entry.
@@ -79,7 +76,7 @@ Here, the log is written in memory and read in tiny chunks, so that entries are 
 
 use jubianchi\PPC\SyntaxError;
 
-use function jubianchi\PPC\{alt, char, consumed, eos, label, many, map, parse, regex, seq, stream, word};
+use function jubianchi\PPC\{alt, char, consumed, eos, label, many, map, parse, regex, seq, stream, terminated, word};
 
 $method = alt(word('GET'), word('POST'), word('DELETE')) |> label('HTTP method');
 $path = seq(char('/'), regex('/[^ ]*/')) |> consumed() |> label('path');
@@ -99,7 +96,7 @@ $expected = [
     ['method' => 'DELETE', 'path' => '/api/users/42', 'status' => 404],
 ];
 
-assert(parse(seq(many($entry), eos()) |> map(static fn (array $values): array => $values[0]), $log) === $expected);
+assert(parse(terminated(many($entry), eos()), $log) === $expected);
 
 $source = fopen('php://memory', 'w+');
 fwrite($source, $log);
