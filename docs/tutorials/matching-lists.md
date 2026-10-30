@@ -60,7 +60,7 @@ empty value: the optional trailing separator is not needed anymore. Done! Easy, 
 ```php
 <?php
 
-use function jubianchi\PPC\{char, eos, map, opt, parse, regex, separated, seq};
+use function jubianchi\PPC\{char, enclosed, eos, map, opt, parse, regex, separated, seq, terminated};
 
 $open = char('[');
 $close = char(']');
@@ -69,8 +69,7 @@ $space = char(' ');
 $digit = regex('/[0-9]/') |> map(intval(...));
 
 $separator = seq($comma, opt($space));
-$list = seq($open, separated($separator, opt($digit)), $close, eos())
-    |> map(static fn (array $values): array => $values[1]);
+$list = terminated(enclosed($open, separated($separator, opt($digit)), $close), eos());
 
 assert(parse($list, '[0, 1, 2, , 4, 5,, 7, 8, 9,]') === [0, 1, 2, null, 4, 5, null, 7, 8, 9, null]);
 ```
