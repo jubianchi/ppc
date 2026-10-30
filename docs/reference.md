@@ -443,6 +443,43 @@ assert(parse(enclosed(char('"'), regex('/[a-z]*/')), '"ppc"') === 'ppc');
 assert(parse(enclosed(char('('), regex('/[a-z]*/'), char(')')), '(ppc)') === 'ppc');
 ```
 
+### preceded
+
+```phps
+function preceded(\Closure $before, \Closure $parser): \Closure
+```
+
+Matches the parser after another one. Its value is the value of the parser, the value of the prefix being dropped.
+
+```php
+<?php
+
+use function jubianchi\PPC\{char, map, parse, preceded, regex};
+
+$number = regex('/[0-9]+/') |> map(intval(...));
+$negative = preceded(char('-'), $number) |> map(static fn (int $number): int => -$number);
+
+assert(parse($negative, '-42') === -42);
+```
+
+### terminated
+
+```phps
+function terminated(\Closure $parser, \Closure $after): \Closure
+```
+
+Matches the parser before another one. Its value is the value of the parser, the value of the suffix being dropped.
+
+```php
+<?php
+
+use function jubianchi\PPC\{char, parse, regex, seq, terminated};
+
+$pair = seq(terminated(regex('/[a-z]+/'), char('=')), regex('/[a-z]+/'));
+
+assert(parse($pair, 'key=value') === ['key', 'value']);
+```
+
 ### not
 
 ```phps
