@@ -400,6 +400,33 @@ function preceded(\Closure $before, \Closure $parser): \Closure
 /**
  * @template T
  *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)     $parser
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $after
+ *
+ * @return \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)
+ */
+function terminated(\Closure $parser, \Closure $after): \Closure
+{
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $after): Result {
+        $result = $parser($input, $offset, $partial);
+
+        if (!$result instanceof Success) {
+            return $result;
+        }
+
+        $suffix = $after($input, $result->offset, $partial);
+
+        if (!$suffix instanceof Success) {
+            return $suffix instanceof Failure ? furthest($result->hint, $suffix) : $suffix;
+        }
+
+        return new Success($result->value, $suffix->offset, furthest($result->hint, $suffix->hint));
+    };
+}
+
+/**
+ * @template T
+ *
  * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete)  $before
  * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)      $parser
  * @param ?\Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $after  defaults to $before
