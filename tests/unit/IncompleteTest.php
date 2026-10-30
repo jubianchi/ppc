@@ -34,10 +34,12 @@ use function jubianchi\PPC\many1;
 use function jubianchi\PPC\map;
 use function jubianchi\PPC\not;
 use function jubianchi\PPC\opt;
+use function jubianchi\PPC\preceded;
 use function jubianchi\PPC\recursive;
 use function jubianchi\PPC\repeat;
 use function jubianchi\PPC\separated;
 use function jubianchi\PPC\seq;
+use function jubianchi\PPC\terminated;
 
 /**
  * Combinators and modifiers forward the partial flag and propagate Incomplete without interpreting it.
@@ -73,6 +75,10 @@ final class IncompleteTest extends TestCase
         yield 'chainRight operand' => [chainRight($stub, $concat), 'a'];
         yield 'chainRight operator' => [chainRight(char('a'), $stub), 'a'];
         yield 'chainRight after an operator' => [chainRight(alt(char('a'), $stub), $concat), 'a-b'];
+        yield 'preceded before' => [preceded($stub, char('a')), 'a'];
+        yield 'preceded parser' => [preceded(char('-'), $stub), '-'];
+        yield 'terminated parser' => [terminated($stub, char('a')), 'a'];
+        yield 'terminated after' => [terminated(char('a'), $stub), 'a'];
         yield 'enclosed before' => [enclosed($stub, char('a')), 'a'];
         yield 'enclosed parser' => [enclosed(char('('), $stub, char(')')), '('];
         yield 'enclosed after' => [enclosed(char('('), char('a'), $stub), '(a'];

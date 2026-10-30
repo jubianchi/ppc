@@ -373,6 +373,60 @@ function chainRight(\Closure $operand, \Closure $operator): \Closure
 /**
  * @template T
  *
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $before
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)     $parser
+ *
+ * @return \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)
+ */
+function preceded(\Closure $before, \Closure $parser): \Closure
+{
+    return static function (string $input, int $offset, bool $partial = false) use ($before, $parser): Result {
+        $prefix = $before($input, $offset, $partial);
+
+        if (!$prefix instanceof Success) {
+            return $prefix;
+        }
+
+        $result = $parser($input, $prefix->offset, $partial);
+
+        if (!$result instanceof Success) {
+            return $result instanceof Failure ? furthest($prefix->hint, $result) : $result;
+        }
+
+        return new Success($result->value, $result->offset, furthest($prefix->hint, $result->hint));
+    };
+}
+
+/**
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)     $parser
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $after
+ *
+ * @return \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)
+ */
+function terminated(\Closure $parser, \Closure $after): \Closure
+{
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $after): Result {
+        $result = $parser($input, $offset, $partial);
+
+        if (!$result instanceof Success) {
+            return $result;
+        }
+
+        $suffix = $after($input, $result->offset, $partial);
+
+        if (!$suffix instanceof Success) {
+            return $suffix instanceof Failure ? furthest($result->hint, $suffix) : $suffix;
+        }
+
+        return new Success($result->value, $suffix->offset, furthest($result->hint, $suffix->hint));
+    };
+}
+
+/**
+ * @template T
+ *
  * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete)  $before
  * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)      $parser
  * @param ?\Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $after  defaults to $before
