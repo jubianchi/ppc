@@ -1,0 +1,14 @@
+[package]
+name = "ppc-benchmarks"
+version = "0.0.0"
+edition = "2024"
+publish = false
+description = "The nom side of the PPC per-function benchmarks"
+
+[dev-dependencies]
+criterion = "0.8"
+nom = "8"
+
+[[bench]]
+name = "combinators"
+harness = false
