@@ -13,16 +13,16 @@ The commands to run before committing are listed in [CONTRIBUTING.md](CONTRIBUTI
 ```bash
 vendor/bin/phpunit --filter ChainTest                       # a single test class or method
 vendor/bin/phpstan analyse --no-progress --error-format=raw # one error per line, with its identifier
-php tools/check-coverage.php tmp/clover.xml                 # the uncovered lines of the last composer cov run
+php tools/check-coverage.php tmp/clover.xml                 # the uncovered lines of the last test:coverage run
 vendor/bin/phpbench run benchmarks/JSON.php --report=aggregate --filter=bench_json_ppc
 ```
 
-`composer cov` needs the pcov extension; it enables it itself, so pcov can stay disabled (`pcov.enabled=0`) to keep the
+`composer test:coverage` needs the pcov extension; it enables it itself, so pcov can stay disabled (`pcov.enabled=0`) to keep the
 tests and benchmarks fast.
 
 ## Code coverage
 
-The coverage of `src/` is 100% of the lines, and `composer cov` fails the build otherwise.
+The coverage of `src/` is 100% of the lines, and `composer test:coverage` fails the build otherwise.
 
 - It is measured with the `Unit` suite only: the example parsers and the documentation examples run many functions at
   once, and would hide the ones without a test of their own.
@@ -49,5 +49,5 @@ When a library has no equivalent, the benchmark says so.
 The per-function harness, with the nom crate, is not in place yet: until then, a new function comes with a PHPBench
 benchmark in `benchmarks/`, compared with Parsica when it has an equivalent.
 
-A change to an existing function is compared with `master` (`composer bm:ref` on `master`, then `composer bmc`), and a
+A change to an existing function is compared with `master` (`composer bench:ref` on `master`, then `composer bench:compare`), and a
 slowdown is reported in the pull request.
