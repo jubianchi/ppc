@@ -18,12 +18,16 @@ jobs:
             -   uses: shivammathur/setup-php@v2
                 with:
                     php-version: '8.5'
-                    coverage: none
+                    coverage: pcov
+                    ini-values: pcov.enabled=0
 
             -   uses: ramsey/composer-install@v3
 
             -   name: Unit tests
                 run: mkdir -p tmp && composer ut
+
+            -   name: Code coverage
+                run: composer cov
 
             -   name: Benchmarks
                 run: composer bm
