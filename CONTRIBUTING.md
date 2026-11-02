@@ -108,7 +108,7 @@ A function running its parser several times is a combinator, even with a single 
 Runners turn a parser into values. They come in two variants:
 
 - `parse()` and `stream()` throw a `SyntaxError`;
-- `tryParse()` and `tryStream()` return it (to come, see [#118](https://github.com/jubianchi/ppc/issues/118)).
+- `tryParse()` and `tryStream()` return it.
 
 Only syntax errors are returned: programming and environment errors, like a parser returning `Incomplete` on a
 complete input or an unreadable source, are thrown by both variants.
