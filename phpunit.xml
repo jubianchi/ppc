@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/13.4/phpunit.xsd" bootstrap="vendor/autoload.php" colors="true" timeoutForSmallTests="1" cacheDirectory=".phpunit.cache">
   <testsuites>
-    <testsuite name="PPC">
+    <testsuite name="Unit">
       <directory>tests/unit</directory>
+    </testsuite>
+    <testsuite name="Examples">
+      <directory>tests/examples</directory>
     </testsuite>
     <testsuite name="Documentation">
       <directory>tests/docs</directory>
@@ -10,7 +13,6 @@
   </testsuites>
   <source>
     <include>
-      <directory>parsers</directory>
       <directory>src</directory>
     </include>
   </source>
