@@ -23,6 +23,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\parse;
+use function jubianchi\PPC\tryParse;
 use function jubianchi\PPC\word;
 
 /**
@@ -109,6 +110,33 @@ final class ParseTest extends TestCase
         $this->expectExceptionMessage('Parser returned Incomplete on a complete input');
 
         parse(self::incomplete(), 'abc');
+    }
+
+    #[Test]
+    public function tryParseReturnsTheValueOfASuccessfulParse(): void
+    {
+        self::assertSame('null', tryParse(word('null'), 'null'));
+    }
+
+    #[Test]
+    public function tryParseReturnsTheSyntaxErrorInsteadOfThrowingIt(): void
+    {
+        $failure = new Failure(['"null"'], 15);
+        $error = tryParse(self::failWith($failure), "[\"été\",\n\"é\",日本]");
+
+        self::assertInstanceOf(SyntaxError::class, $error);
+        self::assertSame('Expected "null", got "日" at line 2, column 5', $error->getMessage());
+        self::assertSame($failure, $error->failure);
+        self::assertEquals(new Position(2, 5), $error->position);
+    }
+
+    #[Test]
+    public function tryParseThrowsAnIncompleteResult(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Parser returned Incomplete on a complete input');
+
+        tryParse(self::incomplete(), 'abc');
     }
 
     /**
