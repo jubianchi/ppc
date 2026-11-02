@@ -51,7 +51,7 @@ Every public function belongs to exactly one kind:
 |---|---|---|---|
 | **Parser** | reads the input | `char('a')` | what it matches: `char`, `word`, `regex`, `any`, `eos` |
 | **Combinator** | assembles parsers, never reads the input itself | `many($p)`, `separated($sep, $p)` | the structure it builds: `seq`, `alt`, `many`, `separated`, `enclosed` |
-| **Modifier** | runs the parser once, at the same offset, and only transforms its result | always `$p \|> modifier()` | a verb applied to the parser: `map`, `label`, `debug` |
+| **Modifier** | runs the parser once, at the same offset, and only transforms its result | always `$p \|> modifier()` | a verb applied to the parser: `map`, `label`, `debug`; `optional` is the exception, reading best as an adjective |
 | **Runner** | runs a parser on an input, in two variants: one throwing the `SyntaxError`, one returning it | `parse($p, $input)` | the action, prefixed with `try` for the returning variant |
 
 Any combination of parsers, combinators and modifiers is a parser.
@@ -88,8 +88,8 @@ Combinators:
 ### Modifiers
 
 A modifier runs its parser **once, at the offset it is given**, and only transforms the result: the value (`map()`),
-the error (`label()`), or the value replaced by the matched text. It may give back the input the parser consumed, but
-**never consumes more**.
+the error (`label()`), the value replaced by the matched text (`capture()`), or a failure turned into a success
+(`optional()`). It may give back the input the parser consumed, but **never consumes more**.
 
 Modifiers are always applied with the pipe operator, so that `|>` tells at a glance that no more input is read:
 
