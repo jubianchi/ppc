@@ -27,7 +27,7 @@ function parse(\Closure $parser, string $input): mixed
     $result = $parser($input, 0, false);
 
     if ($result instanceof Failure) {
-        throw new SyntaxError($result, explain($result, $input));
+        throw new SyntaxError($result, locate($input, $result->offset), explain($result, $input));
     }
 
     if ($result instanceof Incomplete) {
@@ -41,6 +41,9 @@ function parse(\Closure $parser, string $input): mixed
  * The input starts at the given line and column.
  *
  * @internal
+ *
+ * @param positive-int $line
+ * @param positive-int $column
  */
 function explain(Failure $failure, string $input, int $line = 1, int $column = 1): string
 {
@@ -58,12 +61,28 @@ function explain(Failure $failure, string $input, int $line = 1, int $column = 1
  * The input starts at the given line and column.
  *
  * @internal
+ *
+ * @param positive-int $line
+ * @param positive-int $column
  */
 function position(string $input, int $offset, int $line = 1, int $column = 1): string
 {
-    [$line, $column] = advance(substr($input, 0, $offset), $line, $column);
+    $position = locate($input, $offset, $line, $column);
 
-    return \sprintf('line %d, column %d', $line, $column);
+    return \sprintf('line %d, column %d', $position->line, $position->column);
+}
+
+/**
+ * The input starts at the given line and column.
+ *
+ * @internal
+ *
+ * @param positive-int $line
+ * @param positive-int $column
+ */
+function locate(string $input, int $offset, int $line = 1, int $column = 1): Position
+{
+    return new Position(...advance(substr($input, 0, $offset), $line, $column));
 }
 
 /**
@@ -71,7 +90,10 @@ function position(string $input, int $offset, int $line = 1, int $column = 1): s
  *
  * @internal
  *
- * @return array{int, int}
+ * @param positive-int $line
+ * @param positive-int $column
+ *
+ * @return array{positive-int, positive-int}
  */
 function advance(string $text, int $line, int $column): array
 {
