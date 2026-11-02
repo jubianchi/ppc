@@ -76,6 +76,23 @@ final class RecursiveTest extends TestCase
     }
 
     #[Test]
+    public function stillDetectsALeftRecursionAfterANestedRunOnAnotherInput(): void
+    {
+        $nested = recursive(static function (\Closure $nested): \Closure {
+            $onAnotherInput = static fn (string $input, int $offset, bool $partial = false): Failure|Success => $nested('x', $offset, $partial) instanceof Success
+                ? new Success(null, $offset)
+                : new Failure(['x'], $offset);
+
+            return alt(char('x'), seq($onAnotherInput, $nested));
+        });
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Left recursion detected at offset 0');
+
+        $nested('y', 0);
+    }
+
+    #[Test]
     public function canRunAgainAfterAnException(): void
     {
         $calls = 0;

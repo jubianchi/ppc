@@ -74,15 +74,37 @@ final class ChainTest extends TestCase
     }
 
     #[Test]
-    public function rejectsAnOperatorAndAnOperandThatSucceedWithoutConsuming(): void
+    public function chainLeftRejectsAnOperatorAndAnOperandThatSucceedWithoutConsuming(): void
     {
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Operator and operand succeeded without consuming input at offset 1');
 
-        $operand = opt(char('1'), '1') |> map(self::integer(...));
-        $operator = opt(char('-')) |> map(static fn (): \Closure => static fn (int $a, int $b): int => $a - $b);
+        chainLeft(self::optionalDigit(), self::optionalMinus())('1]', 0);
+    }
 
-        chainLeft($operand, $operator)('1]', 0);
+    #[Test]
+    public function chainRightRejectsAnOperatorAndAnOperandThatSucceedWithoutConsuming(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Operator and operand succeeded without consuming input at offset 1');
+
+        chainRight(self::optionalDigit(), self::optionalMinus())('1]', 0);
+    }
+
+    /**
+     * @return \Closure(string, int, bool=): (Success<int>|Failure|Incomplete)
+     */
+    private static function optionalDigit(): \Closure
+    {
+        return opt(char('1'), '1') |> map(self::integer(...));
+    }
+
+    /**
+     * @return \Closure(string, int, bool=): (Success<\Closure(int, int): int>|Failure|Incomplete)
+     */
+    private static function optionalMinus(): \Closure
+    {
+        return opt(char('-')) |> map(static fn (): \Closure => static fn (int $a, int $b): int => $a - $b);
     }
 
     /**
