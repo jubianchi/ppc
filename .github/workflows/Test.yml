@@ -24,7 +24,13 @@ jobs:
             -   uses: ramsey/composer-install@v3
 
             -   name: Unit tests
-                run: mkdir -p tmp && composer ut
+                run: mkdir -p tmp && composer ut -- --testsuite Unit
+
+            -   name: Example parsers
+                run: composer ut -- --testsuite Examples
+
+            -   name: Documentation examples
+                run: composer ut -- --testsuite Documentation
 
             -   name: Code coverage
                 run: composer cov
