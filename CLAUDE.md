@@ -12,7 +12,6 @@ The commands to run before committing are listed in [CONTRIBUTING.md](CONTRIBUTI
 
 ```bash
 vendor/bin/phpunit --filter ChainTest                       # a single test class or method
-vendor/bin/phpunit --testsuite Unit                         # only the unit tests (also Examples, Documentation)
 vendor/bin/phpstan analyse --no-progress --error-format=raw # one error per line, with its identifier
 php tools/check-coverage.php tmp/clover.xml                 # the uncovered lines of the last composer cov run
 vendor/bin/phpbench run benchmarks/JSON.php --report=aggregate --filter=bench_json_ppc
