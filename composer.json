@@ -46,6 +46,16 @@
         "bench": "phpbench run --report=aggregate --ansi",
         "bench:ref": "phpbench run --report=aggregate --tag=reference --ansi",
         "bench:compare": "phpbench run --report=aggregate --ref=reference --ansi",
+        "bench:functions": [
+            "Composer\\Config::disableProcessTimeout",
+            "phpbench run benchmarks/Functions --report=aggregate --dump-file=tmp/bench-functions.xml --ansi",
+            "@bench:nom",
+            "@php tools/bench-report.php tmp/bench-functions.xml benchmarks/nom/target/criterion"
+        ],
+        "bench:nom": [
+            "Composer\\Config::disableProcessTimeout",
+            "cargo bench --manifest-path benchmarks/nom/Cargo.toml"
+        ],
         "fix:style": "php-cs-fixer fix --ansi --allow-risky=yes",
         "lint:style": "php-cs-fixer fix --ansi --allow-risky=yes --dry-run --diff",
         "lint:types": "phpstan analyse --ansi --memory-limit=1G",
