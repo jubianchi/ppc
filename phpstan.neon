@@ -6,3 +6,4 @@ parameters:
         - parsers
         - src
         - tests
+        - tools
