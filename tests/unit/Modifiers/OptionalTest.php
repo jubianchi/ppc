@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace jubianchi\PPC\Tests\Combinator;
+namespace jubianchi\PPC\Tests\Modifiers;
 
 use jubianchi\PPC\Failure;
 use jubianchi\PPC\Success;
@@ -21,35 +21,35 @@ use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\char;
 use function jubianchi\PPC\many;
-use function jubianchi\PPC\opt;
+use function jubianchi\PPC\optional;
 
 /**
  * @internal
  */
 #[Small]
-final class OptTest extends TestCase
+final class OptionalTest extends TestCase
 {
     #[Test]
     public function returnsTheValueOfTheParser(): void
     {
-        self::assertEquals(new Success('a', 1), opt(char('a'))('ab', 0));
+        self::assertEquals(new Success('a', 1), (char('a') |> optional())('ab', 0));
     }
 
     #[Test]
     public function succeedsWithoutConsumingAndKeepsTheFailureAsHint(): void
     {
-        self::assertEquals(new Success(null, 0, new Failure(['"a"'], 0)), opt(char('a'))('b', 0));
+        self::assertEquals(new Success(null, 0, new Failure(['"a"'], 0)), (char('a') |> optional())('b', 0));
     }
 
     #[Test]
     public function returnsTheDefaultValueWhenTheParserFails(): void
     {
-        self::assertEquals(new Success('', 0, new Failure(['"a"'], 0)), opt(char('a'), '')('b', 0));
+        self::assertEquals(new Success('', 0, new Failure(['"a"'], 0)), (char('a') |> optional(''))('b', 0));
     }
 
     #[Test]
     public function keepsTheHintOfTheParser(): void
     {
-        self::assertEquals(new Success(['a'], 1, new Failure(['"a"'], 1)), opt(many(char('a')))('ab', 0));
+        self::assertEquals(new Success(['a'], 1, new Failure(['"a"'], 1)), (many(char('a')) |> optional())('ab', 0));
     }
 }

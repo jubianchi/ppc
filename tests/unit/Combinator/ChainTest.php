@@ -24,7 +24,7 @@ use function jubianchi\PPC\chainLeft;
 use function jubianchi\PPC\chainRight;
 use function jubianchi\PPC\char;
 use function jubianchi\PPC\map;
-use function jubianchi\PPC\opt;
+use function jubianchi\PPC\optional;
 use function jubianchi\PPC\regex;
 
 /**
@@ -96,7 +96,7 @@ final class ChainTest extends TestCase
      */
     private static function optionalDigit(): \Closure
     {
-        return opt(char('1'), '1') |> map(self::integer(...));
+        return char('1') |> optional('1') |> map(self::integer(...));
     }
 
     /**
@@ -104,7 +104,7 @@ final class ChainTest extends TestCase
      */
     private static function optionalMinus(): \Closure
     {
-        return opt(char('-')) |> map(static fn (): \Closure => static fn (int $a, int $b): int => $a - $b);
+        return char('-') |> optional() |> map(static fn (): \Closure => static fn (int $a, int $b): int => $a - $b);
     }
 
     /**

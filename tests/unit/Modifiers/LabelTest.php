@@ -23,7 +23,7 @@ use function jubianchi\PPC\alt;
 use function jubianchi\PPC\char;
 use function jubianchi\PPC\label;
 use function jubianchi\PPC\many;
-use function jubianchi\PPC\opt;
+use function jubianchi\PPC\optional;
 use function jubianchi\PPC\seq;
 
 /**
@@ -51,7 +51,7 @@ final class LabelTest extends TestCase
     #[Test]
     public function replacesTheExpectationsOfAHintWithoutProgress(): void
     {
-        $parser = opt(char('-')) |> label('sign');
+        $parser = char('-') |> optional() |> label('sign');
 
         self::assertEquals(new Success(null, 0, new Failure(['sign'], 0)), $parser('1', 0));
     }

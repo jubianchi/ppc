@@ -33,10 +33,10 @@ Here is a quick example demonstrating how easy it is to write a parser:
 
 use jubianchi\PPC\SyntaxError;
 
-use function jubianchi\PPC\{char, enclosed, eos, map, opt, parse, regex, separated, seq, terminated};
+use function jubianchi\PPC\{char, enclosed, eos, map, optional, parse, regex, separated, seq, terminated};
 
 $digit = regex('/[0-9]/') |> map(intval(...));
-$separator = seq(char(','), opt(char(' ')));
+$separator = seq(char(','), char(' ') |> optional());
 $list = terminated(enclosed(char('['), separated($separator, $digit), char(']')), eos());
 
 assert(parse($list, '[0, 1, 2]') === [0, 1, 2]);

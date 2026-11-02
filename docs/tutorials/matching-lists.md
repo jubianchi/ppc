@@ -17,7 +17,7 @@ For the first example, let's try to parse the list as is, with the [`separated`]
 ```php
 <?php
 
-use function jubianchi\PPC\{char, eos, opt, parse, regex, separated, seq};
+use function jubianchi\PPC\{char, eos, optional, parse, regex, separated, seq};
 
 $open = char('[');
 $close = char(']');
@@ -25,7 +25,7 @@ $comma = char(',');
 $space = char(' ');
 $digit = regex('/[0-9]/');
 
-$separator = seq($comma, opt($space));
+$separator = seq($comma, $space |> optional());
 $list = seq($open, separated($separator, $digit), $close, eos());
 
 [, $digits] = parse($list, '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]');
@@ -39,7 +39,7 @@ Now let's try to handle trailing separators, just like JavaScript arrays. Our pa
 `[0, 1, 2, 3, ]`. Since `separated` does not consume a trailing separator, an optional one can follow it:
 
 ```phps
-$list = seq($open, separated($separator, $digit), opt($separator), $close, eos());
+$list = seq($open, separated($separator, $digit), $separator |> optional(), $close, eos());
 ```
 
 We are done!
@@ -49,10 +49,10 @@ We are done!
 What about empty values? JavaScript allow to write things like `[0, 1, 2,, 3]`:
 
 ```phps
-$list = seq($open, separated($separator, opt($digit)), $close, eos());
+$list = seq($open, separated($separator, $digit |> optional()), $close, eos());
 ```
 
-Missing values are `null`, the default value of [`opt`](/reference.md#opt). A trailing separator is now followed by an
+Missing values are `null`, the default value of [`optional`](/reference.md#optional). A trailing separator is now followed by an
 empty value: the optional trailing separator is not needed anymore. Done! Easy, right?
 
 ## Wrapping everything together
@@ -60,7 +60,7 @@ empty value: the optional trailing separator is not needed anymore. Done! Easy, 
 ```php
 <?php
 
-use function jubianchi\PPC\{char, enclosed, eos, map, opt, parse, regex, separated, seq, terminated};
+use function jubianchi\PPC\{char, enclosed, eos, map, optional, parse, regex, separated, seq, terminated};
 
 $open = char('[');
 $close = char(']');
@@ -68,8 +68,8 @@ $comma = char(',');
 $space = char(' ');
 $digit = regex('/[0-9]/') |> map(intval(...));
 
-$separator = seq($comma, opt($space));
-$list = terminated(enclosed($open, separated($separator, opt($digit)), $close), eos());
+$separator = seq($comma, $space |> optional());
+$list = terminated(enclosed($open, separated($separator, $digit |> optional()), $close), eos());
 
 assert(parse($list, '[0, 1, 2, , 4, 5,, 7, 8, 9,]') === [0, 1, 2, null, 4, 5, null, 7, 8, 9, null]);
 ```

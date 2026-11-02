@@ -113,14 +113,6 @@ Runners turn a parser into values. They come in two variants:
 Only syntax errors are returned: programming and environment errors, like a parser returning `Incomplete` on a
 complete input or an unreadable source, are thrown by both variants.
 
-### Known deviations
-
-Some functions predate these rules, and are tracked in [#117](https://github.com/jubianchi/ppc/issues/117):
-
-| Today | Breaks the rule | Will be |
-|---|---|---|
-| `opt($p, $default)` | a modifier called like a combinator | `$p \|> optional($default)` |
-
 ## Types
 
 PPC is checked by PHPStan at its highest level, and every function carries generic types: a parser returning an `int`

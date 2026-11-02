@@ -22,7 +22,7 @@ use PHPUnit\Framework\TestCase;
 use function jubianchi\PPC\char;
 use function jubianchi\PPC\many;
 use function jubianchi\PPC\many1;
-use function jubianchi\PPC\opt;
+use function jubianchi\PPC\optional;
 use function jubianchi\PPC\seq;
 
 /**
@@ -66,7 +66,7 @@ final class ManyTest extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        many(opt(char('a')))('b', 0);
+        many(char('a') |> optional())('b', 0);
     }
 
     #[Test]

@@ -25,7 +25,7 @@ use function jubianchi\PPC\alt;
 use function jubianchi\PPC\char;
 use function jubianchi\PPC\eos;
 use function jubianchi\PPC\map;
-use function jubianchi\PPC\opt;
+use function jubianchi\PPC\optional;
 use function jubianchi\PPC\regex;
 use function jubianchi\PPC\seq;
 use function jubianchi\PPC\stream;
@@ -88,7 +88,7 @@ final class StreamTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Item parser succeeded without consuming input at offset 0');
 
-        iterator_to_array(stream(opt(char('a')), self::source('b')));
+        iterator_to_array(stream(char('a') |> optional(), self::source('b')));
     }
 
     #[Test]

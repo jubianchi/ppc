@@ -37,6 +37,20 @@ function label(string $label): \Closure
 }
 
 /**
+ * Matches the parser or nothing: when the parser fails, succeeds with the default without consuming input.
+ *
+ * @template D
+ *
+ * @param D $default
+ *
+ * @return \Closure<T>(\Closure(string, int, bool=): (Success<T>|Failure|Incomplete)): (\Closure(string, int, bool=): (Success<T|D>|Incomplete))
+ */
+function optional(mixed $default = null): \Closure
+{
+    return static fn (\Closure $parser): \Closure => defaulted($parser, $default);
+}
+
+/**
  * Returns the text consumed by the parser instead of its value.
  *
  * @return \Closure(\Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete)): (\Closure(string, int, bool=): (Success<string>|Failure|Incomplete))
@@ -101,6 +115,22 @@ function labelled(\Closure $parser, string $label): \Closure
         }
 
         return $result->hint?->offset === $offset ? new Success($result->value, $result->offset, new Failure($expected, $offset)) : $result;
+    };
+}
+
+/**
+ * @internal
+ *
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $parser
+ *
+ * @return \Closure(string, int, bool=): (Success<mixed>|Incomplete)
+ */
+function defaulted(\Closure $parser, mixed $default): \Closure
+{
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $default): Result {
+        $result = $parser($input, $offset, $partial);
+
+        return $result instanceof Failure ? new Success($default, $offset, $result) : $result;
     };
 }
 
