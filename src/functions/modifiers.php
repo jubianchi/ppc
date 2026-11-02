@@ -41,7 +41,7 @@ function label(string $label): \Closure
  *
  * @return \Closure(\Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete)): (\Closure(string, int, bool=): (Success<string>|Failure|Incomplete))
  */
-function consumed(): \Closure
+function capture(): \Closure
 {
     return static fn (\Closure $parser): \Closure => captured($parser);
 }

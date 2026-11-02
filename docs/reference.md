@@ -491,9 +491,9 @@ Matches any char, unless the parser matches at the offset.
 ```php
 <?php
 
-use function jubianchi\PPC\{char, consumed, many, not, parse};
+use function jubianchi\PPC\{capture, char, many, not, parse};
 
-assert(parse(many(not(char(';'))) |> consumed(), 'abc') === 'abc');
+assert(parse(many(not(char(';'))) |> capture(), 'abc') === 'abc');
 ```
 
 ### recursive
@@ -584,10 +584,10 @@ try {
 }
 ```
 
-### consumed
+### capture
 
 ```phps
-function consumed(): \Closure
+function capture(): \Closure
 ```
 
 Replaces the value of the parser with the text it consumed.
@@ -595,9 +595,9 @@ Replaces the value of the parser with the text it consumed.
 ```php
 <?php
 
-use function jubianchi\PPC\{char, consumed, opt, parse, regex, seq};
+use function jubianchi\PPC\{capture, char, opt, parse, regex, seq};
 
-$decimal = seq(regex('/[0-9]+/'), opt(seq(char('.'), regex('/[0-9]+/')))) |> consumed();
+$decimal = seq(regex('/[0-9]+/'), opt(seq(char('.'), regex('/[0-9]+/')))) |> capture();
 
 assert(parse($decimal, '3.14') === '3.14');
 ```
