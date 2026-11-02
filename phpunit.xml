@@ -10,6 +10,7 @@
   </testsuites>
   <source>
     <include>
+      <directory>parsers</directory>
       <directory>src</directory>
     </include>
   </source>

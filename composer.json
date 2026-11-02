@@ -34,7 +34,8 @@
         "psr-4": {
             "jubianchi\\PPC\\Benchmarks\\": ["benchmarks"],
             "jubianchi\\PPC\\Tests\\": ["tests/unit"],
-            "jubianchi\\PPC\\Tests\\Docs\\": ["tests/docs"]
+            "jubianchi\\PPC\\Tests\\Docs\\": ["tests/docs"],
+            "jubianchi\\PPC\\Tools\\": ["tools"]
         },
         "files": [
             "parsers/json.php"
@@ -44,6 +45,10 @@
         "bm": "phpbench run --report=aggregate --ansi",
         "bm:ref": "phpbench run --report=aggregate --tag=reference --ansi",
         "bmc": "phpbench run --report=aggregate --ref=reference --ansi",
+        "cov": [
+            "@php -d pcov.enabled=1 -d pcov.directory=. vendor/bin/phpunit --testsuite PPC --coverage-clover tmp/clover.xml",
+            "@php tools/check-coverage.php tmp/clover.xml"
+        ],
         "cs": "php-cs-fixer fix --ansi --allow-risky=yes",
         "sa": "phpstan analyse --ansi --memory-limit=1G",
         "ut": "phpunit --testdox",

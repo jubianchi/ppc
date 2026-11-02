@@ -17,6 +17,7 @@ $finder = PhpCsFixer\Finder::create()
     ->in(__DIR__ . '/parsers')
     ->in(__DIR__ . '/src')
     ->in(__DIR__ . '/tests')
+    ->in(__DIR__ . '/tools')
 ;
 
 return (new PhpCsFixer\Config())
