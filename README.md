@@ -49,3 +49,19 @@ try {
 ```
 
 Easy, right? Be sure to read the [documentation](https://jubianchi.github.io/ppc) to understand how it works.
+
+## Concepts
+
+PPC has four kinds of functions, each with a single job:
+
+| Kind | Job | Examples |
+|---|---|---|
+| **Parsers** | read the input | `char()`, `word()`, `regex()`, `eos()` |
+| **Combinators** | assemble parsers into a new parser, without reading the input themselves | `seq()`, `alt()`, `many()`, `separated()` |
+| **Modifiers** | transform the result of a parser, without reading more input; always applied with the pipe operator | `\|> map()`, `\|> label()` |
+| **Runners** | run a parser on an input and give back its value | `parse()`, `stream()` |
+
+Any combination of parsers, combinators and modifiers is a parser, which can be combined again. And reading a
+definition tells what it does: functions taking parsers build the grammar, and the pipe operator never reads more input.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the detailed rules.
