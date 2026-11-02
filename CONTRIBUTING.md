@@ -146,11 +146,11 @@ Before submitting:
 ```bash
 composer test              # all the tests, or a single suite:
                            # test:unit, test:examples, test:docs
-composer cov               # code coverage, failing under 100% (requires pcov)
-composer sa                # static analysis
-composer cs                # code style
-composer bm:ref            # benchmarks on master, then on your branch:
-composer bmc               # compared with the reference
+composer test:coverage     # code coverage, failing under 100% (requires pcov)
+composer lint:types        # static analysis
+composer lint:style        # code style, fixed by composer fix:style
+composer bench:ref         # benchmarks on master, then on your branch:
+composer bench:compare     # compared with the reference
 ```
 
 Commits are atomic and follow [Conventional Commits](https://www.conventionalcommits.org/), e.g.

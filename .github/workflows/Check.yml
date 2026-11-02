@@ -23,7 +23,7 @@ jobs:
             -   uses: ramsey/composer-install@v3
 
             -   name: Coding style
-                run: mkdir -p tmp && composer run cs -- --dry-run --diff
+                run: mkdir -p tmp && composer lint:style
 
             -   name: Static analysis
-                run: composer run sa
+                run: composer lint:types

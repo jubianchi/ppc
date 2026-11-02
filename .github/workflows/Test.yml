@@ -33,7 +33,7 @@ jobs:
                 run: composer test:docs
 
             -   name: Code coverage
-                run: composer cov
+                run: composer test:coverage
 
             -   name: Benchmarks
-                run: composer bm
+                run: composer bench

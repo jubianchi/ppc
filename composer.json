@@ -43,19 +43,20 @@
         ]
     },
     "scripts": {
-        "bm": "phpbench run --report=aggregate --ansi",
-        "bm:ref": "phpbench run --report=aggregate --tag=reference --ansi",
-        "bmc": "phpbench run --report=aggregate --ref=reference --ansi",
-        "cov": [
-            "@php -d pcov.enabled=1 vendor/bin/phpunit --testsuite Unit --coverage-clover tmp/clover.xml",
-            "@php tools/check-coverage.php tmp/clover.xml"
-        ],
-        "cs": "php-cs-fixer fix --ansi --allow-risky=yes",
-        "sa": "phpstan analyse --ansi --memory-limit=1G",
+        "bench": "phpbench run --report=aggregate --ansi",
+        "bench:ref": "phpbench run --report=aggregate --tag=reference --ansi",
+        "bench:compare": "phpbench run --report=aggregate --ref=reference --ansi",
+        "fix:style": "php-cs-fixer fix --ansi --allow-risky=yes",
+        "lint:style": "php-cs-fixer fix --ansi --allow-risky=yes --dry-run --diff",
+        "lint:types": "phpstan analyse --ansi --memory-limit=1G",
         "test": "phpunit --testdox",
         "test:unit": "phpunit --testdox --testsuite Unit",
         "test:examples": "phpunit --testdox --testsuite Examples",
         "test:docs": "phpunit --testdox --testsuite Documentation",
+        "test:coverage": [
+            "@php -d pcov.enabled=1 vendor/bin/phpunit --testsuite Unit --coverage-clover tmp/clover.xml",
+            "@php tools/check-coverage.php tmp/clover.xml"
+        ],
         "dev:docs": [
             "Composer\\Config::disableProcessTimeout",
             "cd docs && ../node_modules/.bin/docsify serve"
