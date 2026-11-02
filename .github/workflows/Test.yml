@@ -37,3 +37,18 @@ jobs:
 
             -   name: Benchmarks
                 run: composer bench
+
+    nom:
+        runs-on: ubuntu-latest
+
+        steps:
+            -   uses: actions/checkout@v5
+
+            -   uses: dtolnay/rust-toolchain@stable
+
+            -   uses: Swatinem/rust-cache@v2
+                with:
+                    workspaces: benchmarks/nom
+
+            -   name: Benchmarks against nom
+                run: cargo test --benches --manifest-path benchmarks/nom/Cargo.toml
