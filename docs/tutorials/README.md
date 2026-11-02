@@ -51,6 +51,6 @@ happening in your parsers, and the [`label`](/reference.md#label) modifier to ge
 ## [Streaming big inputs](/tutorials/streaming.md) {docsify-ignore}
 
 In this tutorial, you will learn how to parse inputs too big to be loaded in memory, like large files or network
-streams, with the [`stream`](/reference.md#streaming) function.
+streams, with the [`stream`](/reference.md#stream) function.
 
 <!-- panels:end -->

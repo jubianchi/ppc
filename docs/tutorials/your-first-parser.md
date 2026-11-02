@@ -3,7 +3,7 @@
 In this tutorial, you will learn how to build a simple parser yet allowing us to cover many core concepts.
 
 The example parser you will build will be able to parse a date and time in the
-[ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format. To do so, you will use some [primitives](/reference.md#primitives),
+[ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format. To do so, you will use some [parsers](/reference.md#parsers),
 [combinators](/reference.md#combinators) and [modifiers](/reference.md#modifiers).
 
 Building a parser is usually done through some standard steps:
