@@ -15,6 +15,7 @@ namespace jubianchi\PPC\Tests;
 
 use jubianchi\PPC\Failure;
 use jubianchi\PPC\Incomplete;
+use jubianchi\PPC\Position;
 use jubianchi\PPC\Success;
 use jubianchi\PPC\SyntaxError;
 use PHPUnit\Framework\Attributes\Medium;
@@ -80,6 +81,7 @@ final class StreamTest extends TestCase
         self::assertInstanceOf(SyntaxError::class, $error);
         self::assertSame('Expected "\n", got "1" at line 3, column 3', $error->getMessage());
         self::assertEquals(new Failure(['"\n"'], 10), $error->failure);
+        self::assertEquals(new Position(3, 3), $error->position);
     }
 
     #[Test]

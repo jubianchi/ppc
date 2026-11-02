@@ -15,6 +15,7 @@ namespace jubianchi\PPC\Tests;
 
 use jubianchi\PPC\Failure;
 use jubianchi\PPC\Incomplete;
+use jubianchi\PPC\Position;
 use jubianchi\PPC\Success;
 use jubianchi\PPC\SyntaxError;
 use PHPUnit\Framework\Attributes\Small;
@@ -71,9 +72,16 @@ final class ParseTest extends TestCase
     #[Test]
     public function locatesTheFailureInCharsOnItsLine(): void
     {
-        $this->expectExceptionMessage('Expected "null", got "日" at line 2, column 5');
+        $error = null;
 
-        parse(self::failWith(new Failure(['"null"'], 15)), "[\"été\",\n\"é\",日本]");
+        try {
+            parse(self::failWith(new Failure(['"null"'], 15)), "[\"été\",\n\"é\",日本]");
+        } catch (SyntaxError $error) {
+        }
+
+        self::assertInstanceOf(SyntaxError::class, $error);
+        self::assertSame('Expected "null", got "日" at line 2, column 5', $error->getMessage());
+        self::assertEquals(new Position(2, 5), $error->position);
     }
 
     #[Test]

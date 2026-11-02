@@ -17,6 +17,7 @@ final class SyntaxError extends \RuntimeException
 {
     public function __construct(
         public readonly Failure $failure,
+        public readonly Position $position,
         string $message,
     ) {
         parent::__construct($message);

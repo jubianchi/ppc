@@ -70,7 +70,7 @@ function stream(\Closure $item, $source, int $chunk = 8192): \Generator
         }
 
         if ($result instanceof Failure) {
-            throw new SyntaxError(new Failure($result->expected, $dropped + $result->offset), explain($result, $buffer, $line, $column));
+            throw new SyntaxError(new Failure($result->expected, $dropped + $result->offset), locate($buffer, $result->offset, $line, $column), explain($result, $buffer, $line, $column));
         }
 
         if ($result->offset === $offset) {
