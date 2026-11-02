@@ -52,7 +52,10 @@
         ],
         "cs": "php-cs-fixer fix --ansi --allow-risky=yes",
         "sa": "phpstan analyse --ansi --memory-limit=1G",
-        "ut": "phpunit --testdox",
+        "test": "phpunit --testdox",
+        "test:unit": "phpunit --testdox --testsuite Unit",
+        "test:examples": "phpunit --testdox --testsuite Examples",
+        "test:docs": "phpunit --testdox --testsuite Documentation",
         "dev:docs": [
             "Composer\\Config::disableProcessTimeout",
             "cd docs && ../node_modules/.bin/docsify serve"

@@ -144,7 +144,8 @@ example fails the build.
 Before submitting:
 
 ```bash
-composer ut                # tests, including the documentation examples
+composer test              # all the tests, or a single suite:
+                           # test:unit, test:examples, test:docs
 composer cov               # code coverage, failing under 100% (requires pcov)
 composer sa                # static analysis
 composer cs                # code style
