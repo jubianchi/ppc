@@ -75,7 +75,7 @@ on a partial input, and `Failure` on a complete one.
 ### Combinators
 
 Combinators take parsers and return a parser. They never read the input themselves: they only call their parsers,
-possibly several times, at various offsets. When a combinator needs to match something, it uses a parser, e.g. `not()`
+possibly several times, at various offsets. When a combinator needs to match something, it uses a parser, e.g. `anyBut()`
 calls `any()`.
 
 Combinators:
@@ -120,7 +120,6 @@ Some functions predate these rules, and are tracked in [#117](https://github.com
 | Today | Breaks the rule | Will be |
 |---|---|---|
 | `opt($p, $default)` | a modifier called like a combinator | `$p \|> optional($default)` |
-| `not($p)` | a combinator easily mistaken for a negation | `anyBut($p)` |
 
 ## Types
 

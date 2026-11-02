@@ -22,6 +22,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\alt;
+use function jubianchi\PPC\anyBut;
 use function jubianchi\PPC\capture;
 use function jubianchi\PPC\chainLeft;
 use function jubianchi\PPC\chainRight;
@@ -32,7 +33,6 @@ use function jubianchi\PPC\label;
 use function jubianchi\PPC\many;
 use function jubianchi\PPC\many1;
 use function jubianchi\PPC\map;
-use function jubianchi\PPC\not;
 use function jubianchi\PPC\opt;
 use function jubianchi\PPC\preceded;
 use function jubianchi\PPC\recursive;
@@ -82,7 +82,7 @@ final class IncompleteTest extends TestCase
         yield 'enclosed before' => [enclosed($stub, char('a')), 'a'];
         yield 'enclosed parser' => [enclosed(char('('), $stub, char(')')), '('];
         yield 'enclosed after' => [enclosed(char('('), char('a'), $stub), '(a'];
-        yield 'not' => [not($stub), 'a'];
+        yield 'anyBut' => [anyBut($stub), 'a'];
         yield 'recursive' => [recursive(static fn (\Closure $self): \Closure => $stub), 'a'];
         yield 'map' => [$stub |> map(static fn (mixed $value): mixed => $value), 'a'];
         yield 'label' => [$stub |> label('stub'), 'a'];
