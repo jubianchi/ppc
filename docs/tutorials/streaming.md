@@ -58,7 +58,7 @@ foreach (stream($entry, fopen('access.log', 'r')) as ['method' => $method, 'path
 }
 ```
 
-The parser is the same: when a chunk ends in the middle of an entry, the primitives return an `Incomplete` result
+The parser is the same: when a chunk ends in the middle of an entry, the parsers return an `Incomplete` result
 instead of failing, and `stream` reads more bytes before parsing the entry again.
 
 Errors are reported at their position in the whole input, not in the chunk being parsed:
