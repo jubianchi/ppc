@@ -1,7 +1,7 @@
 # Streaming big inputs
 
 In this tutorial, you will learn how to parse inputs too big to be loaded in memory, like large files or network
-streams, with the [`stream`](/reference.md#streaming) function.
+streams, with the [`stream`](/reference.md#stream) function.
 
 As an example, we will parse an access log where each line holds an HTTP method, a path and a status code:
 
@@ -116,4 +116,4 @@ try {
 ```
 
 Streaming has one limit to keep in mind: PHP does not expose partial matching for regular expressions, so a `regex` only
-trusts its result when enough bytes follow it. Read the [reference](/reference.md#streaming) to learn how to tune it.
+trusts its result when enough bytes follow it. Read the [reference](/reference.md#stream) to learn how to tune it.

@@ -10,7 +10,19 @@ Every function lives in the `jubianchi\PPC` namespace.
 
 ## Concepts
 
-### Parsers
+### Kinds of functions
+
+PPC has four kinds of functions, each with its own section:
+
+* [**Parsers**](#parsers) read the input.
+* [**Combinators**](#combinators) assemble parsers into a new parser, without reading the input themselves.
+* [**Modifiers**](#modifiers) run a parser once, at the same offset, and only transform its result: they never read
+  more input, and are always applied with the pipe operator.
+* [**Runners**](#runners) run a parser on an input and give back its value.
+
+Any combination of parsers, combinators and modifiers is a parser, which can be combined again.
+
+### The parser contract
 
 A parser is a plain closure taking the whole input and the byte offset to start at:
 
@@ -22,7 +34,7 @@ A parser is a plain closure taking the whole input and the byte offset to start 
 
 * On success, it returns a `Success` holding the parsed `value` and the `offset` right after what it consumed.
 * On failure, it returns a `Failure` holding the list of what was `expected` and the `offset` where it was expected.
-* On a partial input, when [streaming](#streaming), it returns an `Incomplete` result when the input ends before it can
+* On a partial input, when [streaming](#stream), it returns an `Incomplete` result when the input ends before it can
   decide. Parsers ignoring the `$partial` argument work too, they just cannot be streamed reliably.
 
 The input is never copied nor sliced: parsers only move an offset forward. Backtracking is free, trying an alternative
@@ -36,7 +48,7 @@ flowchart LR
     C -->|"4. Success: 'in', next offset 2"| A
 ```
 
-Since parsers are closures, you can write your own. To be [streamed](#streaming), a parser must return an `Incomplete`
+Since parsers are closures, you can write your own. To be [streamed](#stream), a parser must return an `Incomplete`
 result when a partial input ends before it can decide:
 
 ```php
@@ -74,74 +86,9 @@ When every alternative fails, PPC reports the failure that went the furthest in 
 by failures at the same offset. A `Success` also keeps, as a `hint`, the furthest failure met while succeeding: this is
 how `seq(many(char('a')), char('b'))` reports `Expected "a" or "b"` on `aac`.
 
-### parse
+## Parsers
 
-```phps
-function parse(\Closure $parser, string $input): mixed
-```
-
-Runs the parser from the start of the input and returns its value. On failure, it throws a `SyntaxError` whose message
-tells what was expected, what was found and where. The `Failure` is available through its `failure` property.
-
-```php
-<?php
-
-use jubianchi\PPC\SyntaxError;
-
-use function jubianchi\PPC\{many, char, parse, seq};
-
-$parser = seq(many(char('a')), char('b'));
-
-assert(parse($parser, 'aab') === [['a', 'a'], 'b']);
-
-try {
-    parse($parser, "aa\nc");
-} catch (SyntaxError $error) {
-    assert($error->getMessage() === 'Expected "a" or "b", got "\n" at line 1, column 3');
-    assert($error->failure->offset === 2);
-}
-```
-
-### Streaming
-
-```phps
-function stream(\Closure $item, resource $source, int $chunk = 8192): \Generator
-```
-
-Parses the items of a source, a file or a socket for example, one after the other while reading it by chunks: only the
-items being parsed are kept in memory, never the whole source. Each item value is yielded as soon as it is parsed, and
-syntax errors are thrown as `SyntaxError` with their absolute position in the source.
-
-Until the end of the source, parsers are given a third argument telling the input is partial. When the input ends
-before they can decide, they return an `Incomplete` result instead of failing, like nom does: `stream` then reads more
-bytes and parses the item again from its start.
-
-PHP does not expose partial matching for regular expressions: on a partial input, a `regex` result is only trusted
-when the input extends at least `$window` bytes past where it stopped. Give a larger window to patterns needing more
-bytes to decide, or a smaller one to patterns which only look at the next byte, to read less.
-
-```php
-<?php
-
-use function jubianchi\PPC\{char, map, regex, seq, stream};
-
-$source = fopen('php://memory', 'w+');
-fwrite($source, "1,ppc\n2,parser\n3,combinator\n");
-rewind($source);
-
-$record = seq(regex('/[0-9]+/', 1), char(','), regex('/[a-z]+/', 1), char("\n"))
-    |> map(static fn (array $values): array => [(int) $values[0] => $values[2]]);
-
-$records = [];
-
-foreach (stream($record, $source, chunk: 4) as $value) {
-    $records += $value;
-}
-
-assert($records === [1 => 'ppc', 2 => 'parser', 3 => 'combinator']);
-```
-
-## Primitives
+Parsers are the only functions reading the input.
 
 ### char
 
@@ -182,7 +129,7 @@ function regex(string $pattern, int $window = 64): \Closure
 ```
 
 Matches a PCRE pattern at the offset: the pattern is anchored, it never searches further in the input. Its value is the
-whole match. The window only matters when [streaming](#streaming).
+whole match. The window only matters when [streaming](#stream).
 
 Matching chunks with a single pattern is much faster than combining parsers matching one char at a time.
 
@@ -233,6 +180,9 @@ try {
 ```
 
 ## Combinators
+
+Combinators take parsers and return a parser. They never read the input themselves: they only call their parsers,
+possibly several times, at various offsets.
 
 ### seq
 
@@ -523,7 +473,8 @@ assert($message === 'Left recursion detected at offset 0: the recursive parser c
 
 ## Modifiers
 
-Modifiers return a function wrapping a parser: they are meant to be used with the pipe operator.
+Modifiers return a function wrapping a parser, applied with the pipe operator: `$parser |> map(...)`. They run the
+parser once, at the same offset, and only transform its result: they never read more input.
 
 ### map
 
@@ -630,4 +581,75 @@ assert($lines === [
     'true: start at line 1, column 1',
     'true: incomplete input, 2 more bytes needed',
 ]);
+```
+
+## Runners
+
+Runners run a parser on an input and give back its value.
+
+### parse
+
+```phps
+function parse(\Closure $parser, string $input): mixed
+```
+
+Runs the parser from the start of the input and returns its value. On failure, it throws a `SyntaxError` whose message
+tells what was expected, what was found and where. The `Failure` is available through its `failure` property.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{many, char, parse, seq};
+
+$parser = seq(many(char('a')), char('b'));
+
+assert(parse($parser, 'aab') === [['a', 'a'], 'b']);
+
+try {
+    parse($parser, "aa\nc");
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected "a" or "b", got "\n" at line 1, column 3');
+    assert($error->failure->offset === 2);
+}
+```
+
+### stream
+
+```phps
+function stream(\Closure $item, resource $source, int $chunk = 8192): \Generator
+```
+
+Parses the items of a source, a file or a socket for example, one after the other while reading it by chunks: only the
+items being parsed are kept in memory, never the whole source. Each item value is yielded as soon as it is parsed, and
+syntax errors are thrown as `SyntaxError` with their absolute position in the source.
+
+Until the end of the source, parsers are given a third argument telling the input is partial. When the input ends
+before they can decide, they return an `Incomplete` result instead of failing, like nom does: `stream` then reads more
+bytes and parses the item again from its start.
+
+PHP does not expose partial matching for regular expressions: on a partial input, a `regex` result is only trusted
+when the input extends at least `$window` bytes past where it stopped. Give a larger window to patterns needing more
+bytes to decide, or a smaller one to patterns which only look at the next byte, to read less.
+
+```php
+<?php
+
+use function jubianchi\PPC\{char, map, regex, seq, stream};
+
+$source = fopen('php://memory', 'w+');
+fwrite($source, "1,ppc\n2,parser\n3,combinator\n");
+rewind($source);
+
+$record = seq(regex('/[0-9]+/', 1), char(','), regex('/[a-z]+/', 1), char("\n"))
+    |> map(static fn (array $values): array => [(int) $values[0] => $values[2]]);
+
+$records = [];
+
+foreach (stream($record, $source, chunk: 4) as $value) {
+    $records += $value;
+}
+
+assert($records === [1 => 'ppc', 2 => 'parser', 3 => 'combinator']);
 ```
