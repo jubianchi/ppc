@@ -468,7 +468,7 @@ function enclosed(\Closure $before, \Closure $parser, ?\Closure $after = null): 
  *
  * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
  */
-function not(\Closure $parser): \Closure
+function anyBut(\Closure $parser): \Closure
 {
     $any = any();
 

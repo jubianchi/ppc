@@ -19,37 +19,37 @@ use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+use function jubianchi\PPC\anyBut;
 use function jubianchi\PPC\char;
-use function jubianchi\PPC\not;
 use function jubianchi\PPC\word;
 
 /**
  * @internal
  */
 #[Small]
-final class NotTest extends TestCase
+final class AnyButTest extends TestCase
 {
     #[Test]
     public function consumesOneCharWhenTheParserFails(): void
     {
-        self::assertEquals(new Success('é', 3), not(char('"'))('aé"', 1));
+        self::assertEquals(new Success('é', 3), anyBut(char('"'))('aé"', 1));
     }
 
     #[Test]
     public function failsWhenTheParserMatches(): void
     {
-        self::assertEquals(new Failure(['anything but "\""'], 1), not(char('"'))('a"', 1));
+        self::assertEquals(new Failure(['anything but "\""'], 1), anyBut(char('"'))('a"', 1));
     }
 
     #[Test]
     public function onlyConsumesOneCharOfAPartialMatch(): void
     {
-        self::assertEquals(new Success('a', 1), not(word('ab'))('ac', 0));
+        self::assertEquals(new Success('a', 1), anyBut(word('ab'))('ac', 0));
     }
 
     #[Test]
     public function failsAtTheEndOfInput(): void
     {
-        self::assertEquals(new Failure(['any char'], 1), not(char('"'))('a', 1));
+        self::assertEquals(new Failure(['any char'], 1), anyBut(char('"'))('a', 1));
     }
 }

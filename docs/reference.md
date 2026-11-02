@@ -480,10 +480,10 @@ $pair = seq(terminated(regex('/[a-z]+/'), char('=')), regex('/[a-z]+/'));
 assert(parse($pair, 'key=value') === ['key', 'value']);
 ```
 
-### not
+### anyBut
 
 ```phps
-function not(\Closure $parser): \Closure
+function anyBut(\Closure $parser): \Closure
 ```
 
 Matches any char, unless the parser matches at the offset.
@@ -491,9 +491,9 @@ Matches any char, unless the parser matches at the offset.
 ```php
 <?php
 
-use function jubianchi\PPC\{capture, char, many, not, parse};
+use function jubianchi\PPC\{anyBut, capture, char, many, parse};
 
-assert(parse(many(not(char(';'))) |> capture(), 'abc') === 'abc');
+assert(parse(many(anyBut(char(';'))) |> capture(), 'abc') === 'abc');
 ```
 
 ### recursive
