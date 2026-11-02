@@ -13,8 +13,9 @@ function: most design discussions end up being about which kind a function belon
 | `src/functions/modifiers.php` | the modifiers |
 | `src/functions/parse.php`, `src/functions/stream.php` | the runners |
 | `parsers/` | complete parsers built with PPC, e.g. JSON |
-| `tests/unit/` | one test class per function, grouped by kind |
-| `tests/docs/` | runs every `php` code block of the README and the documentation |
+| `tests/unit/` | one test class per function, grouped by kind (the `Unit` suite) |
+| `tests/examples/` | the tests of the parsers of `parsers/` (the `Examples` suite) |
+| `tests/docs/` | runs every `php` code block of the README and the documentation (the `Documentation` suite) |
 | `benchmarks/` | PHPBench benchmarks, comparing PPC with other libraries and with native functions |
 | `docs/` | the documentation website (docsify) |
 

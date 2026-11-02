@@ -12,7 +12,7 @@ The commands to run before committing are listed in [CONTRIBUTING.md](CONTRIBUTI
 
 ```bash
 vendor/bin/phpunit --filter ChainTest                       # a single test class or method
-vendor/bin/phpunit --testsuite Documentation                # only the examples of the README and docs/
+vendor/bin/phpunit --testsuite Unit                         # only the unit tests (also Examples, Documentation)
 vendor/bin/phpstan analyse --no-progress --error-format=raw # one error per line, with its identifier
 php tools/check-coverage.php tmp/clover.xml                 # the uncovered lines of the last composer cov run
 vendor/bin/phpbench run benchmarks/JSON.php --report=aggregate --filter=bench_json_ppc
@@ -23,8 +23,10 @@ tests and benchmarks fast.
 
 ## Code coverage
 
-The coverage of `src/` and `parsers/` is 100% of the lines, and `composer cov` fails the build otherwise.
+The coverage of `src/` is 100% of the lines, and `composer cov` fails the build otherwise.
 
+- It is measured with the `Unit` suite only: the example parsers and the documentation examples run many functions at
+  once, and would hide the ones without a test of their own.
 - An uncovered line is either a missing test or dead code: write the test, or remove the code.
 - Never exclude code from the coverage (`@codeCoverageIgnore`, `<exclude>` in `phpunit.xml`).
 - Error cases count: every exception thrown has a test expecting its message.
