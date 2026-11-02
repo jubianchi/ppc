@@ -16,7 +16,11 @@ function: most design discussions end up being about which kind a function belon
 | `tests/unit/` | one test class per function, grouped by kind (the `Unit` suite) |
 | `tests/examples/` | the tests of the parsers of `parsers/` (the `Examples` suite) |
 | `tests/docs/` | runs every `php` code block of the README and the documentation (the `Documentation` suite) |
-| `benchmarks/` | PHPBench benchmarks, comparing PPC with other libraries and with native functions |
+| `benchmarks/` | PHPBench scenarios (JSON, backtracking…), comparing PPC with other libraries and native functions |
+| `benchmarks/Functions/` | one PHPBench benchmark per function, comparing PPC with Parsica |
+| `benchmarks/nom/` | the same benchmarks with [nom](https://github.com/rust-bakery/nom), a Rust crate run by criterion |
+| `benchmarks/fixtures/` | the inputs of the per-function benchmarks, shared by PHP and Rust |
+| `tools/` | development scripts: the coverage check, the combined benchmark report |
 | `docs/` | the documentation website (docsify) |
 
 ## The parser contract
@@ -151,7 +155,33 @@ composer lint:types        # static analysis
 composer lint:style        # code style, fixed by composer fix:style
 composer bench:ref         # benchmarks on master, then on your branch:
 composer bench:compare     # compared with the reference
+composer bench:functions   # the per-function benchmarks, with nom (requires cargo)
 ```
+
+## Benchmarks
+
+Each parser, combinator and modifier is benchmarked against [Parsica](https://github.com/parsica-php/parsica) and
+[nom](https://github.com/rust-bakery/nom), on the same inputs, and `composer bench:functions` prints one table comparing
+them:
+
+```
+| function | input  | ppc      | parsica | nom       | ppc / nom |
+|----------|--------|----------|---------|-----------|-----------|
+| many     | 1 kB   | 206.4 µs | 1.72 ms | 2.21 µs   | ×93.6     |
+| many     | 100 kB | 20.7 ms  | —       | 185.29 µs | ×111.7    |
+```
+
+`many()` is the model to follow:
+
+- **the inputs** are files in `benchmarks/fixtures/<function>/`, read by both languages, so that they parse the same
+  bytes;
+- **the PHP side** is a class named after the function in `benchmarks/Functions/<Kind>/`, e.g. `Combinators/Many.php`,
+  with a `bench_ppc` and a `bench_parsica` subject, and one parameter set per input, e.g. `1 kB`;
+- **the Rust side** is a criterion group named after the function in `benchmarks/nom/benches/<kind>.rs`, with one
+  `BenchmarkId::new("nom", <input>)` per input, using the same input names;
+- **each library checks**, out of the measure, that it consumes the whole input, so that they do the same work;
+- **a library without an equivalent**, or too slow on an input, is left out, with a comment saying why: the table then
+  shows `—`.
 
 Commits are atomic and follow [Conventional Commits](https://www.conventionalcommits.org/), e.g.
 `feat: add preceded() to keep the value after a prefix`. A pull request addresses a single topic.

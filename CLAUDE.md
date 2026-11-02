@@ -44,10 +44,8 @@ The types are as strict as possible.
 
 Each parser, combinator and modifier has a benchmark comparing PPC with at least
 [Parsica](https://github.com/parsica-php/parsica) and [nom](https://github.com/rust-bakery/nom), on the same inputs.
-When a library has no equivalent, the benchmark says so.
-
-The per-function harness, with the nom crate, is not in place yet: until then, a new function comes with a PHPBench
-benchmark in `benchmarks/`, compared with Parsica when it has an equivalent.
+When a library has no equivalent, the benchmark says so. How to write one is described in
+[CONTRIBUTING.md](CONTRIBUTING.md#benchmarks).
 
 A change to an existing function is compared with `master` (`composer bench:ref` on `master`, then `composer bench:compare`), and a
 slowdown is reported in the pull request.
