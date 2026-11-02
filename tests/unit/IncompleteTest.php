@@ -22,10 +22,10 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\alt;
+use function jubianchi\PPC\capture;
 use function jubianchi\PPC\chainLeft;
 use function jubianchi\PPC\chainRight;
 use function jubianchi\PPC\char;
-use function jubianchi\PPC\consumed;
 use function jubianchi\PPC\debug;
 use function jubianchi\PPC\enclosed;
 use function jubianchi\PPC\label;
@@ -86,7 +86,7 @@ final class IncompleteTest extends TestCase
         yield 'recursive' => [recursive(static fn (\Closure $self): \Closure => $stub), 'a'];
         yield 'map' => [$stub |> map(static fn (mixed $value): mixed => $value), 'a'];
         yield 'label' => [$stub |> label('stub'), 'a'];
-        yield 'consumed' => [$stub |> consumed(), 'a'];
+        yield 'capture' => [$stub |> capture(), 'a'];
         yield 'debug' => [$stub |> debug('stub', static fn (string $line): null => null), 'a'];
     }
 

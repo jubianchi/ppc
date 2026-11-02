@@ -19,8 +19,8 @@ use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+use function jubianchi\PPC\capture;
 use function jubianchi\PPC\char;
-use function jubianchi\PPC\consumed;
 use function jubianchi\PPC\many;
 use function jubianchi\PPC\seq;
 
@@ -28,12 +28,12 @@ use function jubianchi\PPC\seq;
  * @internal
  */
 #[Small]
-final class ConsumedTest extends TestCase
+final class CaptureTest extends TestCase
 {
     #[Test]
     public function returnsTheTextConsumedByTheParser(): void
     {
-        $parser = seq(char('a'), many(char('é'))) |> consumed();
+        $parser = seq(char('a'), many(char('é'))) |> capture();
 
         self::assertEquals(new Success('aéé', 6, new Failure(['"é"'], 6)), $parser('_aééb', 1));
     }
@@ -41,7 +41,7 @@ final class ConsumedTest extends TestCase
     #[Test]
     public function keepsTheFailure(): void
     {
-        $parser = char('a') |> consumed();
+        $parser = char('a') |> capture();
 
         self::assertEquals(new Failure(['"a"'], 0), $parser('b', 0));
     }

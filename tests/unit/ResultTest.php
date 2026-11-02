@@ -23,8 +23,8 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\alt;
+use function jubianchi\PPC\capture;
 use function jubianchi\PPC\char;
-use function jubianchi\PPC\consumed;
 use function jubianchi\PPC\enclosed;
 use function jubianchi\PPC\many;
 use function jubianchi\PPC\many1;
@@ -64,7 +64,7 @@ final class ResultTest extends TestCase
         yield 'separated' => [separated(char(','), $invalid)];
         yield 'enclosed' => [enclosed(char('('), $invalid)];
         yield 'map' => [$invalid |> map(strtoupper(...))];
-        yield 'consumed' => [$invalid |> consumed()];
+        yield 'capture' => [$invalid |> capture()];
     }
 
     /**

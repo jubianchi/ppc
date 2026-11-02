@@ -14,15 +14,15 @@ DELETE /api/users/42 404
 ## The parser
 
 Let's start with a parser for a single line. The [`label`](/reference.md#label) modifier gives readable error messages,
-[`consumed`](/reference.md#consumed) returns the whole path at once, and [`map`](/reference.md#map) shapes the values:
+[`capture`](/reference.md#capture) returns the whole path at once, and [`map`](/reference.md#map) shapes the values:
 
 ```phps
 <?php
 
-use function jubianchi\PPC\{alt, char, consumed, label, map, regex, seq, word};
+use function jubianchi\PPC\{alt, capture, char, label, map, regex, seq, word};
 
 $method = alt(word('GET'), word('POST'), word('DELETE')) |> label('HTTP method');
-$path = seq(char('/'), regex('/[^ ]*/')) |> consumed() |> label('path');
+$path = seq(char('/'), regex('/[^ ]*/')) |> capture() |> label('path');
 $status = regex('/[1-5][0-9]{2}/') |> label('status code') |> map(intval(...));
 
 $entry = seq($method, char(' '), $path, char(' '), $status, char("\n"))
@@ -76,10 +76,10 @@ Here, the log is written in memory and read in tiny chunks, so that entries are 
 
 use jubianchi\PPC\SyntaxError;
 
-use function jubianchi\PPC\{alt, char, consumed, eos, label, many, map, parse, regex, seq, stream, terminated, word};
+use function jubianchi\PPC\{alt, capture, char, eos, label, many, map, parse, regex, seq, stream, terminated, word};
 
 $method = alt(word('GET'), word('POST'), word('DELETE')) |> label('HTTP method');
-$path = seq(char('/'), regex('/[^ ]*/')) |> consumed() |> label('path');
+$path = seq(char('/'), regex('/[^ ]*/')) |> capture() |> label('path');
 $status = regex('/[1-5][0-9]{2}/') |> label('status code') |> map(intval(...));
 
 $entry = seq($method, char(' '), $path, char(' '), $status, char("\n"))

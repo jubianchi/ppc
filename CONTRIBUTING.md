@@ -120,7 +120,6 @@ Some functions predate these rules, and are tracked in [#117](https://github.com
 | Today | Breaks the rule | Will be |
 |---|---|---|
 | `opt($p, $default)` | a modifier called like a combinator | `$p \|> optional($default)` |
-| `$p \|> consumed()` | a participle, not a verb | `$p \|> capture()` |
 | `not($p)` | a combinator easily mistaken for a negation | `anyBut($p)` |
 
 ## Types
