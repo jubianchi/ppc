@@ -24,10 +24,30 @@ namespace jubianchi\PPC;
  */
 function parse(\Closure $parser, string $input): mixed
 {
+    $value = tryParse($parser, $input);
+
+    if ($value instanceof SyntaxError) {
+        throw $value;
+    }
+
+    return $value;
+}
+
+/**
+ * Like parse(), but returns the SyntaxError instead of throwing it.
+ *
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser
+ *
+ * @return T|SyntaxError
+ */
+function tryParse(\Closure $parser, string $input): mixed
+{
     $result = $parser($input, 0, false);
 
     if ($result instanceof Failure) {
-        throw new SyntaxError($result, locate($input, $result->offset), explain($result, $input));
+        return new SyntaxError($result, locate($input, $result->offset), explain($result, $input));
     }
 
     if ($result instanceof Incomplete) {
