@@ -31,6 +31,28 @@ namespace jubianchi\PPC;
  */
 function stream(\Closure $item, $source, int $chunk = 8192): \Generator
 {
+    foreach (tryStream($item, $source, $chunk) as $value) {
+        if ($value instanceof SyntaxError) {
+            throw $value;
+        }
+
+        yield $value;
+    }
+}
+
+/**
+ * Like stream(), but yields the SyntaxError instead of throwing it: it is the last value, as parsing cannot resume
+ * after an error.
+ *
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $item
+ * @param resource                                                      $source
+ *
+ * @return \Generator<int, T|SyntaxError>
+ */
+function tryStream(\Closure $item, $source, int $chunk = 8192): \Generator
+{
     if ($chunk < 1) {
         throw new \InvalidArgumentException(\sprintf('Expected a positive chunk size, got %d', $chunk));
     }
@@ -70,7 +92,9 @@ function stream(\Closure $item, $source, int $chunk = 8192): \Generator
         }
 
         if ($result instanceof Failure) {
-            throw new SyntaxError(new Failure($result->expected, $dropped + $result->offset), locate($buffer, $result->offset, $line, $column), explain($result, $buffer, $line, $column));
+            yield new SyntaxError(new Failure($result->expected, $dropped + $result->offset), locate($buffer, $result->offset, $line, $column), explain($result, $buffer, $line, $column));
+
+            return;
         }
 
         if ($result->offset === $offset) {

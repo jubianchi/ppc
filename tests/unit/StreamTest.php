@@ -30,6 +30,7 @@ use function jubianchi\PPC\optional;
 use function jubianchi\PPC\regex;
 use function jubianchi\PPC\seq;
 use function jubianchi\PPC\stream;
+use function jubianchi\PPC\tryStream;
 use function jubianchi\PPC\word;
 
 /**
@@ -82,6 +83,34 @@ final class StreamTest extends TestCase
         self::assertSame('Expected "\n", got "1" at line 3, column 3', $error->getMessage());
         self::assertEquals(new Failure(['"\n"'], 10), $error->failure);
         self::assertEquals(new Position(3, 3), $error->position);
+    }
+
+    #[Test]
+    public function tryStreamYieldsTheSyntaxErrorAsItsLastValue(): void
+    {
+        $values = iterator_to_array(tryStream(self::line(), self::source("aé\nbb\ncç1\nd\n"), 2), false);
+
+        self::assertCount(3, $values);
+        self::assertSame(['aé', 'bb'], \array_slice($values, 0, 2));
+        self::assertInstanceOf(SyntaxError::class, $values[2]);
+        self::assertSame('Expected "\n", got "1" at line 3, column 3', $values[2]->getMessage());
+        self::assertEquals(new Failure(['"\n"'], 10), $values[2]->failure);
+        self::assertEquals(new Position(3, 3), $values[2]->position);
+    }
+
+    #[Test]
+    public function tryStreamYieldsEachItemOfAValidSource(): void
+    {
+        self::assertSame(['aé', 'bb'], iterator_to_array(tryStream(self::line(), self::source("aé\nbb\n"), 2), false));
+    }
+
+    #[Test]
+    public function tryStreamThrowsAnItemConsumingNothing(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Item parser succeeded without consuming input at offset 0');
+
+        iterator_to_array(tryStream(char('a') |> optional(), self::source('b')));
     }
 
     #[Test]
