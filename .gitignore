@@ -3,3 +3,4 @@ tmp/
 vendor/
 .phpbench/
 .phpunit.cache/
+benchmarks/nom/target/
