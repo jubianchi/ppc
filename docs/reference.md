@@ -585,7 +585,12 @@ assert($lines === [
 
 ## Runners
 
-Runners run a parser on an input and give back its value.
+Runners run a parser on an input and give back its value. Each comes in two variants: `parse()` and `stream()` throw
+syntax errors, `tryParse()` and `tryStream()` return them. Other errors, like a parser returning `Incomplete` on a
+complete input, are programming errors thrown by both.
+
+A `SyntaxError` tells what was expected, what was found and where in its message. It also holds the `Failure` in its
+`failure` property, and the line and column of the error, in chars, in its `position` property.
 
 ### parse
 
@@ -593,8 +598,7 @@ Runners run a parser on an input and give back its value.
 function parse(\Closure $parser, string $input): mixed
 ```
 
-Runs the parser from the start of the input and returns its value. On failure, it throws a `SyntaxError` whose message
-tells what was expected, what was found and where. The `Failure` is available through its `failure` property.
+Runs the parser from the start of the input and returns its value. On failure, it throws a `SyntaxError`.
 
 ```php
 <?php
@@ -612,7 +616,33 @@ try {
 } catch (SyntaxError $error) {
     assert($error->getMessage() === 'Expected "a" or "b", got "\n" at line 1, column 3');
     assert($error->failure->offset === 2);
+    assert($error->position->line === 1 && $error->position->column === 3);
 }
+```
+
+### tryParse
+
+```phps
+function tryParse(\Closure $parser, string $input): mixed
+```
+
+Like [`parse`](#parse), but returns the `SyntaxError` instead of throwing it.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{many, char, seq, tryParse};
+
+$parser = seq(many(char('a')), char('b'));
+
+assert(tryParse($parser, 'aab') === [['a', 'a'], 'b']);
+
+$error = tryParse($parser, "aa\nc");
+
+assert($error instanceof SyntaxError);
+assert($error->getMessage() === 'Expected "a" or "b", got "\n" at line 1, column 3');
 ```
 
 ### stream
@@ -652,4 +682,34 @@ foreach (stream($record, $source, chunk: 4) as $value) {
 }
 
 assert($records === [1 => 'ppc', 2 => 'parser', 3 => 'combinator']);
+```
+
+### tryStream
+
+```phps
+function tryStream(\Closure $item, resource $source, int $chunk = 8192): \Generator
+```
+
+Like [`stream`](#stream), but yields the `SyntaxError` instead of throwing it. Parsing cannot resume after an error: the
+`SyntaxError` is the last value, after all the valid items before it.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{char, map, regex, seq, tryStream};
+
+$source = fopen('php://memory', 'w+');
+fwrite($source, "1,ppc\n2,parser\nthree,combinator\n");
+rewind($source);
+
+$record = seq(regex('/[0-9]+/', 1), char(','), regex('/[a-z]+/', 1), char("\n"))
+    |> map(static fn (array $values): string => $values[2]);
+
+$values = iterator_to_array(tryStream($record, $source, chunk: 4), false);
+
+assert(array_slice($values, 0, 2) === ['ppc', 'parser']);
+assert($values[2] instanceof SyntaxError);
+assert($values[2]->position->line === 3 && $values[2]->position->column === 1);
 ```
