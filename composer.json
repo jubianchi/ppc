@@ -54,7 +54,7 @@
         "test:examples": "phpunit --testdox --testsuite Examples",
         "test:docs": "phpunit --testdox --testsuite Documentation",
         "test:coverage": [
-            "@php -d pcov.enabled=1 vendor/bin/phpunit --testsuite Unit --coverage-clover tmp/clover.xml",
+            "@php -d pcov.enabled=1 -d zend.assertions=1 vendor/bin/phpunit --testsuite Unit --coverage-clover tmp/clover.xml",
             "@php tools/check-coverage.php tmp/clover.xml"
         ],
         "dev:docs": [
