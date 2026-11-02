@@ -92,6 +92,36 @@ final class StreamTest extends TestCase
     }
 
     #[Test]
+    public function rejectsANonPositiveChunkSize(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Expected a positive chunk size, got 0');
+
+        iterator_to_array(stream(self::line(), self::source("a\n"), 0));
+    }
+
+    #[Test]
+    public function rejectsAnItemIncompleteOnACompleteInput(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Item parser returned Incomplete on a complete input');
+
+        iterator_to_array(stream(self::alwaysIncomplete(), self::source('a')));
+    }
+
+    #[Test]
+    public function reportsAnUnreadableSource(): void
+    {
+        $source = fopen('php://output', 'w');
+        self::assertIsResource($source);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Unable to read from the source');
+
+        iterator_to_array(stream(self::line(), $source));
+    }
+
+    #[Test]
     public function keepsTheBufferBoundedByTheLargestItem(): void
     {
         $source = self::source('');
@@ -126,6 +156,14 @@ final class StreamTest extends TestCase
     private static function line(): \Closure
     {
         return seq(regex('/\p{L}+/u', 1), char("\n")) |> map(static fn (array $values): mixed => $values[0]);
+    }
+
+    /**
+     * @return \Closure(string, int, bool=): (Success<never>|Failure|Incomplete)
+     */
+    private static function alwaysIncomplete(): \Closure
+    {
+        return static fn (string $input, int $offset, bool $partial = false): Incomplete => new Incomplete();
     }
 
     /**
