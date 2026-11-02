@@ -33,7 +33,7 @@ use function jubianchi\PPC\label;
 use function jubianchi\PPC\many;
 use function jubianchi\PPC\many1;
 use function jubianchi\PPC\map;
-use function jubianchi\PPC\opt;
+use function jubianchi\PPC\optional;
 use function jubianchi\PPC\preceded;
 use function jubianchi\PPC\recursive;
 use function jubianchi\PPC\repeat;
@@ -60,7 +60,7 @@ final class IncompleteTest extends TestCase
         yield 'seq' => [seq(char('a'), $stub), 'a'];
         yield 'alt does not try the next parser' => [alt($stub, char('a')), 'a'];
         yield 'alt after a failure' => [alt(char('b'), $stub), 'a'];
-        yield 'opt' => [opt($stub), 'a'];
+        yield 'optional' => [$stub |> optional(), 'a'];
         yield 'many' => [many($stub), 'a'];
         yield 'many after a success' => [many(alt(char('a'), $stub)), 'ab'];
         yield 'many1' => [many1($stub), 'a'];

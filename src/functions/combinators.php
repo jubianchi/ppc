@@ -80,24 +80,6 @@ function alt(\Closure $first, \Closure ...$parsers): \Closure
 }
 
 /**
- * @template T
- * @template D
- *
- * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser
- * @param D                                                             $default
- *
- * @return \Closure(string, int, bool=): (Success<T|D>|Incomplete)
- */
-function opt(\Closure $parser, mixed $default = null): \Closure
-{
-    return static function (string $input, int $offset, bool $partial = false) use ($parser, $default): Result {
-        $result = $parser($input, $offset, $partial);
-
-        return $result instanceof Failure ? new Success($default, $offset, $result) : $result;
-    };
-}
-
-/**
  * Matches the parser zero or more times.
  *
  * The returned parser throws a LogicException when the parser succeeds without consuming input,

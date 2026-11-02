@@ -268,25 +268,6 @@ $boolean = alt(word('true'), word('false'));
 assert(parse($boolean, 'false') === 'false');
 ```
 
-### opt
-
-```phps
-function opt(\Closure $parser, mixed $default = null): \Closure
-```
-
-Matches the parser or nothing. When the parser fails, its value is the default.
-
-```php
-<?php
-
-use function jubianchi\PPC\{char, opt, parse, seq};
-
-$signed = seq(opt(char('-'), '+'), char('1'));
-
-assert(parse($signed, '1') === ['+', '1']);
-assert(parse($signed, '-1') === ['-', '1']);
-```
-
 ### many / many1
 
 ```phps
@@ -584,6 +565,25 @@ try {
 }
 ```
 
+### optional
+
+```phps
+function optional(mixed $default = null): \Closure
+```
+
+Matches the parser or nothing. When the parser fails, its value is the default, and no input is consumed.
+
+```php
+<?php
+
+use function jubianchi\PPC\{char, optional, parse, seq};
+
+$signed = seq(char('-') |> optional('+'), char('1'));
+
+assert(parse($signed, '1') === ['+', '1']);
+assert(parse($signed, '-1') === ['-', '1']);
+```
+
 ### capture
 
 ```phps
@@ -595,9 +595,9 @@ Replaces the value of the parser with the text it consumed.
 ```php
 <?php
 
-use function jubianchi\PPC\{capture, char, opt, parse, regex, seq};
+use function jubianchi\PPC\{capture, char, optional, parse, regex, seq};
 
-$decimal = seq(regex('/[0-9]+/'), opt(seq(char('.'), regex('/[0-9]+/')))) |> capture();
+$decimal = seq(regex('/[0-9]+/'), seq(char('.'), regex('/[0-9]+/')) |> optional()) |> capture();
 
 assert(parse($decimal, '3.14') === '3.14');
 ```

@@ -29,7 +29,7 @@ use function jubianchi\PPC\enclosed;
 use function jubianchi\PPC\many;
 use function jubianchi\PPC\many1;
 use function jubianchi\PPC\map;
-use function jubianchi\PPC\opt;
+use function jubianchi\PPC\optional;
 use function jubianchi\PPC\repeat;
 use function jubianchi\PPC\separated;
 use function jubianchi\PPC\seq;
@@ -57,7 +57,7 @@ final class ResultTest extends TestCase
 
         yield 'seq' => [seq($invalid)];
         yield 'alt' => [alt($invalid)];
-        yield 'opt' => [opt($invalid)];
+        yield 'optional' => [$invalid |> optional()];
         yield 'many' => [many($invalid)];
         yield 'many1' => [many1($invalid)];
         yield 'repeat' => [repeat(1, $invalid)];

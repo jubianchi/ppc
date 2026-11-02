@@ -21,7 +21,7 @@ use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\char;
 use function jubianchi\PPC\many1;
-use function jubianchi\PPC\opt;
+use function jubianchi\PPC\optional;
 use function jubianchi\PPC\separated;
 
 /**
@@ -68,6 +68,6 @@ final class SeparatedTest extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        separated(opt(char(',')), opt(char('a')))(']', 0);
+        separated(char(',') |> optional(), char('a') |> optional())(']', 0);
     }
 }

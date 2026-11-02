@@ -21,7 +21,7 @@ use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\char;
 use function jubianchi\PPC\many;
-use function jubianchi\PPC\opt;
+use function jubianchi\PPC\optional;
 use function jubianchi\PPC\seq;
 use function jubianchi\PPC\word;
 
@@ -63,7 +63,7 @@ final class SeqTest extends TestCase
     {
         self::assertEquals(
             new Failure(['"b"'], 2),
-            seq(opt(seq(char('a'), char('a'), char('b'))), char('c'))('aax', 0),
+            seq(seq(char('a'), char('a'), char('b')) |> optional(), char('c'))('aax', 0),
         );
     }
 
@@ -72,7 +72,7 @@ final class SeqTest extends TestCase
     {
         self::assertEquals(
             new Success([['a'], null], 1, new Failure(['"a"', '"b"'], 1)),
-            seq(many(char('a')), opt(char('b')))('ac', 0),
+            seq(many(char('a')), char('b') |> optional())('ac', 0),
         );
     }
 }
