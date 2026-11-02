@@ -35,6 +35,7 @@
             "jubianchi\\PPC\\Benchmarks\\": ["benchmarks"],
             "jubianchi\\PPC\\Tests\\": ["tests/unit"],
             "jubianchi\\PPC\\Tests\\Docs\\": ["tests/docs"],
+            "jubianchi\\PPC\\Tests\\Examples\\": ["tests/examples"],
             "jubianchi\\PPC\\Tools\\": ["tools"]
         },
         "files": [
@@ -46,7 +47,7 @@
         "bm:ref": "phpbench run --report=aggregate --tag=reference --ansi",
         "bmc": "phpbench run --report=aggregate --ref=reference --ansi",
         "cov": [
-            "@php -d pcov.enabled=1 -d pcov.directory=. vendor/bin/phpunit --testsuite PPC --coverage-clover tmp/clover.xml",
+            "@php -d pcov.enabled=1 vendor/bin/phpunit --testsuite Unit --coverage-clover tmp/clover.xml",
             "@php tools/check-coverage.php tmp/clover.xml"
         ],
         "cs": "php-cs-fixer fix --ansi --allow-risky=yes",
