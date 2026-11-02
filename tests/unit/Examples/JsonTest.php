@@ -58,6 +58,14 @@ final class JsonTest extends TestCase
     }
 
     #[Test]
+    public function decodesUnicodeEscapeSequences(): void
+    {
+        $json = '"'.implode('', array_map(static fn (string $code): string => '\\u'.$code, ['00e9', '65e5', 'd83c', 'df89'])).'"';
+
+        self::assertSame(json_decode($json, flags: \JSON_THROW_ON_ERROR), parse(json(), $json));
+    }
+
+    #[Test]
     #[TestWith(['{"a": tru}', 'Expected value, got "t" at line 1, column 7'])]
     #[TestWith(['[1, "x]', 'Expected character, escape sequence or "\"", got end of input at line 1, column 8'])]
     #[TestWith(["{\n  \"a\": [1, 2 3]\n}", 'Expected "," or "]", got "3" at line 2, column 14'])]
