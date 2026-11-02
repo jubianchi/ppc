@@ -60,7 +60,6 @@ final class IncompleteTest extends TestCase
         yield 'seq' => [seq(char('a'), $stub), 'a'];
         yield 'alt does not try the next parser' => [alt($stub, char('a')), 'a'];
         yield 'alt after a failure' => [alt(char('b'), $stub), 'a'];
-        yield 'optional' => [$stub |> optional(), 'a'];
         yield 'many' => [many($stub), 'a'];
         yield 'many after a success' => [many(alt(char('a'), $stub)), 'ab'];
         yield 'many1' => [many1($stub), 'a'];
@@ -86,6 +85,7 @@ final class IncompleteTest extends TestCase
         yield 'recursive' => [recursive(static fn (\Closure $self): \Closure => $stub), 'a'];
         yield 'map' => [$stub |> map(static fn (mixed $value): mixed => $value), 'a'];
         yield 'label' => [$stub |> label('stub'), 'a'];
+        yield 'optional' => [$stub |> optional(), 'a'];
         yield 'capture' => [$stub |> capture(), 'a'];
         yield 'debug' => [$stub |> debug('stub', static fn (string $line): null => null), 'a'];
     }

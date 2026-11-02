@@ -57,13 +57,13 @@ final class ResultTest extends TestCase
 
         yield 'seq' => [seq($invalid)];
         yield 'alt' => [alt($invalid)];
-        yield 'optional' => [$invalid |> optional()];
         yield 'many' => [many($invalid)];
         yield 'many1' => [many1($invalid)];
         yield 'repeat' => [repeat(1, $invalid)];
         yield 'separated' => [separated(char(','), $invalid)];
         yield 'enclosed' => [enclosed(char('('), $invalid)];
         yield 'map' => [$invalid |> map(strtoupper(...))];
+        yield 'optional' => [$invalid |> optional()];
         yield 'capture' => [$invalid |> capture()];
     }
 
