@@ -33,6 +33,7 @@ use function jubianchi\PPC\label;
 use function jubianchi\PPC\many;
 use function jubianchi\PPC\many1;
 use function jubianchi\PPC\map;
+use function jubianchi\PPC\negate;
 use function jubianchi\PPC\optional;
 use function jubianchi\PPC\peek;
 use function jubianchi\PPC\preceded;
@@ -89,6 +90,7 @@ final class IncompleteTest extends TestCase
         yield 'optional' => [$stub |> optional(), 'a'];
         yield 'capture' => [$stub |> capture(), 'a'];
         yield 'peek' => [$stub |> peek(), 'a'];
+        yield 'negate' => [$stub |> negate(), 'a'];
         yield 'debug' => [$stub |> debug('stub', static fn (string $line): null => null), 'a'];
     }
 
