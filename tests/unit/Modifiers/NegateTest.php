@@ -19,6 +19,7 @@ use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+use function jubianchi\PPC\eos;
 use function jubianchi\PPC\negate;
 use function jubianchi\PPC\regex;
 use function jubianchi\PPC\word;
@@ -42,6 +43,14 @@ final class NegateTest extends TestCase
     {
         $parser = word('fy') |> negate();
 
-        self::assertEquals(new Failure(['anything but "fy"'], 2), $parser('iffy', 2));
+        self::assertEquals(new Failure(['anything but "fy"'], 2, 2), $parser('iffy', 2));
+    }
+
+    #[Test]
+    public function comparesAtLeastOneCharWhenTheParserMatchesNothing(): void
+    {
+        $parser = eos() |> negate();
+
+        self::assertEquals(new Failure(['anything but ""'], 1, 1), $parser('a', 1));
     }
 }

@@ -39,6 +39,7 @@ final class AnyButTest extends TestCase
     public function failsWhenTheParserMatches(): void
     {
         self::assertEquals(new Failure(['anything but "\""'], 1), anyBut(char('"'))('a"', 1));
+        self::assertEquals(new Failure(['anything but "*/"'], 1, 2), anyBut(word('*/'))('a*/', 1));
     }
 
     #[Test]
