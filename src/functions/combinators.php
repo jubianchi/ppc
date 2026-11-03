@@ -444,6 +444,37 @@ function enclosed(\Closure $before, \Closure $parser, ?\Closure $after = null): 
 }
 
 /**
+ * Builds the next parser from the value of the parser, and runs it where the parser stopped, e.g. to match a closing
+ * tag with the name read in the opening one.
+ *
+ * @template T
+ * @template U
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)                 $parser
+ * @param \Closure(T): (\Closure(string, int, bool=): (Success<U>|Failure|Incomplete)) $next
+ *
+ * @return \Closure(string, int, bool=): (Success<U>|Failure|Incomplete)
+ */
+function bind(\Closure $parser, \Closure $next): \Closure
+{
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $next): Result {
+        $result = $parser($input, $offset, $partial);
+
+        if (!$result instanceof Success) {
+            return $result;
+        }
+
+        $bound = $next($result->value)($input, $result->offset, $partial);
+
+        if (!$bound instanceof Success) {
+            return $bound instanceof Failure ? furthest($result->hint, $bound) : $bound;
+        }
+
+        return new Success($bound->value, $bound->offset, furthest($result->hint, $bound->hint));
+    };
+}
+
+/**
  * Consumes one char when the parser does not match at the offset.
  *
  * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $parser

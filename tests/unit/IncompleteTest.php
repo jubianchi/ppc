@@ -23,6 +23,7 @@ use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\alt;
 use function jubianchi\PPC\anyBut;
+use function jubianchi\PPC\bind;
 use function jubianchi\PPC\capture;
 use function jubianchi\PPC\chainLeft;
 use function jubianchi\PPC\chainRight;
@@ -83,6 +84,8 @@ final class IncompleteTest extends TestCase
         yield 'enclosed before' => [enclosed($stub, char('a')), 'a'];
         yield 'enclosed parser' => [enclosed(char('('), $stub, char(')')), '('];
         yield 'enclosed after' => [enclosed(char('('), char('a'), $stub), '(a'];
+        yield 'bind parser' => [bind($stub, static fn (): \Closure => char('a')), 'a'];
+        yield 'bind built parser' => [bind(char('a'), static fn (): \Closure => $stub), 'a'];
         yield 'anyBut' => [anyBut($stub), 'a'];
         yield 'recursive' => [recursive(static fn (\Closure $self): \Closure => $stub), 'a'];
         yield 'map' => [$stub |> map(static fn (mixed $value): mixed => $value), 'a'];
