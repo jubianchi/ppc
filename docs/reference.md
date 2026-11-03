@@ -141,6 +141,36 @@ use function jubianchi\PPC\{parse, regex};
 assert(parse(regex('/[0-9]+/'), '2026') === '2026');
 ```
 
+### takeWhile
+
+```phps
+function takeWhile(\Closure $predicate, int $min = 0): \Closure
+```
+
+Matches the chars for which the predicate returns `true`, at least `$min` of them. Its value is the matched text, empty
+when no char matches and `$min` is 0. The predicate receives each UTF-8 char, and is called once per char.
+
+Unlike `regex()`, it knows when it reaches the end of the input: when [streaming](#stream), it asks for more input only
+then, whatever the length of the match.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{parse, takeWhile};
+
+$identifier = takeWhile(static fn (string $char): bool => ctype_alnum($char) || '_' === $char, 1);
+
+assert(parse($identifier, 'snake_case') === 'snake_case');
+
+try {
+    parse($identifier, '-');
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected matching char, got "-" at line 1, column 1');
+}
+```
+
 ### any
 
 ```phps
