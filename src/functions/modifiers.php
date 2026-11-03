@@ -127,14 +127,14 @@ function labelled(\Closure $parser, string $label): \Closure
         $result = $parser($input, $offset, $partial);
 
         if ($result instanceof Failure) {
-            return $result->offset === $offset ? new Failure($expected, $offset) : $result;
+            return $result->offset === $offset ? new Failure($expected, $offset, $result->length) : $result;
         }
 
         if ($result instanceof Incomplete) {
             return $result;
         }
 
-        return $result->hint?->offset === $offset ? new Success($result->value, $result->offset, new Failure($expected, $offset)) : $result;
+        return $result->hint?->offset === $offset ? new Success($result->value, $result->offset, new Failure($expected, $offset, $result->hint->length)) : $result;
     };
 }
 
