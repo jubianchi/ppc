@@ -439,7 +439,7 @@ assert(parse(alt($element, regex('/.*/')), '<b>bold</i>') === '<b>bold</i>');
 try {
     parse($element, '<b>bold</i>');
 } catch (SyntaxError $error) {
-    assert($error->getMessage() === 'Expected "</b>", got "<" at line 1, column 8');
+    assert($error->getMessage() === 'Expected "</b>", got "</i>" at line 1, column 8');
 }
 
 $netstring = bind(

@@ -43,7 +43,7 @@ final class BindTest extends TestCase
     #[Test]
     public function failsWhereTheBuiltParserFails(): void
     {
-        self::assertEquals(new Failure(['"</b>"'], 7), self::element()('<b>bold</i>', 0));
+        self::assertEquals(new Failure(['"</b>"'], 7, 4), self::element()('<b>bold</i>', 0));
     }
 
     #[Test]

@@ -37,12 +37,15 @@ final class PrecededTest extends TestCase
         self::assertEquals(new Success('ab', 3), preceded(char('-'), word('ab'))('-ab', 0));
     }
 
+    /**
+     * @param positive-int $length
+     */
     #[Test]
-    #[TestWith(['+ab', 0, '"-"'])]
-    #[TestWith(['-ac', 1, '"ab"'])]
-    public function failsOnAnyMissingPart(string $input, int $offset, string $expected): void
+    #[TestWith(['+ab', 0, '"-"', 1])]
+    #[TestWith(['-ac', 1, '"ab"', 2])]
+    public function failsOnAnyMissingPart(string $input, int $offset, string $expected, int $length): void
     {
-        self::assertEquals(new Failure([$expected], $offset), preceded(char('-'), word('ab'))($input, 0));
+        self::assertEquals(new Failure([$expected], $offset, $length), preceded(char('-'), word('ab'))($input, 0));
     }
 
     #[Test]

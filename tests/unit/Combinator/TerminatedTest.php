@@ -37,12 +37,15 @@ final class TerminatedTest extends TestCase
         self::assertEquals(new Success('ab', 3), terminated(word('ab'), char(';'))('ab;', 0));
     }
 
+    /**
+     * @param positive-int $length
+     */
     #[Test]
-    #[TestWith(['ac;', 0, '"ab"'])]
-    #[TestWith(['ab,', 2, '";"'])]
-    public function failsOnAnyMissingPart(string $input, int $offset, string $expected): void
+    #[TestWith(['ac;', 0, '"ab"', 2])]
+    #[TestWith(['ab,', 2, '";"', 1])]
+    public function failsOnAnyMissingPart(string $input, int $offset, string $expected, int $length): void
     {
-        self::assertEquals(new Failure([$expected], $offset), terminated(word('ab'), char(';'))($input, 0));
+        self::assertEquals(new Failure([$expected], $offset, $length), terminated(word('ab'), char(';'))($input, 0));
     }
 
     #[Test]
