@@ -489,7 +489,9 @@ function anyBut(\Closure $parser): \Closure
         $result = $parser($input, $offset, $partial);
 
         if ($result instanceof Success) {
-            return new Failure(['anything but '.quote(substr($input, $offset, $result->offset - $offset))], $offset);
+            $matched = substr($input, $offset, $result->offset - $offset);
+
+            return new Failure(['anything but '.quote($matched)], $offset, max(1, mb_strlen($matched)));
         }
 
         return $result instanceof Failure ? $any($input, $offset, $partial) : $result;

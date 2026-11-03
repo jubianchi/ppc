@@ -198,11 +198,13 @@ function negated(\Closure $parser): \Closure
     return static function (string $input, int $offset, bool $partial = false) use ($parser): Result {
         $result = $parser($input, $offset, $partial);
 
-        return match (true) {
-            $result instanceof Success => new Failure(['anything but '.quote(substr($input, $offset, $result->offset - $offset))], $offset),
-            $result instanceof Failure => new Success(null, $offset),
-            default => $result,
-        };
+        if (!$result instanceof Success) {
+            return $result instanceof Failure ? new Success(null, $offset) : $result;
+        }
+
+        $matched = substr($input, $offset, $result->offset - $offset);
+
+        return new Failure(['anything but '.quote($matched)], $offset, max(1, mb_strlen($matched)));
     };
 }
 
