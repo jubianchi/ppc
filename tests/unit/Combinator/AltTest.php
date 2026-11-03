@@ -81,4 +81,13 @@ final class AltTest extends TestCase
             alt(char('a'), char('b'), char('c'))('x', 0),
         );
     }
+
+    #[Test]
+    public function keepsTheShortestComparedLengthOfFailuresAtTheSameOffset(): void
+    {
+        self::assertEquals(
+            new Failure(['"true"', '"no"', '"false"'], 0, 2),
+            alt(word('true'), word('no'), word('false'))('x', 0),
+        );
+    }
 }
