@@ -119,6 +119,17 @@ function takeWhile(\Closure $predicate, int $min = 0): \Closure
         $count = 0;
 
         while (true) {
+            if (isset($input[$position]) && $input[$position] < "\x80") {
+                if (!$predicate($input[$position])) {
+                    break;
+                }
+
+                ++$position;
+                ++$count;
+
+                continue;
+            }
+
             $char = $any($input, $position, $partial);
 
             if ($char instanceof Incomplete) {
