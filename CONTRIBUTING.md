@@ -89,7 +89,7 @@ Combinators:
 
 A modifier runs its parser **once, at the offset it is given**, and only transforms the result: the value (`map()`),
 the error (`label()`), the value replaced by the matched text (`capture()`), or a failure turned into a success
-(`optional()`). It may give back the input the parser consumed, but **never consumes more**.
+(`optional()`). It may give back the input the parser consumed (`peek()`, `negate()`), but **never consumes more**.
 
 Modifiers are always applied with the pipe operator, so that `|>` tells at a glance that no more input is read:
 

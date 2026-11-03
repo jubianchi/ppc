@@ -417,7 +417,8 @@ assert(parse($pair, 'key=value') === ['key', 'value']);
 function anyBut(\Closure $parser): \Closure
 ```
 
-Matches any char, unless the parser matches at the offset.
+Matches any char, unless the parser matches at the offset. To check what comes next without consuming it, use
+[`negate`](#negate).
 
 ```php
 <?php
@@ -551,6 +552,52 @@ use function jubianchi\PPC\{capture, char, optional, parse, regex, seq};
 $decimal = seq(regex('/[0-9]+/'), seq(char('.'), regex('/[0-9]+/')) |> optional()) |> capture();
 
 assert(parse($decimal, '3.14') === '3.14');
+```
+
+### peek
+
+```phps
+function peek(): \Closure
+```
+
+Looks ahead: succeeds with the value of the parser, without consuming input.
+
+```php
+<?php
+
+use function jubianchi\PPC\{parse, peek, regex, seq};
+
+$signed = seq(regex('/[+-]/') |> peek(), regex('/[+-][0-9]+/'));
+
+assert(parse($signed, '-1') === ['-', '-1']);
+```
+
+### negate
+
+```phps
+function negate(): \Closure
+```
+
+Negative lookahead: succeeds with `null` when the parser fails, and fails when it succeeds, never consuming input. Unlike
+[`anyBut`](#anybut), which consumes a char, it only checks what comes next, e.g. to keep a keyword from matching the
+start of a longer word.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{char, negate, parse, regex, seq, terminated, word};
+
+$if = terminated(word('if'), regex('/\w/') |> negate());
+
+assert(parse(seq($if, char(' '), char('x')), 'if x') === ['if', ' ', 'x']);
+
+try {
+    parse(seq($if, char(' '), char('x')), 'iffy x');
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected anything but "f", got "f" at line 1, column 3');
+}
 ```
 
 ### debug
