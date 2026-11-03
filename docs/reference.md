@@ -411,6 +411,48 @@ $pair = seq(terminated(regex('/[a-z]+/'), char('=')), regex('/[a-z]+/'));
 assert(parse($pair, 'key=value') === ['key', 'value']);
 ```
 
+### bind
+
+```phps
+function bind(\Closure $parser, \Closure $next): \Closure
+```
+
+Builds the next parser from the value of the parser, and runs it where the parser stopped. Its value is the value of the
+next parser. It makes the grammar depend on what was read before: a closing tag matching the opening one, a
+length-prefixed field…
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{alt, any, bind, capture, char, enclosed, map, parse, regex, repeat, terminated, word};
+
+$element = bind(
+    enclosed(char('<'), regex('/\w+/'), char('>')),
+    static fn (string $tag): \Closure => terminated(regex('/[^<]*/'), word("</{$tag}>")),
+);
+
+assert(parse($element, '<b>bold</b>') === 'bold');
+assert(parse(alt($element, regex('/.*/')), '<b>bold</i>') === '<b>bold</i>');
+
+try {
+    parse($element, '<b>bold</i>');
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected "</b>", got "<" at line 1, column 8');
+}
+
+$netstring = bind(
+    regex('/[0-9]+/') |> map(intval(...)),
+    static fn (int $length): \Closure => enclosed(char(':'), repeat($length, any()) |> capture(), char(',')),
+);
+
+assert(parse($netstring, '5:hello,') === 'hello');
+```
+
+A check made in a `map()` instead could only throw an exception: unlike a failure, it has no position and `alt()` cannot
+try the next alternative.
+
 ### anyBut
 
 ```phps
