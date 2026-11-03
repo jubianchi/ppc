@@ -61,6 +61,16 @@ function capture(): \Closure
 }
 
 /**
+ * Looks ahead: succeeds with the value of the parser, without consuming input.
+ *
+ * @return \Closure<T>(\Closure(string, int, bool=): (Success<T>|Failure|Incomplete)): (\Closure(string, int, bool=): (Success<T>|Failure|Incomplete))
+ */
+function peek(): \Closure
+{
+    return static fn (\Closure $parser): \Closure => peeked($parser);
+}
+
+/**
  * Traces each run of the parser, e.g. debug('value', error_log(...)).
  *
  * @param \Closure(string): mixed $write
@@ -147,6 +157,22 @@ function captured(\Closure $parser): \Closure
         $result = $parser($input, $offset, $partial);
 
         return $result instanceof Success ? new Success(substr($input, $offset, $result->offset - $offset), $result->offset, $result->hint) : $result;
+    };
+}
+
+/**
+ * @internal
+ *
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $parser
+ *
+ * @return \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete)
+ */
+function peeked(\Closure $parser): \Closure
+{
+    return static function (string $input, int $offset, bool $partial = false) use ($parser): Result {
+        $result = $parser($input, $offset, $partial);
+
+        return $result instanceof Success ? new Success($result->value, $offset, $result->hint) : $result;
     };
 }
 

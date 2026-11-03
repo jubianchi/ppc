@@ -34,6 +34,7 @@ use function jubianchi\PPC\many;
 use function jubianchi\PPC\many1;
 use function jubianchi\PPC\map;
 use function jubianchi\PPC\optional;
+use function jubianchi\PPC\peek;
 use function jubianchi\PPC\preceded;
 use function jubianchi\PPC\recursive;
 use function jubianchi\PPC\repeat;
@@ -87,6 +88,7 @@ final class IncompleteTest extends TestCase
         yield 'label' => [$stub |> label('stub'), 'a'];
         yield 'optional' => [$stub |> optional(), 'a'];
         yield 'capture' => [$stub |> capture(), 'a'];
+        yield 'peek' => [$stub |> peek(), 'a'];
         yield 'debug' => [$stub |> debug('stub', static fn (string $line): null => null), 'a'];
     }
 
