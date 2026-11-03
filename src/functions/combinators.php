@@ -450,7 +450,7 @@ function enclosed(\Closure $before, \Closure $parser, ?\Closure $after = null): 
  * @template T
  * @template U
  *
- * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)                 $parser
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)                $parser
  * @param \Closure(T): (\Closure(string, int, bool=): (Success<U>|Failure|Incomplete)) $next
  *
  * @return \Closure(string, int, bool=): (Success<U>|Failure|Incomplete)
