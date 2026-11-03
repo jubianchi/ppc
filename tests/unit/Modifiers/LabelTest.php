@@ -25,6 +25,7 @@ use function jubianchi\PPC\label;
 use function jubianchi\PPC\many;
 use function jubianchi\PPC\optional;
 use function jubianchi\PPC\seq;
+use function jubianchi\PPC\word;
 
 /**
  * @internal
@@ -46,6 +47,22 @@ final class LabelTest extends TestCase
         $parser = alt(char('0'), char('1')) |> label('digit');
 
         self::assertEquals(new Failure(['digit'], 0), $parser('x', 0));
+    }
+
+    #[Test]
+    public function keepsTheComparedLengthOfAFailureWithoutProgress(): void
+    {
+        $parser = word('true') |> label('boolean');
+
+        self::assertEquals(new Failure(['boolean'], 0, 4), $parser('null', 0));
+    }
+
+    #[Test]
+    public function keepsTheComparedLengthOfAHintWithoutProgress(): void
+    {
+        $parser = word('true') |> optional() |> label('boolean');
+
+        self::assertEquals(new Success(null, 0, new Failure(['boolean'], 0, 4)), $parser('null', 0));
     }
 
     #[Test]

@@ -64,7 +64,7 @@ instead of failing, and `stream` reads more bytes before parsing the entry again
 Errors are reported at their position in the whole input, not in the chunk being parsed:
 
 ```phps
-// SyntaxError: Expected HTTP method, got "P" at line 2, column 1
+// SyntaxError: Expected HTTP method, got "PUT" at line 2, column 1
 ```
 
 ## Wrapping everything together
@@ -111,7 +111,7 @@ rewind($source);
 try {
     iterator_to_array(stream($entry, $source, chunk: 4));
 } catch (SyntaxError $error) {
-    assert($error->getMessage() === 'Expected HTTP method, got "P" at line 2, column 1');
+    assert($error->getMessage() === 'Expected HTTP method, got "PUT" at line 2, column 1');
 }
 ```
 
