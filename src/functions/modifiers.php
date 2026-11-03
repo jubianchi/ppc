@@ -71,6 +71,16 @@ function peek(): \Closure
 }
 
 /**
+ * Negative lookahead: succeeds with null when the parser fails, fails when it succeeds, never consuming input.
+ *
+ * @return \Closure(\Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete)): (\Closure(string, int, bool=): (Success<null>|Failure|Incomplete))
+ */
+function negate(): \Closure
+{
+    return static fn (\Closure $parser): \Closure => negated($parser);
+}
+
+/**
  * Traces each run of the parser, e.g. debug('value', error_log(...)).
  *
  * @param \Closure(string): mixed $write
@@ -173,6 +183,26 @@ function peeked(\Closure $parser): \Closure
         $result = $parser($input, $offset, $partial);
 
         return $result instanceof Success ? new Success($result->value, $offset, $result->hint) : $result;
+    };
+}
+
+/**
+ * @internal
+ *
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $parser
+ *
+ * @return \Closure(string, int, bool=): (Success<null>|Failure|Incomplete)
+ */
+function negated(\Closure $parser): \Closure
+{
+    return static function (string $input, int $offset, bool $partial = false) use ($parser): Result {
+        $result = $parser($input, $offset, $partial);
+
+        return match (true) {
+            $result instanceof Success => new Failure(['anything but '.quote(substr($input, $offset, $result->offset - $offset))], $offset),
+            $result instanceof Failure => new Success(null, $offset),
+            default => $result,
+        };
     };
 }
 
