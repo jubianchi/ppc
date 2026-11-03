@@ -86,6 +86,22 @@ final class ParseTest extends TestCase
     }
 
     #[Test]
+    public function showsAsManyCharsAsTheFailureCompared(): void
+    {
+        $this->expectExceptionMessage('Expected "true", got "été!" at line 1, column 2');
+
+        parse(self::failWith(new Failure(['"true"'], 1, 4)), '[été!]');
+    }
+
+    #[Test]
+    public function showsTheCharsLeftWhenTheInputEndsBeforeTheComparedLength(): void
+    {
+        $this->expectExceptionMessage('Expected "true", got "tr" at line 1, column 2');
+
+        parse(self::failWith(new Failure(['"true"'], 1, 4)), '[tr');
+    }
+
+    #[Test]
     public function reportsTheEndOfInput(): void
     {
         $this->expectExceptionMessage('Expected "]", got end of input at line 1, column 4');

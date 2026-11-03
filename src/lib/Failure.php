@@ -20,10 +20,12 @@ final readonly class Failure implements Result
 {
     /**
      * @param list<string> $expected
+     * @param positive-int $length   the number of chars the parser compared, shown in error messages
      */
     public function __construct(
         public array $expected,
         public int $offset,
+        public int $length = 1,
     ) {
     }
 }

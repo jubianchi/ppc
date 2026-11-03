@@ -71,8 +71,22 @@ function explain(Failure $failure, string $input, int $line = 1, int $column = 1
     $last = array_pop($expected);
     $expected = [] === $expected ? $last : implode(', ', $expected).' or '.$last;
 
-    $actual = any()($input, $failure->offset);
-    $actual = $actual instanceof Success ? quote($actual->value) : 'end of input';
+    $any = any();
+    $offset = $failure->offset;
+    $actual = '';
+
+    for ($count = 0; $count < $failure->length; ++$count) {
+        $char = $any($input, $offset);
+
+        if (!$char instanceof Success) {
+            break;
+        }
+
+        $actual .= $char->value;
+        $offset = $char->offset;
+    }
+
+    $actual = '' === $actual ? 'end of input' : quote($actual);
 
     return \sprintf('Expected %s, got %s at %s', $expected, $actual, position($input, $failure->offset, $line, $column));
 }
