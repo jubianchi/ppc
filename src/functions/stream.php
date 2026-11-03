@@ -92,7 +92,7 @@ function tryStream(\Closure $item, $source, int $chunk = 8192): \Generator
         }
 
         if ($result instanceof Failure) {
-            yield new SyntaxError(new Failure($result->expected, $dropped + $result->offset), locate($buffer, $result->offset, $line, $column), explain($result, $buffer, $line, $column));
+            yield new SyntaxError(new Failure($result->expected, $dropped + $result->offset, $result->length), locate($buffer, $result->offset, $line, $column), explain($result, $buffer, $line, $column));
 
             return;
         }

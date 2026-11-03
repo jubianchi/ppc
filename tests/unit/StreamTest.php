@@ -86,6 +86,16 @@ final class StreamTest extends TestCase
     }
 
     #[Test]
+    public function keepsTheComparedLengthOfSyntaxErrors(): void
+    {
+        $values = iterator_to_array(tryStream(word('ab;'), self::source('ab;ab;abc'), 2), false);
+
+        self::assertInstanceOf(SyntaxError::class, $values[2]);
+        self::assertSame('Expected "ab;", got "abc" at line 1, column 7', $values[2]->getMessage());
+        self::assertEquals(new Failure(['"ab;"'], 6, 3), $values[2]->failure);
+    }
+
+    #[Test]
     public function tryStreamYieldsTheSyntaxErrorAsItsLastValue(): void
     {
         $values = iterator_to_array(tryStream(self::line(), self::source("aé\nbb\ncç1\nd\n"), 2), false);
