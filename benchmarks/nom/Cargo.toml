@@ -12,3 +12,7 @@ nom = "8"
 [[bench]]
 name = "combinators"
 harness = false
+
+[[bench]]
+name = "modifiers"
+harness = false
