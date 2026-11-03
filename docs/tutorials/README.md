@@ -42,9 +42,10 @@ happening in your parsers, and the [`label`](/reference.md#label) modifier to ge
 
 <!-- div:right-panel -->
 
-## Looking ahead {docsify-ignore}
+## [Looking ahead](/tutorials/looking-ahead.md) {docsify-ignore}
 
-!> **TODO** write this tutorial
+In this tutorial, you will learn how to make a parser depend on what comes next, without consuming it, with the
+[`negate`](/reference.md#negate) and [`peek`](/reference.md#peek) modifiers.
 
 <!-- div:left-panel -->
 
