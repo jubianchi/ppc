@@ -51,6 +51,6 @@ final class PeekTest extends TestCase
     {
         $parser = word('if') |> peek();
 
-        self::assertEquals(new Failure(['"if"'], 0), $parser('of', 0));
+        self::assertEquals(new Failure(['"if"'], 0, 2), $parser('of', 0));
     }
 }

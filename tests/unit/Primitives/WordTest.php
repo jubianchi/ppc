@@ -41,15 +41,16 @@ final class WordTest extends TestCase
     }
 
     #[Test]
-    public function failsOnAnotherWord(): void
+    public function failsOnAnotherWordWithTheLengthOfTheWord(): void
     {
-        self::assertEquals(new Failure(['"null"'], 1), word('null')('[true]', 1));
+        self::assertEquals(new Failure(['"null"'], 1, 4), word('null')('[true]', 1));
+        self::assertEquals(new Failure(['"café"'], 0, 4), word('café')('cafe', 0));
     }
 
     #[Test]
     public function failsWhenTheInputEndsInsideTheWord(): void
     {
-        self::assertEquals(new Failure(['"null"'], 1), word('null')('[nul', 1));
+        self::assertEquals(new Failure(['"null"'], 1, 4), word('null')('[nul', 1));
     }
 
     #[Test]
@@ -62,7 +63,7 @@ final class WordTest extends TestCase
     #[Test]
     public function failsOnAnotherWordOfAPartialInput(): void
     {
-        self::assertEquals(new Failure(['"null"'], 1), word('null')('[nux', 1, true));
+        self::assertEquals(new Failure(['"null"'], 1, 4), word('null')('[nux', 1, true));
     }
 
     #[Test]

@@ -37,9 +37,10 @@ function word(string $word): \Closure
     }
 
     $length = \strlen($word);
+    $chars = mb_strlen($word);
     $expected = [quote($word)];
 
-    return static function (string $input, int $offset, bool $partial = false) use ($word, $length, $expected): Result {
+    return static function (string $input, int $offset, bool $partial = false) use ($word, $length, $chars, $expected): Result {
         if (0 === substr_compare($input, $word, $offset, $length)) {
             return new Success($word, $offset + $length);
         }
@@ -53,7 +54,7 @@ function word(string $word): \Closure
             }
         }
 
-        return new Failure($expected, $offset);
+        return new Failure($expected, $offset, $chars);
     };
 }
 

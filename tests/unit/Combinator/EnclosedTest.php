@@ -43,13 +43,16 @@ final class EnclosedTest extends TestCase
         self::assertEquals(new Success('ab', 4), enclosed(char('"'), word('ab'))('"ab"', 0));
     }
 
+    /**
+     * @param positive-int $length
+     */
     #[Test]
-    #[TestWith(['[ab)', 0, '"("'])]
-    #[TestWith(['(ac)', 1, '"ab"'])]
-    #[TestWith(['(ab]', 3, '")"'])]
-    public function failsOnAnyMissingPart(string $input, int $offset, string $expected): void
+    #[TestWith(['[ab)', 0, '"("', 1])]
+    #[TestWith(['(ac)', 1, '"ab"', 2])]
+    #[TestWith(['(ab]', 3, '")"', 1])]
+    public function failsOnAnyMissingPart(string $input, int $offset, string $expected, int $length): void
     {
-        self::assertEquals(new Failure([$expected], $offset), enclosed(char('('), word('ab'), char(')'))($input, 0));
+        self::assertEquals(new Failure([$expected], $offset, $length), enclosed(char('('), word('ab'), char(')'))($input, 0));
     }
 
     #[Test]
