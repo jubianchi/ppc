@@ -556,6 +556,6 @@ function furthest(?Failure $first, ?Failure $second): ?Failure
     return match ($first->offset <=> $second->offset) {
         1 => $first,
         -1 => $second,
-        0 => new Failure([...$first->expected, ...$second->expected], $first->offset),
+        0 => new Failure([...$first->expected, ...$second->expected], $first->offset, min($first->length, $second->length)),
     };
 }
