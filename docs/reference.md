@@ -212,11 +212,16 @@ try {
 ### takeUntil
 
 ```phps
-function takeUntil(string $delimiter): \Closure
+function takeUntil(string|\Closure $delimiter): \Closure
 ```
 
 Matches everything up to the delimiter, which is left to the next parser. Its value is the matched text, empty when the
 input starts with the delimiter.
+
+The delimiter is a string, or a predicate like the one of [`takeWhile`](#takewhile): it then stops at the first char
+for which the predicate returns `true`. `takeUntil($predicate)` matches what
+`takeWhile(fn ($char) => !$predicate($char))` matches, but fails when the input ends without such a char, expecting a
+`matching char`.
 
 Unlike `regex()`, it knows when the delimiter is missing from the input: when [streaming](#stream), it asks for more
 input only then, whatever the length of the match.
@@ -237,6 +242,11 @@ try {
 } catch (SyntaxError $error) {
     assert($error->getMessage() === 'Expected "*/", got end of input at line 1, column 16');
 }
+
+$isQuote = static fn (string $char): bool => '"' === $char;
+$string = enclosed(word('"'), takeUntil($isQuote), word('"'));
+
+assert(parse($string, '"été"') === 'été');
 ```
 
 ## Combinators
