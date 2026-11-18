@@ -21,6 +21,7 @@ use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\parse;
 use function jubianchi\PPC\Parsers\json;
+use function jubianchi\PPC\stream;
 
 /**
  * @internal
@@ -63,6 +64,31 @@ final class JsonTest extends TestCase
         $json = '"'.implode('', array_map(static fn (string $code): string => '\\u'.$code, ['00e9', '65e5', 'd83c', 'df89'])).'"';
 
         self::assertSame(json_decode($json, flags: \JSON_THROW_ON_ERROR), parse(json(), $json));
+    }
+
+    #[Test]
+    #[TestWith([1])]
+    #[TestWith([7])]
+    #[TestWith([70])]
+    #[TestWith([8192])]
+    public function streamsWhereverTheChunksEnd(int $chunk): void
+    {
+        $json = \sprintf(
+            '{"a": "%s", "b": "%s", "c": [%s, -12.5e+10, true], "d": %s"x"}',
+            str_repeat('é', 80),
+            str_repeat('é', 20),
+            str_repeat('1234567890', 10),
+            str_repeat(' ', 100),
+        );
+        $source = fopen('php://memory', 'w+');
+        self::assertIsResource($source);
+        fwrite($source, $json);
+        rewind($source);
+
+        self::assertSame(
+            var_export([json_decode($json, flags: \JSON_THROW_ON_ERROR)], true),
+            var_export(iterator_to_array(stream(json(), $source, $chunk), false), true),
+        );
     }
 
     #[Test]
