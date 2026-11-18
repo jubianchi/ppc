@@ -96,6 +96,29 @@ function regex(string $pattern, int $window = 64): \Closure
 }
 
 /**
+ * Consumes one UTF-8 char matching the predicate.
+ *
+ * @param \Closure(string): bool $predicate
+ *
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
+ */
+function satisfy(\Closure $predicate): \Closure
+{
+    $any = any();
+    $expected = ['matching char'];
+
+    return static function (string $input, int $offset, bool $partial = false) use ($predicate, $any, $expected): Result {
+        $char = $any($input, $offset, $partial);
+
+        if ($char instanceof Incomplete || ($char instanceof Success && $predicate($char->value))) {
+            return $char;
+        }
+
+        return new Failure($expected, $offset);
+    };
+}
+
+/**
  * Consumes the chars matching the predicate, at least $min of them.
  *
  * Unlike regex(), it knows when it reaches the end of a partial input: it is incomplete only then, whatever the length
