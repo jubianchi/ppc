@@ -111,16 +111,42 @@ function takeWhile(\Closure $predicate, int $min = 0): \Closure
         throw new \InvalidArgumentException(\sprintf('Expected a non-negative minimum, got %d', $min));
     }
 
-    $any = any();
+    $span = spanning($predicate, true);
     $expected = ['matching char'];
 
-    return static function (string $input, int $offset, bool $partial = false) use ($predicate, $min, $any, $expected): Result {
+    return static function (string $input, int $offset, bool $partial = false) use ($span, $min, $expected): Result {
+        $spanned = $span($input, $offset, $partial);
+
+        if ($spanned instanceof Incomplete) {
+            return $spanned;
+        }
+
+        [$position, $count] = $spanned;
+
+        return $count < $min ? new Failure($expected, $position) : new Success(substr($input, $offset, $position - $offset), $position);
+    };
+}
+
+/**
+ * Moves past the chars for which the predicate returns $while.
+ *
+ * @internal
+ *
+ * @param \Closure(string): bool $predicate
+ *
+ * @return \Closure(string, int, bool): (array{int, int}|Incomplete) the offset of the first other char, and the number of chars moved past
+ */
+function spanning(\Closure $predicate, bool $while): \Closure
+{
+    $any = any();
+
+    return static function (string $input, int $offset, bool $partial) use ($predicate, $while, $any): array|Incomplete {
         $position = $offset;
         $count = 0;
 
         while (true) {
             if (isset($input[$position]) && $input[$position] < "\x80") {
-                if (!$predicate($input[$position])) {
+                if ($while === !$predicate($input[$position])) {
                     break;
                 }
 
@@ -136,7 +162,7 @@ function takeWhile(\Closure $predicate, int $min = 0): \Closure
                 return $char;
             }
 
-            if ($char instanceof Failure || !$predicate($char->value)) {
+            if ($char instanceof Failure || $while === !$predicate($char->value)) {
                 break;
             }
 
@@ -144,7 +170,7 @@ function takeWhile(\Closure $predicate, int $min = 0): \Closure
             ++$count;
         }
 
-        return $count < $min ? new Failure($expected, $position) : new Success(substr($input, $offset, $position - $offset), $position);
+        return [$position, $count];
     };
 }
 
@@ -211,13 +237,19 @@ function eos(): \Closure
 function takeUntil(string|\Closure $delimiter): \Closure
 {
     if ($delimiter instanceof \Closure) {
-        $take = takeWhile(static fn (string $char): bool => !$delimiter($char));
+        $span = spanning($delimiter, false);
         $expected = ['matching char'];
 
-        return static function (string $input, int $offset, bool $partial = false) use ($take, $expected): Result {
-            $result = $take($input, $offset, $partial);
+        return static function (string $input, int $offset, bool $partial = false) use ($span, $expected): Result {
+            $spanned = $span($input, $offset, $partial);
 
-            return $result instanceof Success && $result->offset >= \strlen($input) ? new Failure($expected, $result->offset) : $result;
+            if ($spanned instanceof Incomplete) {
+                return $spanned;
+            }
+
+            [$position] = $spanned;
+
+            return $position >= \strlen($input) ? new Failure($expected, $position) : new Success(substr($input, $offset, $position - $offset), $position);
         };
     }
 
