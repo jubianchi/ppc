@@ -171,44 +171,6 @@ try {
 }
 ```
 
-### any
-
-```phps
-function any(): \Closure
-```
-
-Matches any UTF-8 char, or a single byte when the input is not valid UTF-8. It fails only at the end of the input.
-
-```php
-<?php
-
-use function jubianchi\PPC\{any, parse};
-
-assert(parse(any(), '€') === '€');
-```
-
-### eos
-
-```phps
-function eos(): \Closure
-```
-
-Matches the end of the input. Its value is `null`. Use it to make sure a parser consumed the whole input.
-
-```php
-<?php
-
-use jubianchi\PPC\SyntaxError;
-
-use function jubianchi\PPC\{char, eos, parse, seq};
-
-try {
-    parse(seq(char('a'), eos()), 'ab');
-} catch (SyntaxError $error) {
-    assert($error->getMessage() === 'Expected end of input, got "b" at line 1, column 2');
-}
-```
-
 ### takeUntil
 
 ```phps
@@ -247,6 +209,44 @@ $isQuote = static fn (string $char): bool => '"' === $char;
 $string = enclosed(word('"'), takeUntil($isQuote), word('"'));
 
 assert(parse($string, '"été"') === 'été');
+```
+
+### any
+
+```phps
+function any(): \Closure
+```
+
+Matches any UTF-8 char, or a single byte when the input is not valid UTF-8. It fails only at the end of the input.
+
+```php
+<?php
+
+use function jubianchi\PPC\{any, parse};
+
+assert(parse(any(), '€') === '€');
+```
+
+### eos
+
+```phps
+function eos(): \Closure
+```
+
+Matches the end of the input. Its value is `null`. Use it to make sure a parser consumed the whole input.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{char, eos, parse, seq};
+
+try {
+    parse(seq(char('a'), eos()), 'ab');
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected end of input, got "b" at line 1, column 2');
+}
 ```
 
 ## Combinators

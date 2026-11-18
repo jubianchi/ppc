@@ -128,6 +128,55 @@ function takeWhile(\Closure $predicate, int $min = 0): \Closure
 }
 
 /**
+ * Consumes everything up to the delimiter, or up to the first char matching the predicate, which is left to the next
+ * parser.
+ *
+ * Unlike regex(), it is incomplete exactly when a partial input does not contain the delimiter, whatever the length of
+ * the match.
+ *
+ * @param string|\Closure(string): bool $delimiter
+ *
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
+ */
+function takeUntil(string|\Closure $delimiter): \Closure
+{
+    if ($delimiter instanceof \Closure) {
+        $span = spanning($delimiter, false);
+        $expected = ['delimiter char'];
+
+        return static function (string $input, int $offset, bool $partial = false) use ($span, $expected): Result {
+            $spanned = $span($input, $offset, $partial);
+
+            if ($spanned instanceof Incomplete) {
+                return $spanned;
+            }
+
+            [$position] = $spanned;
+
+            return $position >= \strlen($input) ? new Failure($expected, $position) : new Success(substr($input, $offset, $position - $offset), $position);
+        };
+    }
+
+    if ('' === $delimiter) {
+        throw new \InvalidArgumentException('Expected a non-empty delimiter');
+    }
+
+    $expected = [quote($delimiter)];
+    $length = mb_strlen($delimiter);
+
+    return static function (string $input, int $offset, bool $partial = false) use ($delimiter, $expected, $length): Result {
+        $end = \strlen($input);
+        $position = $offset <= $end ? strpos($input, $delimiter, $offset) : false;
+
+        if (false !== $position) {
+            return new Success(substr($input, $offset, $position - $offset), $position);
+        }
+
+        return $partial ? new Incomplete() : new Failure($expected, max($offset, $end), $length);
+    };
+}
+
+/**
  * Moves past the chars for which the predicate returns $while.
  *
  * @internal
@@ -220,55 +269,6 @@ function eos(): \Closure
         }
 
         return $partial ? new Incomplete() : new Success(null, $offset);
-    };
-}
-
-/**
- * Consumes everything up to the delimiter, or up to the first char matching the predicate, which is left to the next
- * parser.
- *
- * Unlike regex(), it is incomplete exactly when a partial input does not contain the delimiter, whatever the length of
- * the match.
- *
- * @param string|\Closure(string): bool $delimiter
- *
- * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
- */
-function takeUntil(string|\Closure $delimiter): \Closure
-{
-    if ($delimiter instanceof \Closure) {
-        $span = spanning($delimiter, false);
-        $expected = ['delimiter char'];
-
-        return static function (string $input, int $offset, bool $partial = false) use ($span, $expected): Result {
-            $spanned = $span($input, $offset, $partial);
-
-            if ($spanned instanceof Incomplete) {
-                return $spanned;
-            }
-
-            [$position] = $spanned;
-
-            return $position >= \strlen($input) ? new Failure($expected, $position) : new Success(substr($input, $offset, $position - $offset), $position);
-        };
-    }
-
-    if ('' === $delimiter) {
-        throw new \InvalidArgumentException('Expected a non-empty delimiter');
-    }
-
-    $expected = [quote($delimiter)];
-    $length = mb_strlen($delimiter);
-
-    return static function (string $input, int $offset, bool $partial = false) use ($delimiter, $expected, $length): Result {
-        $end = \strlen($input);
-        $position = $offset <= $end ? strpos($input, $delimiter, $offset) : false;
-
-        if (false !== $position) {
-            return new Success(substr($input, $offset, $position - $offset), $position);
-        }
-
-        return $partial ? new Incomplete() : new Failure($expected, max($offset, $end), $length);
     };
 }
 
