@@ -96,6 +96,48 @@ function regex(string $pattern, int $window = 64): \Closure
 }
 
 /**
+ * Consumes the chars matching the predicate, at least $min of them.
+ *
+ * Unlike regex(), it knows when it reaches the end of a partial input: it is incomplete only then, whatever the length
+ * of the match.
+ *
+ * @param \Closure(string): bool $predicate
+ *
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
+ */
+function takeWhile(\Closure $predicate, int $min = 0): \Closure
+{
+    if ($min < 0) {
+        throw new \InvalidArgumentException(\sprintf('Expected a non-negative minimum, got %d', $min));
+    }
+
+    $any = any();
+    $expected = ['matching char'];
+
+    return static function (string $input, int $offset, bool $partial = false) use ($predicate, $min, $any, $expected): Result {
+        $position = $offset;
+        $count = 0;
+
+        while (true) {
+            $char = $any($input, $position, $partial);
+
+            if ($char instanceof Incomplete) {
+                return $char;
+            }
+
+            if ($char instanceof Failure || !$predicate($char->value)) {
+                break;
+            }
+
+            $position = $char->offset;
+            ++$count;
+        }
+
+        return $count < $min ? new Failure($expected, $position) : new Success(substr($input, $offset, $position - $offset), $position);
+    };
+}
+
+/**
  * Consumes one UTF-8 char, or a single byte when the input is not valid UTF-8 at the offset.
  *
  * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
