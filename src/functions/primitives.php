@@ -238,7 +238,7 @@ function takeUntil(string|\Closure $delimiter): \Closure
 {
     if ($delimiter instanceof \Closure) {
         $span = spanning($delimiter, false);
-        $expected = ['matching char'];
+        $expected = ['delimiter char'];
 
         return static function (string $input, int $offset, bool $partial = false) use ($span, $expected): Result {
             $spanned = $span($input, $offset, $partial);

@@ -221,7 +221,7 @@ input starts with the delimiter.
 The delimiter is a string, or a predicate like the one of [`takeWhile`](#takewhile): it then stops at the first char
 for which the predicate returns `true`. `takeUntil($predicate)` matches what
 `takeWhile(fn ($char) => !$predicate($char))` matches, but fails when the input ends without such a char, expecting a
-`matching char`.
+`delimiter char`.
 
 Unlike `regex()`, it knows when the delimiter is missing from the input: when [streaming](#stream), it asks for more
 input only then, whatever the length of the match.

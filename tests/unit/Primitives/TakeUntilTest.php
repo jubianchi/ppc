@@ -91,13 +91,13 @@ final class TakeUntilTest extends TestCase
     #[Test]
     public function failsAtTheEndOfACompleteInputWithoutACharMatchingThePredicate(): void
     {
-        self::assertEquals(new Failure(['matching char'], 4), takeUntil(self::isQuote(...))('"abc', 1));
+        self::assertEquals(new Failure(['delimiter char'], 4), takeUntil(self::isQuote(...))('"abc', 1));
     }
 
     #[Test]
     public function failsAtAnOffsetPastTheEndOfTheInputWithAPredicate(): void
     {
-        self::assertEquals(new Failure(['matching char'], 5), takeUntil(self::isQuote(...))('ab', 5));
+        self::assertEquals(new Failure(['delimiter char'], 5), takeUntil(self::isQuote(...))('ab', 5));
     }
 
     #[Test]
