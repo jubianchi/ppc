@@ -1,0 +1,86 @@
+<?php
+
+/**
+ * This file is part of PPC.
+ *
+ * Copyright © 2026 Julien Bianchi <contact@jubianchi.fr>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace jubianchi\PPC\Benchmarks\Functions\Parsers;
+
+use jubianchi\PPC\Failure;
+use jubianchi\PPC\Incomplete;
+use jubianchi\PPC\Success;
+use PhpBench\Attributes\BeforeMethods;
+use PhpBench\Attributes\Iterations;
+use PhpBench\Attributes\ParamProviders;
+use PhpBench\Attributes\Revs;
+use PhpBench\Attributes\Warmup;
+
+use function jubianchi\PPC\parse;
+use function jubianchi\PPC\takeUntil;
+use function jubianchi\PPC\terminated;
+use function jubianchi\PPC\word;
+
+/**
+ * terminated(takeUntil('*\/'), word('*\/')) on a run of "a" ending with the delimiter.
+ *
+ * Parsica has no equivalent: its takeWhile() stops on a single char, not on a delimiter.
+ */
+#[Warmup(1)]
+#[Revs(1000)]
+#[Iterations(5)]
+#[ParamProviders('provideInputs')]
+class TakeUntil
+{
+    private string $input;
+
+    /**
+     * @var \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
+     */
+    private \Closure $ppc;
+
+    /**
+     * @param array{fixture: string} $params
+     */
+    public function setUpPpc(array $params): void
+    {
+        $this->input = self::fixture($params['fixture']);
+        $this->ppc = terminated(takeUntil('*/'), word('*/'));
+
+        if (\strlen($this->input) - 2 !== \strlen(parse($this->ppc, $this->input))) {
+            throw new \LogicException('PPC does not consume the whole input');
+        }
+    }
+
+    /**
+     * @return \Generator<string, array{fixture: string}>
+     */
+    public function provideInputs(): \Generator
+    {
+        yield '1 kB' => ['fixture' => '1kB.txt'];
+        yield '100 kB' => ['fixture' => '100kB.txt'];
+    }
+
+    #[BeforeMethods('setUpPpc')]
+    public function bench_ppc(): void
+    {
+        parse($this->ppc, $this->input);
+    }
+
+    private static function fixture(string $name): string
+    {
+        $input = file_get_contents(__DIR__.'/../../fixtures/takeUntil/'.$name);
+
+        if (false === $input) {
+            throw new \RuntimeException(\sprintf('Unable to read the fixture %s', $name));
+        }
+
+        return $input;
+    }
+}
