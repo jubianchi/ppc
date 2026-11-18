@@ -47,6 +47,18 @@ final class TakeUntilTest extends TestCase
     }
 
     #[Test]
+    public function failsWithTheLengthOfAMultibyteDelimiterInChars(): void
+    {
+        self::assertEquals(new Failure(['"→"'], 3, 1), takeUntil('→')('abc', 0));
+    }
+
+    #[Test]
+    public function consumesAMultibyteCharRightBeforeTheDelimiter(): void
+    {
+        self::assertEquals(new Success('é', 2), takeUntil('*/')('é*/', 0));
+    }
+
+    #[Test]
     public function failsAtAnOffsetPastTheEndOfTheInput(): void
     {
         self::assertEquals(new Failure(['"*/"'], 5, 2), takeUntil('*/')('ab', 5));
