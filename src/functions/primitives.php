@@ -198,6 +198,34 @@ function eos(): \Closure
 }
 
 /**
+ * Consumes everything up to the delimiter, which is left to the next parser.
+ *
+ * Unlike regex(), it is incomplete exactly when a partial input does not contain the delimiter, whatever the length of
+ * the match.
+ *
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
+ */
+function takeUntil(string $delimiter): \Closure
+{
+    if ('' === $delimiter) {
+        throw new \InvalidArgumentException('Expected a non-empty delimiter');
+    }
+
+    $expected = [quote($delimiter)];
+    $length = mb_strlen($delimiter);
+
+    return static function (string $input, int $offset, bool $partial = false) use ($delimiter, $expected, $length): Result {
+        $position = strpos($input, $delimiter, $offset);
+
+        if (false !== $position) {
+            return new Success(substr($input, $offset, $position - $offset), $position);
+        }
+
+        return $partial ? new Incomplete() : new Failure($expected, \strlen($input), $length);
+    };
+}
+
+/**
  * @internal
  */
 function quote(string $value): string
