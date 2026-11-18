@@ -115,5 +115,48 @@ try {
 }
 ```
 
-Streaming has one limit to keep in mind: PHP does not expose partial matching for regular expressions, so a `regex` only
-trusts its result when enough bytes follow it. Read the [reference](/reference.md#stream) to learn how to tune it.
+## Long tokens and regular expressions
+
+PHP does not expose partial matching for regular expressions: on a partial input, a [`regex`](/reference.md#regex) only
+trusts its result when at least `$window` bytes (64 by default) follow it. The patterns above are safe: they stop at the
+first byte they do not match, so a token cut by the end of a chunk matches up to the end of the input, and `regex` asks
+for more.
+
+A pattern which must see the end of its token to match is not. Here, a string longer than the window fails as soon as
+the first chunk ends before its closing quote, although the input is valid:
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{regex, stream};
+
+$source = fopen('php://memory', 'w+');
+fwrite($source, '"'.str_repeat('a', 100).'"');
+rewind($source);
+
+try {
+    iterator_to_array(stream(regex('/"[^"]*"/'), $source, chunk: 70));
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected /"[^"]*"/, got "\"" at line 1, column 1');
+}
+```
+
+Match such tokens with [`takeUntil`](/reference.md#takeuntil) or [`takeWhile`](/reference.md#takewhile) instead: they
+know exactly when they reach the end of the input, and ask for more only then, whatever the length of the token:
+
+```php
+<?php
+
+use function jubianchi\PPC\{char, enclosed, stream, takeUntil};
+
+$source = fopen('php://memory', 'w+');
+fwrite($source, '"'.str_repeat('a', 100).'"');
+rewind($source);
+
+assert(iterator_to_array(stream(enclosed(char('"'), takeUntil('"')), $source, chunk: 70)) === [str_repeat('a', 100)]);
+```
+
+Keep `regex` for bounded tokens, like a number or an escape sequence, with a window at least as large as the number of
+bytes it needs to read past its match to decide. Read the [reference](/reference.md#stream) to learn how to tune it.
