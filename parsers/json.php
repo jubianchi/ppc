@@ -41,12 +41,12 @@ function json(): \Closure
     $string = enclosed(
         char('"'),
         many(alt(
-            regex('/[^"\\\\\x00-\x1F]+/') |> label('character'),
-            regex('/\\\\(?:["\\\\\/bfnrt]|u[0-9a-fA-F]{4}(?:\\\\u[0-9a-fA-F]{4})*)/') |> label('escape sequence') |> map(unescape(...)),
+            regex('/[^"\\\\\x00-\x1F]+/', 1) |> label('character'),
+            regex('/\\\\(?:["\\\\\/bfnrt]|u[0-9a-fA-F]{4}(?:\\\\u[0-9a-fA-F]{4})*)/', 6) |> label('escape sequence') |> map(unescape(...)),
         )) |> map(implode(...)),
     ) |> label('string');
 
-    $number = regex('/-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?/')
+    $number = regex('/-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?/', 3)
         |> label('number')
         |> map(static fn (string $number): int|float => false === strpbrk($number, '.eE') && false !== ($integer = filter_var($number, \FILTER_VALIDATE_INT))
             ? $integer
@@ -89,7 +89,7 @@ function json(): \Closure
  */
 function whitespace(): \Closure
 {
-    return regex('/[ \t\n\r]*/');
+    return regex('/[ \t\n\r]*/', 1);
 }
 
 /**
