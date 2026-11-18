@@ -77,7 +77,7 @@ final class JsonTest extends TestCase
         $json = \sprintf(
             '{"a": "%s", "b": "%s", "c": [%s, -12.5e+10, true], "d": %s"x"}',
             str_repeat('é', 80),
-            str_repeat('\\u'.'00e9', 20),
+            str_repeat('\\u00e9', 20),
             str_repeat('1234567890', 10),
             str_repeat(' ', 100),
         );
