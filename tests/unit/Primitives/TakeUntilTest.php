@@ -47,6 +47,12 @@ final class TakeUntilTest extends TestCase
     }
 
     #[Test]
+    public function failsAtAnOffsetPastTheEndOfTheInput(): void
+    {
+        self::assertEquals(new Failure(['"*/"'], 5, 2), takeUntil('*/')('ab', 5));
+    }
+
+    #[Test]
     public function findsTheDelimiterInAPartialInput(): void
     {
         self::assertEquals(new Success('a', 1), takeUntil('*/')('a*/b', 0, true));

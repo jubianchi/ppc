@@ -229,13 +229,14 @@ function takeUntil(string|\Closure $delimiter): \Closure
     $length = mb_strlen($delimiter);
 
     return static function (string $input, int $offset, bool $partial = false) use ($delimiter, $expected, $length): Result {
-        $position = strpos($input, $delimiter, $offset);
+        $end = \strlen($input);
+        $position = $offset <= $end ? strpos($input, $delimiter, $offset) : false;
 
         if (false !== $position) {
             return new Success(substr($input, $offset, $position - $offset), $position);
         }
 
-        return $partial ? new Incomplete() : new Failure($expected, \strlen($input), $length);
+        return $partial ? new Incomplete() : new Failure($expected, max($offset, $end), $length);
     };
 }
 
