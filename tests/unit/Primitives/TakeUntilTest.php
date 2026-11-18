@@ -59,11 +59,46 @@ final class TakeUntilTest extends TestCase
     }
 
     #[Test]
+    public function consumesEverythingUpToTheFirstCharMatchingThePredicate(): void
+    {
+        self::assertEquals(new Success('été', 6), takeUntil(self::isQuote(...))('"été"', 1));
+    }
+
+    #[Test]
+    public function succeedsWithoutConsumingInputAtACharMatchingThePredicate(): void
+    {
+        self::assertEquals(new Success('', 0), takeUntil(self::isQuote(...))('"', 0));
+    }
+
+    #[Test]
+    public function failsAtTheEndOfACompleteInputWithoutACharMatchingThePredicate(): void
+    {
+        self::assertEquals(new Failure(['matching char'], 4), takeUntil(self::isQuote(...))('"abc', 1));
+    }
+
+    #[Test]
+    public function findsACharMatchingThePredicateInAPartialInput(): void
+    {
+        self::assertEquals(new Success('a', 1), takeUntil(self::isQuote(...))('a"b', 0, true));
+    }
+
+    #[Test]
+    public function isIncompleteWhenAPartialInputHasNoCharMatchingThePredicate(): void
+    {
+        self::assertEquals(new Incomplete(1), takeUntil(self::isQuote(...))('abc', 0, true));
+    }
+
+    #[Test]
     public function rejectsAnEmptyDelimiter(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Expected a non-empty delimiter');
 
         takeUntil('');
+    }
+
+    private static function isQuote(string $char): bool
+    {
+        return '"' === $char;
     }
 }

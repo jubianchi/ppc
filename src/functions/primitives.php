@@ -198,15 +198,29 @@ function eos(): \Closure
 }
 
 /**
- * Consumes everything up to the delimiter, which is left to the next parser.
+ * Consumes everything up to the delimiter, or up to the first char matching the predicate, which is left to the next
+ * parser.
  *
  * Unlike regex(), it is incomplete exactly when a partial input does not contain the delimiter, whatever the length of
  * the match.
  *
+ * @param string|\Closure(string): bool $delimiter
+ *
  * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
  */
-function takeUntil(string $delimiter): \Closure
+function takeUntil(string|\Closure $delimiter): \Closure
 {
+    if ($delimiter instanceof \Closure) {
+        $take = takeWhile(static fn (string $char): bool => !$delimiter($char));
+        $expected = ['matching char'];
+
+        return static function (string $input, int $offset, bool $partial = false) use ($take, $expected): Result {
+            $result = $take($input, $offset, $partial);
+
+            return $result instanceof Success && $result->offset === \strlen($input) ? new Failure($expected, $result->offset) : $result;
+        };
+    }
+
     if ('' === $delimiter) {
         throw new \InvalidArgumentException('Expected a non-empty delimiter');
     }
