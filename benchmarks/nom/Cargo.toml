@@ -10,6 +10,10 @@ criterion = "0.8"
 nom = "8"
 
 [[bench]]
+name = "parsers"
+harness = false
+
+[[bench]]
 name = "combinators"
 harness = false
 
