@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace jubianchi\PPC\Tests\Examples;
 
+use jubianchi\PPC\Incomplete;
 use jubianchi\PPC\SyntaxError;
 use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
@@ -76,7 +77,7 @@ final class JsonTest extends TestCase
         $json = \sprintf(
             '{"a": "%s", "b": "%s", "c": [%s, -12.5e+10, true], "d": %s"x"}',
             str_repeat('é', 80),
-            str_repeat('é', 20),
+            str_repeat('\\u'.'00e9', 20),
             str_repeat('1234567890', 10),
             str_repeat(' ', 100),
         );
@@ -89,6 +90,17 @@ final class JsonTest extends TestCase
             var_export([json_decode($json, flags: \JSON_THROW_ON_ERROR)], true),
             var_export(iterator_to_array(stream(json(), $source, $chunk), false), true),
         );
+    }
+
+    #[Test]
+    public function asksForMoreInputWhereverAValidDocumentIsCut(): void
+    {
+        $json = \sprintf('{"a": ["é%1$s00e9%1$sd83c%1$sdf89\n", -12.5e+10, 0.5E-3, 7, true, false, null], "b" : {}}', '\\u');
+        $parser = json();
+
+        for ($length = 0; $length <= \strlen($json); ++$length) {
+            self::assertInstanceOf(Incomplete::class, $parser(substr($json, 0, $length), 0, true), \sprintf('Cut after %d bytes', $length));
+        }
     }
 
     #[Test]
