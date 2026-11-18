@@ -217,7 +217,7 @@ function takeUntil(string|\Closure $delimiter): \Closure
         return static function (string $input, int $offset, bool $partial = false) use ($take, $expected): Result {
             $result = $take($input, $offset, $partial);
 
-            return $result instanceof Success && $result->offset === \strlen($input) ? new Failure($expected, $result->offset) : $result;
+            return $result instanceof Success && $result->offset >= \strlen($input) ? new Failure($expected, $result->offset) : $result;
         };
     }
 
