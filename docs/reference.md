@@ -145,6 +145,37 @@ use function jubianchi\PPC\{parse, regex};
 assert(parse(regex('/[0-9]+/'), '2026') === '2026');
 ```
 
+### satisfy
+
+```phps
+function satisfy(\Closure $predicate): \Closure
+```
+
+Matches one char for which the predicate returns `true`. Its value is the char. The predicate receives the whole UTF-8
+char, like the one of [`takeWhile`](#takewhile).
+
+It fails expecting a `matching char`: give it a readable name with [`label`](#label). Unlike a single-char `regex()`, it
+decides on the char alone: when [streaming](#stream), it asks for more input only when the input ends before or inside
+the char.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{label, parse, satisfy};
+
+$vowel = satisfy(static fn (string $char): bool => str_contains('aeiouy', $char)) |> label('vowel');
+
+assert(parse($vowel, 'e') === 'e');
+
+try {
+    parse($vowel, 'z');
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected vowel, got "z" at line 1, column 1');
+}
+```
+
 ### takeWhile
 
 ```phps
