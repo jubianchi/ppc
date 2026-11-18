@@ -107,6 +107,12 @@ final class TakeUntilTest extends TestCase
     }
 
     #[Test]
+    public function isIncompleteWhenAPartialInputEndsInsideAMultibyteChar(): void
+    {
+        self::assertEquals(new Incomplete(1), takeUntil(self::isQuote(...))("ab\xC3", 0, true));
+    }
+
+    #[Test]
     public function rejectsAnEmptyDelimiter(): void
     {
         $this->expectException(\InvalidArgumentException::class);
