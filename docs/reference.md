@@ -133,6 +133,10 @@ whole match. The window only matters when [streaming](#stream).
 
 Matching chunks with a single pattern is much faster than combining parsers matching one char at a time.
 
+When [streaming](#stream), use it only for bounded tokens, decided by a few bytes past the match. A pattern which must
+see the end of a long token to match, like `/"[^"]*"/`, fails when the token is longer than the window and cut by the
+end of a chunk: use [`takeUntil`](#takeuntil) or [`takeWhile`](#takewhile) instead.
+
 ```php
 <?php
 
@@ -820,7 +824,10 @@ bytes and parses the item again from its start.
 
 PHP does not expose partial matching for regular expressions: on a partial input, a `regex` result is only trusted
 when the input extends at least `$window` bytes past where it stopped. Give a larger window to patterns needing more
-bytes to decide, or a smaller one to patterns which only look at the next byte, to read less.
+bytes to decide, or a smaller one to patterns which only look at the next byte, to read less. A pattern needing more
+bytes than the window fails on a valid input: match long tokens with [`takeUntil`](#takeuntil) or
+[`takeWhile`](#takewhile), which ask for more input exactly when they reach its end. The
+[streaming tutorial](/tutorials/streaming.md#long-tokens-and-regular-expressions) shows both.
 
 ```php
 <?php
