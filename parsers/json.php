@@ -22,13 +22,13 @@ use function jubianchi\PPC\char;
 use function jubianchi\PPC\enclosed;
 use function jubianchi\PPC\eos;
 use function jubianchi\PPC\label;
+use function jubianchi\PPC\lexeme;
 use function jubianchi\PPC\many;
 use function jubianchi\PPC\map;
 use function jubianchi\PPC\recursive;
 use function jubianchi\PPC\regex;
 use function jubianchi\PPC\separated;
 use function jubianchi\PPC\seq;
-use function jubianchi\PPC\terminated;
 use function jubianchi\PPC\word;
 
 /**
@@ -52,9 +52,12 @@ function json(): \Closure
             ? $integer
             : (float) $number);
 
-    $value = recursive(static function (\Closure $value) use ($string, $number): \Closure {
-        $pair = seq($string |> token(...), char(':') |> token(...), $value);
-        $object = enclosed(char('{') |> token(...), separated(char(',') |> token(...), $pair), char('}'))
+    $whitespace = regex('/[ \t\n\r]*/', 1);
+    $token = lexeme($whitespace);
+
+    $value = recursive(static function (\Closure $value) use ($string, $number, $token): \Closure {
+        $pair = seq($string |> $token, char(':') |> $token, $value);
+        $object = enclosed(char('{') |> $token, separated(char(',') |> $token, $pair), char('}'))
             |> map(static function (array $pairs): \stdClass {
                 $object = new \stdClass();
 
@@ -66,7 +69,7 @@ function json(): \Closure
                 return $object;
             });
 
-        $array = enclosed(char('[') |> token(...), separated(char(',') |> token(...), $value), char(']'));
+        $array = enclosed(char('[') |> $token, separated(char(',') |> $token, $value), char(']'));
 
         return alt(
             $object,
@@ -76,34 +79,10 @@ function json(): \Closure
             word('true') |> map(static fn (): bool => true),
             word('false') |> map(static fn (): bool => false),
             word('null') |> map(static fn (): null => null),
-        ) |> label('value') |> token(...);
+        ) |> label('value') |> $token;
     });
 
-    return enclosed(whitespace(), $value, eos());
-}
-
-/**
- * @internal
- *
- * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
- */
-function whitespace(): \Closure
-{
-    return regex('/[ \t\n\r]*/', 1);
-}
-
-/**
- * @internal
- *
- * @template T
- *
- * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser
- *
- * @return \Closure(string, int, bool=): (Success<T>|Failure|Incomplete)
- */
-function token(\Closure $parser): \Closure
-{
-    return terminated($parser, whitespace());
+    return enclosed($whitespace, $value, eos());
 }
 
 /**
