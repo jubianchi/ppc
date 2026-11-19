@@ -108,6 +108,10 @@ function satisfy(\Closure $predicate): \Closure
     $expected = ['matching char'];
 
     return static function (string $input, int $offset, bool $partial = false) use ($predicate, $any, $expected): Result {
+        if (isset($input[$offset]) && $input[$offset] < "\x80") {
+            return $predicate($input[$offset]) ? new Success($input[$offset], $offset + 1) : new Failure($expected, $offset);
+        }
+
         $char = $any($input, $offset, $partial);
 
         if ($char instanceof Incomplete || ($char instanceof Success && $predicate($char->value))) {
