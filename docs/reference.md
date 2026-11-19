@@ -879,6 +879,41 @@ try {
 }
 ```
 
+### lexeme
+
+```phps
+function lexeme(?\Closure $whitespace = null): \Closure
+```
+
+Skips the whitespace following the parser, and keeps its value: spaces, tabs and line breaks by default. Apply it to
+each token of a grammar, and skip the leading whitespace of the document with [`enclosed`](#enclosed). When
+[streaming](#stream), it asks for more input as long as the whitespace reaches the end of the input, whatever its
+length.
+
+```php
+<?php
+
+use function jubianchi\PPC\{char, enclosed, eos, lexeme, parse, regex, separated, takeWhile};
+
+$token = lexeme();
+$list = separated(char(',') |> $token, regex('/[0-9]+/') |> $token);
+
+assert(parse(enclosed(takeWhile(ctype_space(...)), $list, eos()), " 1 ,\n 2,3 \t") === ['1', '2', '3']);
+```
+
+Give it another whitespace parser to skip comments too:
+
+```php
+<?php
+
+use function jubianchi\PPC\{alt, char, enclosed, lexeme, many, parse, regex, separated, takeUntil, word};
+
+$comment = enclosed(word('/*'), takeUntil('*/'), word('*/'));
+$token = lexeme(many(alt(regex('/\s+/', 1), $comment)));
+
+assert(parse(separated(char(',') |> $token, word('a') |> $token), 'a /* one */, a') === ['a', 'a']);
+```
+
 ### debug
 
 ```phps
