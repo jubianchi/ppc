@@ -1,5 +1,5 @@
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
-use nom::character::complete::char;
+use nom::character::complete::{char, multispace0};
 use nom::combinator::{not, peek};
 use nom::error::Error;
 use nom::multi::many0;
@@ -53,5 +53,27 @@ fn bench_negate(criterion: &mut Criterion) {
     bench(criterion, "negate", NEGATE_INPUTS, negated);
 }
 
-criterion_group!(benches, bench_peek, bench_negate);
+fn lexemes(input: &str) -> IResult<&str, Vec<char>> {
+    many0(terminated(char::<&str, Error<&str>>('a'), multispace0)).parse(input)
+}
+
+fn bench_lexeme(criterion: &mut Criterion) {
+    let mut group = criterion.benchmark_group("lexeme");
+
+    for (name, input) in [
+        ("1 kB", include_str!("../../fixtures/lexeme/1kB.txt")),
+        ("100 kB", include_str!("../../fixtures/lexeme/100kB.txt")),
+    ] {
+        let (rest, chars) = lexemes(input).expect("the parser should succeed");
+        assert!(rest.is_empty() && 4 * chars.len() == input.len(), "nom does not consume the whole input");
+
+        group.bench_with_input(BenchmarkId::new("nom", name), input, |bencher, input| {
+            bencher.iter(|| lexemes(black_box(input)))
+        });
+    }
+
+    group.finish();
+}
+
+criterion_group!(benches, bench_peek, bench_negate, bench_lexeme);
 criterion_main!(benches);
