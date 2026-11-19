@@ -104,8 +104,30 @@ function regex(string $pattern, int $window = 64): \Closure
  */
 function satisfy(\Closure $predicate): \Closure
 {
+    return satisfying($predicate, ['matching char']);
+}
+
+/**
+ * Consumes one ASCII digit, from 0 to 9.
+ *
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
+ */
+function digit(): \Closure
+{
+    return satisfying(ctype_digit(...), ['digit']);
+}
+
+/**
+ * @internal
+ *
+ * @param \Closure(string): bool $predicate
+ * @param list<string>           $expected
+ *
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
+ */
+function satisfying(\Closure $predicate, array $expected): \Closure
+{
     $any = any();
-    $expected = ['matching char'];
 
     return static function (string $input, int $offset, bool $partial = false) use ($predicate, $any, $expected): Result {
         if (isset($input[$offset]) && $input[$offset] < "\x80") {
