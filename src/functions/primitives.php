@@ -146,6 +146,33 @@ function space(bool $ascii = false): \Closure
 }
 
 /**
+ * Consumes one of the UTF-8 chars of the string.
+ *
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
+ */
+function oneOf(string $chars): \Closure
+{
+    $chars = charset($chars);
+    $set = array_fill_keys($chars, true);
+
+    return satisfying(static fn (string $char): bool => isset($set[$char]), array_map(quote(...), $chars));
+}
+
+/**
+ * @internal
+ *
+ * @return non-empty-list<string> the distinct UTF-8 chars of the string
+ */
+function charset(string $chars): array
+{
+    if ('' === $chars) {
+        throw new \InvalidArgumentException('Expected a non-empty set of chars');
+    }
+
+    return array_values(array_unique(mb_str_split($chars)));
+}
+
+/**
  * @internal
  *
  * @param \Closure(string): bool $predicate
