@@ -176,6 +176,138 @@ try {
 }
 ```
 
+The char classes below are built on it, with a readable expectation.
+
+### digit
+
+```phps
+function digit(): \Closure
+```
+
+Matches one ASCII digit, from `0` to `9`. It fails expecting a `digit`.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{digit, many1, map, parse};
+
+$number = many1(digit()) |> map(static fn (array $digits): int => (int) implode('', $digits));
+
+assert(parse($number, '42') === 42);
+
+try {
+    parse(digit(), '٣');
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected digit, got "٣" at line 1, column 1');
+}
+```
+
+### letter
+
+```phps
+function letter(bool $ascii = false): \Closure
+```
+
+Matches one Unicode letter (`\p{L}`), whatever its script. With `ascii: true`, it only matches `a` to `z` in either case.
+It fails expecting a `letter`, or an `ASCII letter`.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{letter, parse};
+
+assert(parse(letter(), 'é') === 'é');
+assert(parse(letter(), '日') === '日');
+
+try {
+    parse(letter(ascii: true), 'é');
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected ASCII letter, got "é" at line 1, column 1');
+}
+```
+
+### space
+
+```phps
+function space(bool $ascii = false): \Closure
+```
+
+Matches one Unicode whitespace (`\p{White_Space}`), such as the no-break space. With `ascii: true`, it only matches a
+space, `\t`, `\n`, `\r`, `\f` or `\v`. It fails expecting a `space`, or an `ASCII space`.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{parse, space};
+
+assert(parse(space(), "\u{A0}") === "\u{A0}");
+
+try {
+    parse(space(ascii: true), "\u{A0}");
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === "Expected ASCII space, got \"\u{A0}\" at line 1, column 1");
+}
+```
+
+### oneOf
+
+```phps
+function oneOf(string $chars): \Closure
+```
+
+Matches one of the UTF-8 chars of the string. It fails expecting each of them, like an [`alt`](#alt) of
+[`char`](#char).
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{oneOf, parse};
+
+$sign = oneOf('+-');
+
+assert(parse($sign, '-') === '-');
+
+try {
+    parse($sign, '*');
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected "+" or "-", got "*" at line 1, column 1');
+}
+```
+
+### noneOf
+
+```phps
+function noneOf(string $chars): \Closure
+```
+
+Matches one UTF-8 char that is not in the string.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{noneOf, parse};
+
+$unescaped = noneOf('"\\');
+
+assert(parse($unescaped, 'é') === 'é');
+
+try {
+    parse($unescaped, '"');
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected any char but "\"" or "\\\\", got "\"" at line 1, column 1');
+}
+```
+
 ### takeWhile
 
 ```phps
