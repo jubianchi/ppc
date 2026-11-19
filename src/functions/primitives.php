@@ -118,6 +118,20 @@ function digit(): \Closure
 }
 
 /**
+ * Consumes one Unicode letter (\p{L}), or one ASCII letter, from a to z in either case.
+ *
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
+ */
+function letter(bool $ascii = false): \Closure
+{
+    if ($ascii) {
+        return satisfying(ctype_alpha(...), ['ASCII letter']);
+    }
+
+    return satisfying(static fn (string $char): bool => $char < "\x80" ? ctype_alpha($char) : 1 === preg_match('/^\p{L}$/u', $char), ['letter']);
+}
+
+/**
  * @internal
  *
  * @param \Closure(string): bool $predicate
