@@ -1,6 +1,8 @@
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use nom::bytes::complete::{tag, take_till, take_until, take_while};
+use nom::character::complete::satisfy;
 use nom::error::Error;
+use nom::multi::many0;
 use nom::sequence::terminated;
 use nom::{IResult, Parser};
 use std::hint::black_box;
@@ -71,5 +73,27 @@ fn bench_take_until_predicate(criterion: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, bench_take_while, bench_take_until, bench_take_until_predicate);
+fn satisfy_a(input: &str) -> IResult<&str, Vec<char>> {
+    many0(satisfy::<_, &str, Error<&str>>(|char| char == 'a')).parse(input)
+}
+
+fn bench_satisfy(criterion: &mut Criterion) {
+    let mut group = criterion.benchmark_group("satisfy");
+
+    for (name, input) in [
+        ("1 kB", include_str!("../../fixtures/satisfy/1kB.txt")),
+        ("100 kB", include_str!("../../fixtures/satisfy/100kB.txt")),
+    ] {
+        let (rest, chars) = satisfy_a(input).expect("satisfy() should succeed");
+        assert!(rest.is_empty() && chars.len() == input.len(), "nom does not consume the whole input");
+
+        group.bench_with_input(BenchmarkId::new("nom", name), input, |bencher, input| {
+            bencher.iter(|| satisfy_a(black_box(input)))
+        });
+    }
+
+    group.finish();
+}
+
+criterion_group!(benches, bench_satisfy, bench_take_while, bench_take_until, bench_take_until_predicate);
 criterion_main!(benches);
