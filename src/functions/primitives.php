@@ -132,6 +132,20 @@ function letter(bool $ascii = false): \Closure
 }
 
 /**
+ * Consumes one Unicode whitespace (\p{White_Space}), or one ASCII whitespace: space, \t, \n, \r, \f or \v.
+ *
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
+ */
+function space(bool $ascii = false): \Closure
+{
+    if ($ascii) {
+        return satisfying(ctype_space(...), ['ASCII space']);
+    }
+
+    return satisfying(static fn (string $char): bool => $char < "\x80" ? ctype_space($char) : 1 === preg_match('/^\p{White_Space}$/u', $char), ['space']);
+}
+
+/**
  * @internal
  *
  * @param \Closure(string): bool $predicate
