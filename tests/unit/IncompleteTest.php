@@ -31,6 +31,7 @@ use function jubianchi\PPC\char;
 use function jubianchi\PPC\debug;
 use function jubianchi\PPC\enclosed;
 use function jubianchi\PPC\label;
+use function jubianchi\PPC\lexeme;
 use function jubianchi\PPC\many;
 use function jubianchi\PPC\many1;
 use function jubianchi\PPC\map;
@@ -94,6 +95,8 @@ final class IncompleteTest extends TestCase
         yield 'capture' => [$stub |> capture(), 'a'];
         yield 'peek' => [$stub |> peek(), 'a'];
         yield 'negate' => [$stub |> negate(), 'a'];
+        yield 'lexeme parser' => [$stub |> lexeme(), 'a'];
+        yield 'lexeme whitespace' => [char('a') |> lexeme($stub), 'a'];
         yield 'debug' => [$stub |> debug('stub', static fn (string $line): null => null), 'a'];
     }
 

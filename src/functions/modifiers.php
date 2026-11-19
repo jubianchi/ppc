@@ -93,6 +93,33 @@ function debug(string $name, \Closure $write): \Closure
 }
 
 /**
+ * Skips the whitespace following the parser: spaces, tabs and line breaks by default.
+ *
+ * @param ?\Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $whitespace
+ *
+ * @return \Closure<T>(\Closure(string, int, bool=): (Success<T>|Failure|Incomplete)): (\Closure(string, int, bool=): (Success<T>|Failure|Incomplete))
+ */
+function lexeme(?\Closure $whitespace = null): \Closure
+{
+    $whitespace ??= takeWhile(static fn (string $char): bool => ' ' === $char || "\t" === $char || "\n" === $char || "\r" === $char);
+
+    return static fn (\Closure $parser): \Closure => lexed($parser, $whitespace);
+}
+
+/**
+ * @internal
+ *
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $parser
+ * @param \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete) $whitespace
+ *
+ * @return \Closure(string, int, bool=): (Success<mixed>|Failure|Incomplete)
+ */
+function lexed(\Closure $parser, \Closure $whitespace): \Closure
+{
+    return terminated($parser, $whitespace);
+}
+
+/**
  * @internal
  *
  * @template T
