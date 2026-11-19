@@ -159,6 +159,22 @@ function oneOf(string $chars): \Closure
 }
 
 /**
+ * Consumes one UTF-8 char that is not in the string.
+ *
+ * @return \Closure(string, int, bool=): (Success<string>|Failure|Incomplete)
+ */
+function noneOf(string $chars): \Closure
+{
+    $chars = charset($chars);
+    $set = array_fill_keys($chars, true);
+    $quoted = array_map(quote(...), $chars);
+    $last = array_pop($quoted);
+    $expected = 'any char but '.([] === $quoted ? $last : implode(', ', $quoted).' or '.$last);
+
+    return satisfying(static fn (string $char): bool => !isset($set[$char]), [$expected]);
+}
+
+/**
  * @internal
  *
  * @return non-empty-list<string> the distinct UTF-8 chars of the string
