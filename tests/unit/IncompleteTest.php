@@ -44,6 +44,7 @@ use function jubianchi\PPC\repeat;
 use function jubianchi\PPC\separated;
 use function jubianchi\PPC\seq;
 use function jubianchi\PPC\terminated;
+use function jubianchi\PPC\times;
 
 /**
  * Combinators and modifiers forward the partial flag and propagate Incomplete without interpreting it.
@@ -69,6 +70,7 @@ final class IncompleteTest extends TestCase
         yield 'many1' => [many1($stub), 'a'];
         yield 'many1 after a success' => [many1(alt(char('a'), $stub)), 'ab'];
         yield 'repeat' => [repeat(2, alt(char('a'), $stub)), 'ab'];
+        yield 'times' => [times(alt(char('a'), $stub), 2), 'ab'];
         yield 'separated' => [separated(char(','), $stub), 'a'];
         yield 'separated separator' => [separated($stub, char('a')), 'a'];
         yield 'separated after a separator' => [separated(char(','), alt(char('a'), $stub)), 'a,b'];

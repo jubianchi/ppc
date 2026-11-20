@@ -179,6 +179,67 @@ function repeat(int $times, \Closure $parser): \Closure
 }
 
 /**
+ * Matches the parser exactly $min times, or between $min and $max times, both inclusive.
+ *
+ * It stops after $max matches without trying the parser again: it does not fail when more matches follow.
+ *
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser
+ *
+ * @return \Closure(string, int, bool=): (Success<list<T>>|Failure|Incomplete)
+ */
+function times(\Closure $parser, int $min, ?int $max = null): \Closure
+{
+    $max ??= $min;
+
+    if ($max < $min) {
+        throw new \ValueError(\sprintf('Expected a maximum of at least %d, got %d', $min, $max));
+    }
+
+    return repeated($parser, $min, $max);
+}
+
+/**
+ * @internal
+ *
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser
+ *
+ * @return \Closure(string, int, bool=): (Success<list<T>>|Failure|Incomplete)
+ */
+function repeated(\Closure $parser, int $min, int $max): \Closure
+{
+    if ($min < 0) {
+        throw new \ValueError(\sprintf('Expected a non-negative minimum, got %d', $min));
+    }
+
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $min, $max): Result {
+        $values = [];
+        $hint = null;
+
+        for ($count = 0; $count < $max; ++$count) {
+            $result = $parser($input, $offset, $partial);
+
+            if ($result instanceof Incomplete) {
+                return $result;
+            }
+
+            if ($result instanceof Failure) {
+                return $count < $min ? furthest($hint, $result) : new Success($values, $offset, furthest($hint, $result));
+            }
+
+            $values[] = $result->value;
+            $offset = $result->offset;
+            $hint = furthest($hint, $result->hint);
+        }
+
+        return new Success($values, $offset, $hint);
+    };
+}
+
+/**
  * Matches the parser zero or more times, separated by the separator whose values are discarded.
  * A trailing separator is not consumed.
  *
