@@ -201,7 +201,10 @@ function times(\Closure $parser, int $min, ?int $max = null): \Closure
 }
 
 /**
- * @internal
+ * Matches the parser $min times or more.
+ *
+ * The returned parser throws a LogicException when the parser succeeds without consuming input,
+ * which would otherwise loop forever.
  *
  * @template T
  *
@@ -209,7 +212,23 @@ function times(\Closure $parser, int $min, ?int $max = null): \Closure
  *
  * @return \Closure(string, int, bool=): (Success<list<T>>|Failure|Incomplete)
  */
-function repeated(\Closure $parser, int $min, int $max): \Closure
+function atLeast(\Closure $parser, int $min): \Closure
+{
+    return repeated($parser, $min, null);
+}
+
+/**
+ * @internal
+ *
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser
+ * @param ?int                                                          $max    null for no maximum: the parser must
+ *                                                                              then consume input
+ *
+ * @return \Closure(string, int, bool=): (Success<list<T>>|Failure|Incomplete)
+ */
+function repeated(\Closure $parser, int $min, ?int $max): \Closure
 {
     if ($min < 0) {
         throw new \ValueError(\sprintf('Expected a non-negative minimum, got %d', $min));
@@ -219,7 +238,7 @@ function repeated(\Closure $parser, int $min, int $max): \Closure
         $values = [];
         $hint = null;
 
-        for ($count = 0; $count < $max; ++$count) {
+        for ($count = 0; null === $max || $count < $max; ++$count) {
             $result = $parser($input, $offset, $partial);
 
             if ($result instanceof Incomplete) {
@@ -228,6 +247,10 @@ function repeated(\Closure $parser, int $min, int $max): \Closure
 
             if ($result instanceof Failure) {
                 return $count < $min ? furthest($hint, $result) : new Success($values, $offset, furthest($hint, $result));
+            }
+
+            if (null === $max && $result->offset === $offset) {
+                throw new \LogicException(\sprintf('Parser succeeded without consuming input at offset %d', $offset));
             }
 
             $values[] = $result->value;

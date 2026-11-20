@@ -23,6 +23,7 @@ use PHPUnit\Framework\TestCase;
 
 use function jubianchi\PPC\alt;
 use function jubianchi\PPC\anyBut;
+use function jubianchi\PPC\atLeast;
 use function jubianchi\PPC\bind;
 use function jubianchi\PPC\capture;
 use function jubianchi\PPC\chainLeft;
@@ -71,6 +72,7 @@ final class IncompleteTest extends TestCase
         yield 'many1 after a success' => [many1(alt(char('a'), $stub)), 'ab'];
         yield 'repeat' => [repeat(2, alt(char('a'), $stub)), 'ab'];
         yield 'times' => [times(alt(char('a'), $stub), 2), 'ab'];
+        yield 'atLeast' => [atLeast(alt(char('a'), $stub), 1), 'ab'];
         yield 'separated' => [separated(char(','), $stub), 'a'];
         yield 'separated separator' => [separated($stub, char('a')), 'a'];
         yield 'separated after a separator' => [separated(char(','), alt(char('a'), $stub)), 'a,b'];
