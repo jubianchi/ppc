@@ -218,6 +218,20 @@ function atLeast(\Closure $parser, int $min): \Closure
 }
 
 /**
+ * Matches the parser zero to $max times. It stops after $max matches without trying the parser again.
+ *
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser
+ *
+ * @return \Closure(string, int, bool=): (Success<list<T>>|Failure|Incomplete)
+ */
+function atMost(\Closure $parser, int $max): \Closure
+{
+    return times($parser, 0, $max);
+}
+
+/**
  * @internal
  *
  * @template T
