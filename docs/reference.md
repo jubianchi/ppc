@@ -491,6 +491,43 @@ use function jubianchi\PPC\{parse, regex, repeat};
 assert(parse(repeat(2, regex('/[0-9]/')), '42') === ['4', '2']);
 ```
 
+### times / atLeast / atMost
+
+```phps
+function times(\Closure $parser, int $min, ?int $max = null): \Closure
+function atLeast(\Closure $parser, int $min): \Closure
+function atMost(\Closure $parser, int $max): \Closure
+```
+
+`times` matches the parser exactly `$min` times, or between `$min` and `$max` times, both inclusive. `atLeast` matches
+it `$min` times or more, and `atMost` zero to `$max` times. Their value is the list of values.
+
+Like `\d{1,3}`, they stop after `$max` matches without trying the parser again: they do not fail when more matches
+follow, the next parser decides. Below the minimum, they report the failure that stopped the repetition.
+
+They throw a `ValueError` on a negative minimum, or on a maximum below the minimum. Like [`many`](#many--many1),
+`atLeast` throws a `LogicException` when the parser succeeds without consuming anything.
+
+```php
+<?php
+
+use jubianchi\PPC\SyntaxError;
+
+use function jubianchi\PPC\{atLeast, atMost, char, digit, parse, seq, times};
+
+$octet = times(digit(), 1, 3);
+
+assert(parse(seq($octet, char('.'), $octet), '192.1') === [['1', '9', '2'], '.', ['1']]);
+assert(parse(atLeast(char('a'), 2), 'aaa') === ['a', 'a', 'a']);
+assert(parse(atMost(char('a'), 2), '') === []);
+
+try {
+    parse($octet, '1921');
+} catch (SyntaxError $error) {
+    assert($error->getMessage() === 'Expected end of input, got "1" at line 1, column 4');
+}
+```
+
 ### separated
 
 ```phps

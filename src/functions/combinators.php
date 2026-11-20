@@ -179,6 +179,104 @@ function repeat(int $times, \Closure $parser): \Closure
 }
 
 /**
+ * Matches the parser exactly $min times, or between $min and $max times, both inclusive.
+ *
+ * It stops after $max matches without trying the parser again: it does not fail when more matches follow.
+ *
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser
+ *
+ * @return \Closure(string, int, bool=): (Success<list<T>>|Failure|Incomplete)
+ */
+function times(\Closure $parser, int $min, ?int $max = null): \Closure
+{
+    $max ??= $min;
+
+    if ($max < $min) {
+        throw new \ValueError(\sprintf('Expected a maximum of at least %d, got %d', $min, $max));
+    }
+
+    return repeated($parser, $min, $max);
+}
+
+/**
+ * Matches the parser $min times or more.
+ *
+ * The returned parser throws a LogicException when the parser succeeds without consuming input,
+ * which would otherwise loop forever.
+ *
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser
+ *
+ * @return \Closure(string, int, bool=): (Success<list<T>>|Failure|Incomplete)
+ */
+function atLeast(\Closure $parser, int $min): \Closure
+{
+    return repeated($parser, $min, null);
+}
+
+/**
+ * Matches the parser zero to $max times. It stops after $max matches without trying the parser again.
+ *
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser
+ *
+ * @return \Closure(string, int, bool=): (Success<list<T>>|Failure|Incomplete)
+ */
+function atMost(\Closure $parser, int $max): \Closure
+{
+    return times($parser, 0, $max);
+}
+
+/**
+ * @internal
+ *
+ * @template T
+ *
+ * @param \Closure(string, int, bool=): (Success<T>|Failure|Incomplete) $parser
+ * @param ?int                                                          $max    null for no maximum: the parser must
+ *                                                                              then consume input
+ *
+ * @return \Closure(string, int, bool=): (Success<list<T>>|Failure|Incomplete)
+ */
+function repeated(\Closure $parser, int $min, ?int $max): \Closure
+{
+    if ($min < 0) {
+        throw new \ValueError(\sprintf('Expected a non-negative minimum, got %d', $min));
+    }
+
+    return static function (string $input, int $offset, bool $partial = false) use ($parser, $min, $max): Result {
+        $values = [];
+        $hint = null;
+
+        for ($count = 0; null === $max || $count < $max; ++$count) {
+            $result = $parser($input, $offset, $partial);
+
+            if ($result instanceof Incomplete) {
+                return $result;
+            }
+
+            if ($result instanceof Failure) {
+                return $count < $min ? furthest($hint, $result) : new Success($values, $offset, furthest($hint, $result));
+            }
+
+            if (null === $max && $result->offset === $offset) {
+                throw new \LogicException(\sprintf('Parser succeeded without consuming input at offset %d', $offset));
+            }
+
+            $values[] = $result->value;
+            $offset = $result->offset;
+            $hint = furthest($hint, $result->hint);
+        }
+
+        return new Success($values, $offset, $hint);
+    };
+}
+
+/**
  * Matches the parser zero or more times, separated by the separator whose values are discarded.
  * A trailing separator is not consumed.
  *
